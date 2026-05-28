@@ -16,7 +16,7 @@ namespace BlazorTextEditor
             builder.Services.AddOpStreamClient()
                     .UseSignalRTransport(options =>
                     {
-                        options.HubUrl = "http://localhost:8080/collab";
+                        options.HubUrl = "http://localhost:50109/collab";
                     });
 
 

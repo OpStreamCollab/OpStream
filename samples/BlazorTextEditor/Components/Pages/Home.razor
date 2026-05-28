@@ -30,7 +30,7 @@
     {
         if (firstRender)
         {
-           
+            await Task.Delay(10000);
 
             _objRef = DotNetObjectReference.Create(this);
             await JS.InvokeVoidAsync("OpStreamAdapter.init", _editorId, _objRef);

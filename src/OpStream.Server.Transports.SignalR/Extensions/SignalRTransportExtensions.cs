@@ -19,6 +19,9 @@ public static class SignalRTransportExtensions
     public static IOpStreamBuilder AddSignalRTransport(this IOpStreamBuilder builder)
     {
         builder.Services.AddSingleton<SignalRBackplaneRelay>();
+        builder.Services.AddScoped<SignalRManagementTransport>();
+        builder.Services.AddScoped<SignalRTransport>();
+
         return builder;
     }
 
@@ -33,7 +36,8 @@ public static class SignalRTransportExtensions
     public static IEndpointConventionBuilder MapOpStreamSignalR(
         this IEndpointRouteBuilder endpoints,
         string pattern = "/collab")
-    {
+    {   
+
         var router = endpoints.ServiceProvider.GetRequiredService<DocumentRouter>();
         // GetAwaiter().GetResult() is intentional: MapHub is synchronous and the
         // router must be ready before the first client connects.

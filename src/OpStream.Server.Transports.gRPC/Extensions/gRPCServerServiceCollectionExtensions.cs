@@ -20,6 +20,8 @@ public static class GrpcTransportExtensions
     {
         builder.Services.AddSingleton<gRPCConnectionManager>();
         builder.Services.AddSingleton<gRPCBackplaneRelay>();
+        builder.Services.AddScoped<gRPCManagementTransport>();
+        builder.Services.AddScoped<gRPCTransport>();
         builder.Services.AddGrpc();
         return builder;
     }
