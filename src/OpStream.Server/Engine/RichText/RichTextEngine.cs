@@ -330,8 +330,22 @@ namespace OpStream.Server.Engine.RichText
                 }
                 else
                 {
-                    int length = Math.Min(iterA.PeekLength(), iterB.PeekLength());
-                    if (length <= 0) break;
+                    int lenA = iterA.PeekLength();
+                    int lenB = iterB.PeekLength();
+
+                    if (lenA == 0 && iterA.PeekType() == typeof(Insert))
+                    {
+                        result.Add(iterA.Next());
+                        continue;
+                    }
+
+                    int length = Math.Min(lenA, lenB);
+                    if (length <= 0)
+                    {
+                        if (lenA == 0) iterA.Next();
+                        if (lenB == 0) iterB.Next();
+                        continue;
+                    }
 
                     var opA = iterA.Next(length);
                     var opB = iterB.Next(length);
@@ -418,7 +432,7 @@ namespace OpStream.Server.Engine.RichText
             {
                 if (!b.TryGetValue(kvp.Key, out var bValue)) return false;
 
-                if (!object.Equals(kvp.Value?.ToString(), bValue?.ToString()))
+                if (!object.Equals(kvp.Value, bValue))
                     return false;
             }
             return true;
@@ -427,7 +441,10 @@ namespace OpStream.Server.Engine.RichText
         /// <summary>
         /// Determines whether an operation is a no-op (has no effect).
         /// </summary>
-        public bool IsNoOp(RichTextOp op) => op.Components.Count == 0 || op.Components.All(c => c is Retain r && r.Attributes == null);
+        public bool IsNoOp(RichTextOp op) => op.Components.Count == 0 || op.Components.All(c => 
+            (c is Retain r && r.Attributes == null) ||
+            (c is Insert i && i.Text.Length == 0) ||
+            (c is Delete d && d.Count == 0));
 
         /// <summary>
         /// Merges a base set of attributes with a new set of attributes.

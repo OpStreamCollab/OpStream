@@ -164,6 +164,10 @@ namespace OpStream.Server.Engine.Json
                     
                     if (WinsLWW(ts, peer, op, cTs, cPeer, cVal, cIsDel, isCompacting))
                     {
+                        // BUG FIX: Protection for explicit children in same-ts/same-peer batch.
+                        // This ensures sequential user intent (e.g. set parent then set child) survives compaction.
+                        if (isCompacting && ts == cTs && peer == cPeer) continue;
+
                         compacted.Remove(childPath);
                     }
                 }
@@ -182,7 +186,6 @@ namespace OpStream.Server.Engine.Json
         {
             var effectiveBatch = Compose(JsonOpBatch.Create(), opBatch);
             var invertedDict = new Dictionary<string, JsonOp>();
-            long realUtcNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
             foreach (var op in effectiveBatch!.Operations)
             {
@@ -197,7 +200,10 @@ namespace OpStream.Server.Engine.Json
                         continue;
                     }
 
-                    long safeTimestamp = Math.Max(realUtcNow, Math.Max(previousRegister.Timestamp, opTs) + 1);
+                    // BUG FIX: Don't jump to UtcNow here. Use the minimum timestamp required to win 
+                    // over the operation being inverted. This ensures hierarchical consistency
+                    // without killing concurrent writes that happened after the original operation.
+                    long safeTimestamp = Math.Max(previousRegister.Timestamp, opTs) + 1;
 
                     if (previousRegister.IsDeleted)
                         invertedDict[path] = new DeletePropertyOp(path, safeTimestamp, peerId);
@@ -206,7 +212,7 @@ namespace OpStream.Server.Engine.Json
                 }
                 else
                 {
-                    long safeTimestamp = Math.Max(realUtcNow, opTs + 1);
+                    long safeTimestamp = opTs + 1;
                     invertedDict[path] = new DeletePropertyOp(path, safeTimestamp, peerId);
                 }
 
@@ -223,7 +229,7 @@ namespace OpStream.Server.Engine.Json
                     {
                         if (!invertedDict.ContainsKey(childPath))
                         {
-                            long childSafeTs = Math.Max(realUtcNow, Math.Max(childReg.Timestamp, opTs) + 1);
+                            long childSafeTs = Math.Max(childReg.Timestamp, opTs) + 1;
                             invertedDict[childPath] = new SetPropertyOp(childPath, childReg.Value, childSafeTs, peerId);
                         }
                     }
@@ -252,6 +258,14 @@ namespace OpStream.Server.Engine.Json
             {
                 if (reg.Timestamp > maxExisting) maxExisting = reg.Timestamp;
             }
+
+            // Also consider timestamps already present in the operation batch to avoid demoting them
+            foreach (var jop in op.Operations)
+            {
+                long opTs = jop switch { SetPropertyOp s => s.Timestamp, DeletePropertyOp d => d.Timestamp, _ => 0 };
+                if (opTs > maxExisting) maxExisting = opTs;
+            }
+
             long newTs = Math.Max(maxExisting, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) + 1;
 
             var rewritten = new List<JsonOp>(op.Operations.Count);
