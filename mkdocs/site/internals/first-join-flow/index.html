@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://opstreamcollab.github.io/OpStream/reference/builder-api/">
+        <link rel="canonical" href="https://opstreamcollab.github.io/OpStream/internals/first-join-flow/">
       
       
-        <link rel="prev" href="../../internals/first-join-flow/">
+        <link rel="prev" href="../../operations/docker/">
       
       
-        <link rel="next" href="../interfaces/">
+        <link rel="next" href="../../reference/builder-api/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Builder API - OpStream</title>
+        <title>First user join flow - OpStream</title>
       
     
     
@@ -88,7 +88,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#builder-api-reference" class="md-skip">
+        <a href="#first-user-join-flow" class="md-skip">
           Skip to content
         </a>
       
@@ -124,7 +124,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Builder API
+              First user join flow
             
           </span>
         </div>
@@ -1765,8 +1765,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -1781,13 +1783,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
         
           
           <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
@@ -1808,109 +1808,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             
   
     Internals
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../internals/first-join-flow/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    First user join flow
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    
-    
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-        
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Reference
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_10">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Reference
   
 
           </label>
@@ -1939,7 +1842,7 @@
   <span class="md-ellipsis">
     
   
-    Builder API
+    First user join flow
   
 
     
@@ -1957,7 +1860,7 @@
   <span class="md-ellipsis">
     
   
-    Builder API
+    First user join flow
   
 
     
@@ -1983,10 +1886,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#naming-convention" class="md-nav__link">
+  <a href="#high-level-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Naming convention
+        High-level overview
       
     </span>
   </a>
@@ -1994,22 +1897,132 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#entry-point" class="md-nav__link">
+  <a href="#step-by-step-walkthrough" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Entry point
+        Step-by-step walkthrough
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Entry point">
+    <nav class="md-nav" aria-label="Step-by-step walkthrough">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#addopstream" class="md-nav__link">
+  <a href="#1-transport-handshake" class="md-nav__link">
     <span class="md-ellipsis">
       
-        AddOpStream
+        1 · Transport handshake
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-document-id-globalisation-multi-tenancy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2 · Document ID globalisation (multi-tenancy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-protocol-version-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3 · Protocol version check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-authorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4 · Authorization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-ownership-acquisition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5 · Ownership acquisition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6a-owner-path-cold-start-session-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6a · Owner path — cold-start session creation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6b-non-owner-path-proxy-to-owner-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6b · Non-owner path — proxy to owner node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-peer-joins-the-warm-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7 · Peer joins the warm session
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-awareness-state-snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8 · Awareness state snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-backplane-subscription" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9 · Backplane subscription
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-result-assembly-and-client-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10 · Result assembly and client response
       
     </span>
   </a>
@@ -2022,22 +2035,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#engine-registration" class="md-nav__link">
+  <a href="#complete-sequence-diagram" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Engine registration
+        Complete sequence diagram
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Engine registration">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edge-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edge cases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Edge cases">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#addengine" class="md-nav__link">
+  <a href="#document-already-exists-in-storage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        AddEngine
+        Document already exists in storage
       
     </span>
   </a>
@@ -2045,10 +2069,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#addvalidator" class="md-nav__link">
+  <a href="#owner-node-is-a-different-node-multi-node-cluster" class="md-nav__link">
     <span class="md-ellipsis">
       
-        AddValidator
+        Owner node is a different node (multi-node cluster)
       
     </span>
   </a>
@@ -2056,10 +2080,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#useseeder" class="md-nav__link">
+  <a href="#session-lock-contention" class="md-nav__link">
     <span class="md-ellipsis">
       
-        UseSeeder
+        Session lock contention
       
     </span>
   </a>
@@ -2072,10 +2096,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#storage" class="md-nav__link">
+  <a href="#objects-created-on-first-join" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Storage
+        Objects created on first join
       
     </span>
   </a>
@@ -2083,110 +2107,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#backplane" class="md-nav__link">
+  <a href="#related-pages" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Backplane
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authorization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Authorization
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Authorization">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#useauthorization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        UseAuthorization
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#snapshots" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Snapshots
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Snapshots">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#usesnapshotpolicy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        UseSnapshotPolicy
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#transports" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Transports
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#opstreamconstants" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        OpStreamConstants
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#fractionalindex" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        FractionalIndex
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#obsolete-aliases" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Obsolete aliases
+        Related pages
       
     </span>
   </a>
@@ -2202,6 +2126,75 @@
 
               
             
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
               
                 
   
@@ -2209,7 +2202,35 @@
   
   
     <li class="md-nav__item">
-      <a href="../interfaces/" class="md-nav__link">
+      <a href="../../reference/builder-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Builder API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/interfaces/" class="md-nav__link">
         
   
   
@@ -2237,7 +2258,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../wire-protocol/" class="md-nav__link">
+      <a href="../../reference/wire-protocol/" class="md-nav__link">
         
   
   
@@ -2292,10 +2313,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#naming-convention" class="md-nav__link">
+  <a href="#high-level-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Naming convention
+        High-level overview
       
     </span>
   </a>
@@ -2303,22 +2324,132 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#entry-point" class="md-nav__link">
+  <a href="#step-by-step-walkthrough" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Entry point
+        Step-by-step walkthrough
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Entry point">
+    <nav class="md-nav" aria-label="Step-by-step walkthrough">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#addopstream" class="md-nav__link">
+  <a href="#1-transport-handshake" class="md-nav__link">
     <span class="md-ellipsis">
       
-        AddOpStream
+        1 · Transport handshake
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-document-id-globalisation-multi-tenancy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2 · Document ID globalisation (multi-tenancy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-protocol-version-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3 · Protocol version check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-authorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4 · Authorization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-ownership-acquisition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5 · Ownership acquisition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6a-owner-path-cold-start-session-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6a · Owner path — cold-start session creation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6b-non-owner-path-proxy-to-owner-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6b · Non-owner path — proxy to owner node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-peer-joins-the-warm-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7 · Peer joins the warm session
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-awareness-state-snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8 · Awareness state snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-backplane-subscription" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9 · Backplane subscription
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-result-assembly-and-client-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10 · Result assembly and client response
       
     </span>
   </a>
@@ -2331,22 +2462,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#engine-registration" class="md-nav__link">
+  <a href="#complete-sequence-diagram" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Engine registration
+        Complete sequence diagram
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Engine registration">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edge-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edge cases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Edge cases">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#addengine" class="md-nav__link">
+  <a href="#document-already-exists-in-storage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        AddEngine
+        Document already exists in storage
       
     </span>
   </a>
@@ -2354,10 +2496,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#addvalidator" class="md-nav__link">
+  <a href="#owner-node-is-a-different-node-multi-node-cluster" class="md-nav__link">
     <span class="md-ellipsis">
       
-        AddValidator
+        Owner node is a different node (multi-node cluster)
       
     </span>
   </a>
@@ -2365,10 +2507,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#useseeder" class="md-nav__link">
+  <a href="#session-lock-contention" class="md-nav__link">
     <span class="md-ellipsis">
       
-        UseSeeder
+        Session lock contention
       
     </span>
   </a>
@@ -2381,10 +2523,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#storage" class="md-nav__link">
+  <a href="#objects-created-on-first-join" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Storage
+        Objects created on first join
       
     </span>
   </a>
@@ -2392,110 +2534,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#backplane" class="md-nav__link">
+  <a href="#related-pages" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Backplane
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authorization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Authorization
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Authorization">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#useauthorization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        UseAuthorization
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#snapshots" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Snapshots
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Snapshots">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#usesnapshotpolicy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        UseSnapshotPolicy
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#transports" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Transports
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#opstreamconstants" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        OpStreamConstants
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#fractionalindex" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        FractionalIndex
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#obsolete-aliases" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Obsolete aliases
+        Related pages
       
     </span>
   </a>
@@ -2548,7 +2590,7 @@
         <a href="./" class="md-path__link">
           
   <span class="md-ellipsis">
-    Reference
+    Internals
   </span>
 
         </a>
@@ -2570,248 +2612,493 @@
   
 
 
-<h1 id="builder-api-reference">Builder API reference<a class="headerlink" href="#builder-api-reference" title="Permanent link">&para;</a></h1>
-<p>The DI surface of OpStream. Lives in
-<code>Microsoft.Extensions.DependencyInjection</code> so it lights up just by
-<code>using</code> the namespace.</p>
-<h2 id="naming-convention">Naming convention<a class="headerlink" href="#naming-convention" title="Permanent link">&para;</a></h2>
+<h1 id="first-user-join-flow">First User Join Flow<a class="headerlink" href="#first-user-join-flow" title="Permanent link">&para;</a></h1>
+<p>This page traces in detail <strong>every step that executes</strong> when the very first
+peer connects to a document — from the raw WebSocket/SignalR handshake all the
+way to the moment the client receives the document snapshot and awareness
+state.</p>
+<div class="admonition tip">
+<p class="admonition-title">Why "first user" specifically?</p>
+<p>When a second (or later) peer joins, the <code>DocumentSession</code> and
+<code>AwarenessSession</code> are already warm in memory on the owner node.  The
+<em>first</em> join is the interesting case: it triggers cold-start storage
+reads, ownership acquisition, and the creation of all in-memory session
+objects from scratch.</p>
+</div>
+<hr />
+<h2 id="high-level-overview">High-level overview<a class="headerlink" href="#high-level-overview" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TD
+    A["Client calls JoinDocument()"]
+    B["Transport layer\nSignalRTransport / WebSocketTransport / gRPCTransport"]
+    C["IDocumentIdGlobalizer\nAdds tenant prefix to document ID"]
+    D["DocumentRouter.JoinDocumentAsync()"]
+    E{"Protocol version\ncheck"}
+    F["IDocumentAuthorizer.AuthorizeAsync()"]
+    G{"Authorized?"}
+    H["IDocumentOwnershipManager\n.GetOrAcquireOwnerAsync()"]
+    I{"This node\nis owner?"}
+    J["GetSessionAsync()\nCheck in-memory cache"]
+    K{"Session\nalready hot?"}
+    L["OpenSessionAsync()\nCold-start from storage"]
+    M["IDocumentStore\n.LoadSnapshotAsync()"]
+    N["IDocumentStore\n.StreamOpsAsync()\nReplay ops since snapshot"]
+    O["DocumentSession\ncreated &amp; cached"]
+    P["DocumentSession\n.JoinAsync(peerId)"]
+    Q["AwarenessSession\n.GetStates()"]
+    R["EnsureBackplaneSubscription()"]
+    S["SessionJoinResult returned\n{ revision, snapshot, pendingOps, awareness }"]
+    T["Backplane.SendRequest()\nProxy to owner node"]
+
+    A --&gt; B --&gt; C --&gt; D --&gt; E
+    E --&gt;|"version mismatch"| ERR1["❌ Error: UnsupportedProtocol"]
+    E --&gt;|"ok"| F
+    F --&gt; G
+    G --&gt;|"denied"| ERR2["❌ Error: Forbidden"]
+    G --&gt;|"ok"| H
+    H --&gt; I
+    I --&gt;|"yes"| J
+    I --&gt;|"no — proxy"| T --&gt; S
+    J --&gt; K
+    K --&gt;|"yes"| P
+    K --&gt;|"no"| L
+    L --&gt; M --&gt; N --&gt; O --&gt; P
+    P --&gt; Q --&gt; R --&gt; S</code></pre>
+<hr />
+<h2 id="step-by-step-walkthrough">Step-by-step walkthrough<a class="headerlink" href="#step-by-step-walkthrough" title="Permanent link">&para;</a></h2>
+<h3 id="1-transport-handshake">1 · Transport handshake<a class="headerlink" href="#1-transport-handshake" title="Permanent link">&para;</a></h3>
+<p>The client invokes the <strong><code>JoinDocument</code></strong> method over whichever transport it
+uses. All three transports funnel into the same <code>DocumentRouter</code>.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">SignalR</label><label for="__tabbed_1_2">WebSocket / gRPC</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">// SignalRTransport.cs</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="na">[HubMethodName(OpStreamConstants.HubMethods.JoinDocument)]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">public</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="n">Task</span><span class="o">&lt;</span><span class="n">SessionJoinResult</span><span class="o">&gt;</span><span class="w"> </span><span class="n">JoinDocument</span><span class="p">(</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="kt">string</span><span class="w"> </span><span class="n">documentId</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">documentType</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">clientProtoVersion</span><span class="p">)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">{</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="kt">string</span><span class="w"> </span><span class="n">globalDocId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">globalizer</span><span class="p">.</span><span class="n">ToGlobalId</span><span class="p">(</span><span class="n">documentId</span><span class="p">);</span><span class="w">   </span><span class="c1">// ← step 2</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="kt">var</span><span class="w"> </span><span class="n">peerId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Context</span><span class="p">.</span><span class="n">ConnectionId</span><span class="p">;</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="kt">var</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="n">router</span><span class="p">.</span><span class="n">JoinDocumentAsync</span><span class="p">(</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="n">globalDocId</span><span class="p">,</span><span class="w"> </span><span class="n">documentType</span><span class="p">,</span><span class="w"> </span><span class="n">peerId</span><span class="p">,</span><span class="w"> </span><span class="n">clientProtoVersion</span><span class="p">);</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">result</span><span class="p">.</span><span class="n">Success</span><span class="p">)</span><span class="w"> </span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HubException</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">ErrorMessage</span><span class="p">);</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="n">Groups</span><span class="p">.</span><span class="n">AddToGroupAsync</span><span class="p">(</span><span class="n">peerId</span><span class="p">,</span><span class="w"> </span><span class="n">globalDocId</span><span class="p">);</span><span class="w">  </span><span class="c1">// ← SignalR group</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">Value</span><span class="o">!</span><span class="p">;</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>The connection ID (<code>Context.ConnectionId</code>) is used as the <strong>peer ID</strong> for
+the entire session lifetime.</p>
+</div>
+<div class="tabbed-block">
+<p>WebSocket and gRPC transports follow the same pattern: extract a unique
+peer ID from the connection context and call <code>DocumentRouter.JoinDocumentAsync</code>.</p>
+</div>
+</div>
+</div>
+<hr />
+<h3 id="2-document-id-globalisation-multi-tenancy">2 · Document ID globalisation (multi-tenancy)<a class="headerlink" href="#2-document-id-globalisation-multi-tenancy" title="Permanent link">&para;</a></h3>
+<p>Before the router sees the document ID, <code>IDocumentIdGlobalizer</code> prepends the
+current tenant identifier.</p>
+<pre class="mermaid"><code>flowchart LR
+    A["localId = 'invoice-42'"]
+    B["IDocumentIdGlobalizer\n.ToGlobalId()"]
+    C["globalId = 'acme-corp::invoice-42'"]
+    A --&gt; B --&gt; C</code></pre>
+<p>This ensures that <code>invoice-42</code> in tenant <strong>acme-corp</strong> and <code>invoice-42</code> in
+tenant <strong>beta-inc</strong> are stored and routed as completely separate documents —
+with zero application-level code required from the engine or the storage layer.</p>
+<hr />
+<h3 id="3-protocol-version-check">3 · Protocol version check<a class="headerlink" href="#3-protocol-version-check" title="Permanent link">&para;</a></h3>
+<p><code>DocumentRouter.JoinDocumentAsync</code> immediately validates the client's protocol
+version against the server constant (<code>ProtocolVersions.Current = 1</code>).</p>
+<pre class="mermaid"><code>flowchart LR
+    A["clientProtoVersion"]
+    B{"== ProtocolVersions.Current?"}
+    C["Continue"]
+    D["OpResult.Fail:\nUnsupportedProtocol"]
+    A --&gt; B
+    B --&gt;|yes| C
+    B --&gt;|no| D</code></pre>
+<p>Mismatched clients receive an error immediately — before any storage or
+ownership work happens.</p>
+<hr />
+<h3 id="4-authorization">4 · Authorization<a class="headerlink" href="#4-authorization" title="Permanent link">&para;</a></h3>
+<p>For <strong>non-proxied</strong> requests (i.e. the request originated from a real client,
+not forwarded from a peer node), the router calls <code>IDocumentAuthorizer</code>:</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant R as DocumentRouter
+    participant Scope as DI Scope
+    participant Auth as IDocumentAuthorizer
+
+    R-&gt;&gt;Scope: CreateScope()
+    Scope-&gt;&gt;Auth: AuthorizeAsync(documentId)
+    Auth--&gt;&gt;R: DocumentAccess { CanRead, CanWrite }
+    R-&gt;&gt;R: permissionCheck(access) → CanRead?
+    alt Forbidden
+        R--&gt;&gt;Client: OpResult.Fail("Forbidden")
+    else Authorized
+        R-&gt;&gt;R: Continue to ownership
+    end</code></pre>
+<p>The <code>IDocumentAuthorizer</code> is <strong>your code</strong> — OpStream ships a default that
+permits everything, and you replace it with any identity/RBAC logic you need
+(<code>services.UseAuthorization&lt;MyAuthorizer&gt;()</code>).</p>
+<hr />
+<h3 id="5-ownership-acquisition">5 · Ownership acquisition<a class="headerlink" href="#5-ownership-acquisition" title="Permanent link">&para;</a></h3>
+<p>This is the <strong>cluster-critical</strong> step.  The router asks the ownership manager:
+<em>"which node should own this document?"</em></p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant R as DocumentRouter
+    participant OM as IDocumentOwnershipManager
+    participant BP as IBackplane
+
+    R-&gt;&gt;OM: GetOrAcquireOwnerAsync(documentId, thisNodeId)
+    OM--&gt;&gt;R: ownerNodeId
+
+    alt Single-node (LocalDocumentOwnershipManager)
+        Note over OM: Always returns thisNodeId — no external call
+    else Multi-node (Redis-backed)
+        Note over OM: SET NX in Redis; returns existing owner or claims ownership
+    end
+
+    R-&gt;&gt;R: ownerNodeId == backplane.NodeId?</code></pre>
 <table>
 <thead>
 <tr>
-<th>Prefix</th>
-<th>Style</th>
-<th>Behavior</th>
+<th>Mode</th>
+<th>Ownership manager</th>
+<th>Behaviour</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>Use*()</code></td>
-<td>Singleton</td>
-<td>Last call wins — replaces the previous registration.</td>
+<td><strong>Single node</strong></td>
+<td><code>LocalDocumentOwnershipManager</code></td>
+<td>Always returns the local node ID — zero network hops</td>
 </tr>
 <tr>
-<td><code>Add*()</code></td>
-<td>Collection</td>
-<td>Each call adds one element to a multi-instance collection.</td>
+<td><strong>Multi-node</strong></td>
+<td><code>RedisDocumentOwnershipManager</code></td>
+<td>Atomically claims ownership via Redis <code>SET NX</code>; returns existing owner if already claimed</td>
 </tr>
 </tbody>
 </table>
-<h2 id="entry-point">Entry point<a class="headerlink" href="#entry-point" title="Permanent link">&para;</a></h2>
-<h3 id="addopstream"><code>AddOpStream</code><a class="headerlink" href="#addopstream" title="Permanent link">&para;</a></h3>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="nf">AddOpStream</span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="k">this</span><span class="w"> </span><span class="n">IServiceCollection</span><span class="w"> </span><span class="n">services</span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="n">Action</span><span class="o">&lt;</span><span class="n">OpStreamOptions</span><span class="o">&gt;?</span><span class="w"> </span><span class="n">configure</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">);</span>
+<hr />
+<h3 id="6a-owner-path-cold-start-session-creation">6a · Owner path — cold-start session creation<a class="headerlink" href="#6a-owner-path-cold-start-session-creation" title="Permanent link">&para;</a></h3>
+<p>When this node is the owner <strong>and</strong> no warm session exists in memory, the
+router calls <code>OpenSessionAsync</code>.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant R as DocumentRouter
+    participant Store as IDocumentStore
+    participant Factory as IDocumentSessionFactory
+    participant Session as DocumentSession
+
+    R-&gt;&gt;Store: LoadSnapshotAsync(documentId)
+    Store--&gt;&gt;R: DocumentSnapshot? { Revision, State }
+
+    Note over R: snapshot?.Revision ?? 0 → currentRevision
+
+    R-&gt;&gt;Factory: CreateSessionAsync(documentId, currentRevision, snapshotData)
+    Factory--&gt;&gt;R: new DocumentSession (engine initialized from snapshot)
+
+    R-&gt;&gt;Store: StreamOpsAsync(documentId, sinceRevision: currentRevision)
+
+    loop For each StoredOp after snapshot
+        Store--&gt;&gt;R: StoredOp { Revision, Payload }
+        R-&gt;&gt;Session: RehydrateOpAsync(storedOp)
+        Session-&gt;&gt;Session: engine.Apply(state, op); CurrentRevision++
+    end
+
+    R-&gt;&gt;R: _activeSessions[documentId] = newSession</code></pre>
+<p><strong>What happens when there is no snapshot and no ops?</strong></p>
+<p><code>LoadSnapshotAsync</code> returns <code>null</code> → <code>currentRevision = 0</code>.<br />
+<code>StreamOpsAsync(documentId, 0)</code> yields no rows.<br />
+The factory creates the session with the <strong>engine's empty initial state</strong>
+(e.g. <code>""</code> for text, <code>{}</code> for JSON).<br />
+This is the <em>brand-new document</em> path.</p>
+<p><strong>What happens when there is a snapshot but no subsequent ops?</strong></p>
+<p>The factory restores state from <code>snapshotData</code> at <code>snapshot.Revision</code>.<br />
+<code>StreamOpsAsync</code> yields no additional rows.<br />
+The session is ready immediately without replaying any ops.</p>
+<p><strong>What happens when there are ops after the snapshot?</strong></p>
+<p>Each <code>StoredOp</code> is passed to <code>RehydrateOpAsync</code>, which deserialises the op
+payload and calls <code>engine.Apply</code> inside the serialization lock, advancing
+<code>CurrentRevision</code> step by step until the session is fully caught up.</p>
+<hr />
+<h3 id="6b-non-owner-path-proxy-to-owner-node">6b · Non-owner path — proxy to owner node<a class="headerlink" href="#6b-non-owner-path-proxy-to-owner-node" title="Permanent link">&para;</a></h3>
+<p>When this node is <strong>not</strong> the owner, it forwards the request to the owner via
+the backplane:</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant ClientNode as This Node (non-owner)
+    participant BP as Backplane
+    participant OwnerNode as Owner Node
+
+    ClientNode-&gt;&gt;BP: SendRequestAsync(ownerNodeId, "join-document", payload)
+    BP-&gt;&gt;OwnerNode: BackplaneRequest { JoinDocument, documentId, peerId, ... }
+    OwnerNode-&gt;&gt;OwnerNode: HandleIncomingRequestAsync()
+    OwnerNode-&gt;&gt;OwnerNode: JoinDocumentAsync(..., isProxied: true)
+    Note over OwnerNode: isProxied=true skips authorization\n(already checked on edge node)
+    OwnerNode--&gt;&gt;BP: BackplaneResponse { success, SessionJoinResult }
+    BP--&gt;&gt;ClientNode: BackplaneResponse
+    ClientNode--&gt;&gt;Client: SessionJoinResult</code></pre>
+<p>The <code>isProxied: true</code> flag is critical: the owner node skips the authorization
+call because the edge node already verified permissions.</p>
+<hr />
+<h3 id="7-peer-joins-the-warm-session">7 · Peer joins the warm session<a class="headerlink" href="#7-peer-joins-the-warm-session" title="Permanent link">&para;</a></h3>
+<p>With the session guaranteed to exist (either already warm or just opened),
+<code>DocumentSession.JoinAsync</code> is called:</p>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// DocumentSession.cs</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">public</span><span class="w"> </span><span class="n">Task</span><span class="o">&lt;</span><span class="n">DocumentStateResult</span><span class="o">&gt;</span><span class="w"> </span><span class="n">JoinAsync</span><span class="p">(</span><span class="kt">string</span><span class="w"> </span><span class="n">peerId</span><span class="p">,</span><span class="w"> </span><span class="n">CancellationToken</span><span class="w"> </span><span class="n">ct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">)</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">{</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="n">_activePeers</span><span class="p">.</span><span class="n">TryAdd</span><span class="p">(</span><span class="n">peerId</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="n">_logger</span><span class="p">.</span><span class="n">LogInformation</span><span class="p">(</span><span class="s">&quot;Peer {PeerId} joined document {DocId} ...&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="kt">var</span><span class="w"> </span><span class="n">stateBytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">JsonSerializer</span><span class="p">.</span><span class="n">SerializeToUtf8Bytes</span><span class="p">(</span><span class="n">_currentState</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">Task</span><span class="p">.</span><span class="n">FromResult</span><span class="p">(</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">        </span><span class="k">new</span><span class="w"> </span><span class="nf">DocumentStateResult</span><span class="p">(</span><span class="n">CurrentRevision</span><span class="p">,</span><span class="w"> </span><span class="n">stateBytes</span><span class="p">,</span><span class="w"> </span><span class="n">Array</span><span class="p">.</span><span class="n">Empty</span><span class="o">&lt;</span><span class="n">ReadOnlyMemory</span><span class="o">&lt;</span><span class="kt">byte</span><span class="o">&gt;&gt;</span><span class="p">()));</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>Registers the core services and sensible defaults:</p>
+<p>The peer is added to <code>_activePeers</code> (a <code>ConcurrentDictionary&lt;string, int&gt;</code>) and
+the <strong>full current state</strong> is serialised to JSON as the initial snapshot for
+this client.</p>
+<hr />
+<h3 id="8-awareness-state-snapshot">8 · Awareness state snapshot<a class="headerlink" href="#8-awareness-state-snapshot" title="Permanent link">&para;</a></h3>
+<p>Immediately after the document join, the router retrieves the current presence
+state of all already-connected peers:</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant R as DocumentRouter
+    participant AS as AwarenessSession
+
+    R-&gt;&gt;AS: GetAwarenessSessionAsync(documentId)
+    AS--&gt;&gt;R: IAwarenessSession (created now if first join)
+
+    R-&gt;&gt;AS: GetStates()
+    AS-&gt;&gt;AS: EvictWhere(s =&gt; engine.IsExpired(s, now))
+    AS--&gt;&gt;R: IReadOnlyList&lt;AwarenessState&gt;</code></pre>
+<p>For the <strong>first</strong> peer, <code>GetStates()</code> returns an empty list — there are no
+other peers yet.  The awareness session itself is created lazily at this point
+and stored in <code>_activeAwareness</code>.</p>
+<hr />
+<h3 id="9-backplane-subscription">9 · Backplane subscription<a class="headerlink" href="#9-backplane-subscription" title="Permanent link">&para;</a></h3>
+<p>The last step before returning the result is ensuring the local node is
+subscribed to backplane events for this document:</p>
+<pre class="mermaid"><code>flowchart LR
+    A["EnsureBackplaneSubscriptionAsync(documentId)"]
+    B{"Already\nsubscribed?"}
+    C["backplane.SubscribeAsync(documentId, handler)"]
+    D["_backplaneSubscriptions[documentId] = sub"]
+    E["Done"]
+    A --&gt; B
+    B --&gt;|yes| E
+    B --&gt;|no| C --&gt; D --&gt; E</code></pre>
+<p>When an op is applied by the owner node (possibly in the future when more
+peers are connected), the owner publishes to the backplane.  The subscription
+registered here ensures that <strong>this node's connected clients</strong> (via
+<code>SignalRBackplaneRelay</code> or the equivalent) will receive the broadcast.</p>
+<hr />
+<h3 id="10-result-assembly-and-client-response">10 · Result assembly and client response<a class="headerlink" href="#10-result-assembly-and-client-response" title="Permanent link">&para;</a></h3>
+<p>The router assembles a <code>SessionJoinResult</code> from all the pieces collected above:</p>
+<pre class="mermaid"><code>flowchart LR
+    A["DocumentStateResult\n{ revision, stateBytes, pendingOps }"]
+    B["IReadOnlyList&amp;lt;AwarenessState&amp;gt;\ncurrent peer presence"]
+    C["SessionJoinResult\n{ Revision, Snapshot, PendingOps, Awareness }"]
+    A --&gt; C
+    B --&gt; C</code></pre>
+<p>The transport layer serialises <code>SessionJoinResult</code> back to the client.  The
+client now has:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What the client does with it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Revision</code></td>
+<td>Sets its local revision counter — all subsequent ops are based from here</td>
+</tr>
+<tr>
+<td><code>Snapshot</code></td>
+<td>Initialises the local document state (text string, JSON object, …)</td>
+</tr>
+<tr>
+<td><code>PendingOps</code></td>
+<td>Reserved for future use; currently always empty</td>
+</tr>
+<tr>
+<td><code>Awareness</code></td>
+<td>Populates the initial presence UI (avatars, cursors, …)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="complete-sequence-diagram">Complete sequence diagram<a class="headerlink" href="#complete-sequence-diagram" title="Permanent link">&para;</a></h2>
+<p>The following diagram combines all the steps above into a single, end-to-end
+view.  It shows the <strong>first user, new document</strong> path — the most complete
+case, touching every component.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    actor Client as 🌐 Client
+    participant T as SignalRTransport
+    participant G as IDocumentIdGlobalizer
+    participant R as DocumentRouter
+    participant Auth as IDocumentAuthorizer
+    participant OM as IDocumentOwnershipManager
+    participant Store as IDocumentStore
+    participant Factory as IDocumentSessionFactory
+    participant DS as DocumentSession
+    participant AS as AwarenessSession
+    participant BP as IBackplane
+
+    Client-&gt;&gt;T: JoinDocument("invoice-42", "json", proto=1)
+    T-&gt;&gt;G: ToGlobalId("invoice-42")
+    G--&gt;&gt;T: "acme::invoice-42"
+
+    T-&gt;&gt;R: JoinDocumentAsync("acme::invoice-42", "json", peerId, proto=1)
+
+    Note over R: Protocol version check (proto=1 ✅)
+
+    R-&gt;&gt;Auth: AuthorizeAsync("acme::invoice-42")
+    Auth--&gt;&gt;R: DocumentAccess { CanRead=true, CanWrite=true }
+
+    R-&gt;&gt;OM: GetOrAcquireOwnerAsync("acme::invoice-42", "node-1")
+    OM--&gt;&gt;R: "node-1"  ← this node is now the owner
+
+    Note over R: No warm session found in _activeSessions
+
+    R-&gt;&gt;Store: LoadSnapshotAsync("acme::invoice-42")
+    Store--&gt;&gt;R: null  ← brand-new document, no snapshot yet
+
+    R-&gt;&gt;Factory: CreateSessionAsync("acme::invoice-42", revision=0, snapshotData=null)
+    Factory--&gt;&gt;R: DocumentSession (empty state, revision=0)
+
+    R-&gt;&gt;Store: StreamOpsAsync("acme::invoice-42", sinceRevision=0)
+    Store--&gt;&gt;R: (empty stream — no ops yet)
+
+    R-&gt;&gt;R: _activeSessions["acme::invoice-42"] = session
+
+    R-&gt;&gt;DS: JoinAsync(peerId)
+    DS-&gt;&gt;DS: _activePeers.TryAdd(peerId, 0)
+    DS--&gt;&gt;R: DocumentStateResult { revision=0, snapshot="{}", pendingOps=[] }
+
+    R-&gt;&gt;AS: GetAwarenessSessionAsync("acme::invoice-42")
+    AS--&gt;&gt;R: new AwarenessSession (just created, empty)
+    R-&gt;&gt;AS: GetStates()
+    AS--&gt;&gt;R: [] (no other peers)
+
+    R-&gt;&gt;BP: EnsureBackplaneSubscriptionAsync("acme::invoice-42")
+    BP--&gt;&gt;R: subscription registered
+
+    R--&gt;&gt;T: OpResult.Ok(SessionJoinResult { revision=0, snapshot, awareness=[] })
+    T-&gt;&gt;T: Groups.AddToGroupAsync(peerId, "acme::invoice-42")
+    T--&gt;&gt;Client: SessionJoinResult ✅</code></pre>
+<hr />
+<h2 id="edge-cases">Edge cases<a class="headerlink" href="#edge-cases" title="Permanent link">&para;</a></h2>
+<h3 id="document-already-exists-in-storage">Document already exists in storage<a class="headerlink" href="#document-already-exists-in-storage" title="Permanent link">&para;</a></h3>
+<p>If <code>LoadSnapshotAsync</code> returns a snapshot (e.g. the document was last
+active yesterday and a snapshot was taken when the last peer left), the
+flow diverges at step 6:</p>
+<pre class="mermaid"><code>flowchart TD
+    A["LoadSnapshotAsync()"]
+    B{"snapshot != null?"}
+    C["currentRevision = snapshot.Revision\ninitialState = snapshot.State"]
+    D["currentRevision = 0\ninitialState = engine.Empty"]
+    E["StreamOpsAsync(sinceRevision)"]
+    F["RehydrateOpAsync for each op"]
+    G["Session ready"]
+
+    A --&gt; B
+    B --&gt;|yes| C --&gt; E --&gt; F --&gt; G
+    B --&gt;|no| D --&gt; E --&gt; F --&gt; G</code></pre>
+<h3 id="owner-node-is-a-different-node-multi-node-cluster">Owner node is a different node (multi-node cluster)<a class="headerlink" href="#owner-node-is-a-different-node-multi-node-cluster" title="Permanent link">&para;</a></h3>
+<p>When Redis ownership returns a <strong>different</strong> node ID, this node becomes a
+<em>proxy node</em> for this join request.  The join is forwarded over the backplane,
+the owner executes steps 6–9, and the result travels back through the
+backplane to this node and then to the client.  From the client's perspective
+the response is identical.</p>
+<h3 id="session-lock-contention">Session lock contention<a class="headerlink" href="#session-lock-contention" title="Permanent link">&para;</a></h3>
+<p><code>OpenSessionAsync</code> is protected by a per-document <code>SemaphoreSlim</code>.  If two
+peers arrive simultaneously for the same cold document, only one call opens
+the session; the second will find it in <code>_activeSessions</code> when the lock is
+released and skip the storage reads entirely.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant P1 as Peer 1
+    participant P2 as Peer 2
+    participant Lock as SemaphoreSlim
+    participant Store as IDocumentStore
+
+    P1-&gt;&gt;Lock: WaitAsync() ← acquired
+    P2-&gt;&gt;Lock: WaitAsync() ← waiting
+
+    P1-&gt;&gt;Store: LoadSnapshot + StreamOps
+    Store--&gt;&gt;P1: data
+    P1-&gt;&gt;P1: _activeSessions[docId] = newSession
+    P1-&gt;&gt;Lock: Release()
+
+    Lock--&gt;&gt;P2: acquired
+    P2-&gt;&gt;P2: _activeSessions.TryGetValue → session found ✅
+    P2-&gt;&gt;Lock: Release()
+    Note over P2: Returns existing session — no second storage read</code></pre>
+<hr />
+<h2 id="objects-created-on-first-join">Objects created on first join<a class="headerlink" href="#objects-created-on-first-join" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Object</th>
+<th>Where stored</th>
+<th>Lifetime</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DocumentSession&lt;TDoc, TOp&gt;</code></td>
+<td><code>DocumentRouter._activeSessions</code></td>
+<td>Until last peer leaves + 5-minute idle timeout</td>
+</tr>
+<tr>
+<td><code>AwarenessSession</code></td>
+<td><code>DocumentRouter._activeAwareness</code></td>
+<td>Same as document session</td>
+</tr>
+<tr>
+<td><code>SemaphoreSlim</code> (per doc)</td>
+<td><code>DocumentRouter._sessionLocks</code></td>
+<td>Same as document session</td>
+</tr>
+<tr>
+<td><code>IAsyncDisposable</code> backplane sub</td>
+<td><code>DocumentRouter._backplaneSubscriptions</code></td>
+<td>Same as document session</td>
+</tr>
+</tbody>
+</table>
+<p>All four are cleaned up together by <code>CloseSessionAsync</code>, which is triggered by
+<code>ScheduleSessionClosure</code> when <code>ActivePeersCount</code> drops to zero.</p>
+<hr />
+<h2 id="related-pages">Related pages<a class="headerlink" href="#related-pages" title="Permanent link">&para;</a></h2>
+<div class="grid cards">
 <ul>
-<li><code>TextOtEngine</code> registered for document type <code>"text"</code>.</li>
-<li><code>MemoryDocumentStore</code> (warning at startup; <strong>not for production</strong>).</li>
-<li><code>LocalBackplane</code> (single-node, in-process fan-out).</li>
-<li><code>AllowAllAuthorizer</code> (warning at startup; <strong>not for production</strong>).</li>
-<li><code>HybridSnapshotPolicy(100, 5 min)</code>.</li>
-<li>Health checks under tags <code>opstream</code>, <code>storage</code>, <code>backplane</code>.</li>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.5 17c-.13 0-.26 0-.39.04l-1.61-3.25a2.5 2.5 0 0 0-1.75-4.29c-.13 0-.25 0-.39.04l-1.63-3.25c.48-.45.77-1.08.77-1.79a2.5 2.5 0 0 0-5 0c0 .71.29 1.34.76 1.79L8.64 9.54c-.14-.04-.26-.04-.39-.04a2.5 2.5 0 0 0-1.75 4.29l-1.61 3.25C4.76 17 4.63 17 4.5 17a2.5 2.5 0 0 0 0 5A2.5 2.5 0 0 0 7 19.5c0-.7-.29-1.34-.76-1.79l1.62-3.25c.14.04.26.04.39.04s.25 0 .39-.04l1.63 3.25c-.47.45-.77 1.09-.77 1.79a2.5 2.5 0 0 0 5 0A2.5 2.5 0 0 0 12 17c-.13 0-.26 0-.39.04L10 13.79c.46-.45.75-1.08.75-1.79s-.29-1.34-.75-1.79l1.61-3.25c.13.04.26.04.39.04s.26 0 .39-.04L14 10.21c-.45.45-.75 1.09-.75 1.79a2.5 2.5 0 0 0 2.5 2.5c.13 0 .25 0 .39-.04l1.63 3.25c-.47.45-.77 1.09-.77 1.79a2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0-2.5-2.5"/></svg></span> <strong><a href="../../architecture/">Architecture overview</a></strong>
+  The layered model and how every component fits together.</p>
+</li>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7s3.58 4 8 4 8-1.79 8-4-3.58-4-8-4M4 9v3c0 2.21 3.58 4 8 4s8-1.79 8-4V9c0 2.21-3.58 4-8 4s-8-1.79-8-4m0 5v3c0 2.21 3.58 4 8 4s8-1.79 8-4v-3c0 2.21-3.58 4-8 4s-8-1.79-8-4"/></svg></span> <strong><a href="../../storage/">Storage</a></strong>
+  How snapshots and op logs are persisted.</p>
+</li>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3c-1.27 0-2.4.8-2.82 2H3v2h1.95L2 14c-.47 2 1 3 3.5 3s4.06-1 3.5-3L6.05 7h3.12c.33.85.98 1.5 1.83 1.83V20H2v2h20v-2h-9V8.82c.85-.32 1.5-.97 1.82-1.82h3.13L15 14c-.47 2 1 3 3.5 3s4.06-1 3.5-3l-2.95-7H21V5h-6.17C14.4 3.8 13.27 3 12 3m0 2a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m-6.5 5.25L7 14H4zm13 0L20 14h-3z"/></svg></span> <strong><a href="../../operations/backplane/">Backplane</a></strong>
+  How owner nodes are elected and how ops are fanned out in a cluster.</p>
+</li>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5m0-12.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5"/></svg></span> <strong><a href="../../engines/awareness/">Awareness engine</a></strong>
+  The ephemeral presence layer built on top of sessions.</p>
+</li>
 </ul>
-<p>Returns an <code>IOpStreamBuilder</code> you chain further configuration onto.</p>
-<h2 id="engine-registration">Engine registration<a class="headerlink" href="#engine-registration" title="Permanent link">&para;</a></h2>
-<h3 id="addengine"><code>AddEngine</code><a class="headerlink" href="#addengine" title="Permanent link">&para;</a></h3>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">AddEngine</span><span class="o">&lt;</span><span class="n">TDoc</span><span class="p">,</span><span class="w"> </span><span class="n">TOp</span><span class="p">,</span><span class="w"> </span><span class="n">TEngine</span><span class="o">&gt;</span><span class="p">(</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">,</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="kt">string</span><span class="w"> </span><span class="n">documentType</span><span class="p">)</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">TEngine</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IOpEngine</span><span class="o">&lt;</span><span class="n">TDoc</span><span class="p">,</span><span class="w"> </span><span class="n">TOp</span><span class="o">&gt;</span><span class="p">;</span>
-</span></code></pre></div>
-<p>Registers an engine for a document-type discriminator string. Call once
-per document type your app handles. Multiple document types are
-supported; the router looks up the right engine by the discriminator
-each client sends with its <code>JoinDocument</code> call.</p>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">()</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="p">.</span><span class="n">AddEngine</span><span class="o">&lt;</span><span class="n">TextDocument</span><span class="p">,</span><span class="w"> </span><span class="n">TextOp</span><span class="p">,</span><span class="w"> </span><span class="n">TextOtEngine</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;text/markdown&quot;</span><span class="p">)</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="p">.</span><span class="n">AddEngine</span><span class="o">&lt;</span><span class="n">RichTextDocument</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextOp</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextEngine</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;rich-text&quot;</span><span class="p">)</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="p">.</span><span class="n">AddEngine</span><span class="o">&lt;</span><span class="n">TreeDocument</span><span class="p">,</span><span class="w"> </span><span class="n">TreeOpBatch</span><span class="p">,</span><span class="w"> </span><span class="n">TreeCrdtEngine</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;blocks&quot;</span><span class="p">);</span>
-</span></code></pre></div>
-<h3 id="addvalidator"><code>AddValidator</code><a class="headerlink" href="#addvalidator" title="Permanent link">&para;</a></h3>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">AddValidator</span><span class="o">&lt;</span><span class="n">TOp</span><span class="p">,</span><span class="w"> </span><span class="n">TValidator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">)</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">TValidator</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IOpValidator</span><span class="o">&lt;</span><span class="n">TOp</span><span class="o">&gt;</span><span class="p">;</span>
-</span></code></pre></div>
-<p>Registers a per-op validator. Multiple validators are evaluated in
-registration order; the first one that returns <code>false</code> rejects the op.</p>
-<h3 id="useseeder"><code>UseSeeder</code><a class="headerlink" href="#useseeder" title="Permanent link">&para;</a></h3>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">UseSeeder</span><span class="o">&lt;</span><span class="n">TDoc</span><span class="p">,</span><span class="w"> </span><span class="n">TSeeder</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">)</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">TSeeder</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IDocumentSeeder</span><span class="o">&lt;</span><span class="n">TDoc</span><span class="o">&gt;</span><span class="p">;</span>
-</span></code></pre></div>
-<p>Replaces the default <code>EmptyDocumentSeeder&lt;TDoc&gt;</code> used to populate new
-documents on first access.</p>
-<h2 id="storage">Storage<a class="headerlink" href="#storage" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Method</th>
-<th>Provider</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>UseMemoryStorage()</code></td>
-<td>In-memory (default; for tests only)</td>
-</tr>
-<tr>
-<td><code>UseEfCoreStorage&lt;TContext&gt;()</code></td>
-<td>Entity Framework Core</td>
-</tr>
-<tr>
-<td><code>UseSqlServer(connStr)</code> / <code>UseSqlServerStorage(opts)</code></td>
-<td>SQL Server</td>
-</tr>
-<tr>
-<td><code>UsePostgreSql(connStr)</code> / <code>UsePostgreSqlStorage(opts)</code></td>
-<td>PostgreSQL</td>
-</tr>
-<tr>
-<td><code>UseMySql(connStr)</code> / <code>UseMySqlStorage(opts)</code></td>
-<td>MySQL / MariaDB</td>
-</tr>
-<tr>
-<td><code>UseSqlite(connStr)</code> / <code>UseSqliteStorage(opts)</code></td>
-<td>SQLite</td>
-</tr>
-<tr>
-<td><code>UseMongoDbStorage(opts)</code></td>
-<td>MongoDB</td>
-</tr>
-<tr>
-<td><code>UseRedis(connStr)</code> / <code>UseRedisStorage(opts)</code></td>
-<td>Redis</td>
-</tr>
-</tbody>
-</table>
-<p>See <a href="../../storage/">Storage backends</a>.</p>
-<h2 id="backplane">Backplane<a class="headerlink" href="#backplane" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Method</th>
-<th>Behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>UseLocalBackplane()</code></td>
-<td>Single-node in-process fan-out (default).</td>
-</tr>
-<tr>
-<td><code>UseRedisBackplane(connStr or opts)</code></td>
-<td>Multi-node Redis backplane.</td>
-</tr>
-</tbody>
-</table>
-<p>See <a href="../../operations/backplane/">Backplane</a>.</p>
-<h2 id="authorization">Authorization<a class="headerlink" href="#authorization" title="Permanent link">&para;</a></h2>
-<h3 id="useauthorization"><code>UseAuthorization</code><a class="headerlink" href="#useauthorization" title="Permanent link">&para;</a></h3>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">UseAuthorization</span><span class="o">&lt;</span><span class="n">TAuthorizer</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">)</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">TAuthorizer</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IDocumentAuthorizer</span><span class="p">;</span>
-</span></code></pre></div>
-<p>Replaces the default <code>AllowAllAuthorizer</code> with a scoped implementation
-that runs once per request. See <a href="../../operations/authorization/">Authorization</a>.</p>
-<h2 id="snapshots">Snapshots<a class="headerlink" href="#snapshots" title="Permanent link">&para;</a></h2>
-<h3 id="usesnapshotpolicy"><code>UseSnapshotPolicy</code><a class="headerlink" href="#usesnapshotpolicy" title="Permanent link">&para;</a></h3>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="nf">UseSnapshotPolicy</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">,</span><span class="w"> </span><span class="n">ISnapshotPolicy</span><span class="w"> </span><span class="n">policy</span><span class="p">);</span>
-</span></code></pre></div>
-<p>Replaces the default <code>HybridSnapshotPolicy(100, 5 min)</code>. See
-<a href="../../operations/snapshots/">Snapshots</a>.</p>
-<h2 id="transports">Transports<a class="headerlink" href="#transports" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Method</th>
-<th>Returns</th>
-<th>Maps endpoint</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>AddSignalRTransport()</code></td>
-<td><code>IOpStreamBuilder</code></td>
-<td><code>app.MapOpStreamSignalR(path?)</code></td>
-</tr>
-<tr>
-<td><code>AddWebSocketTransport()</code></td>
-<td><code>IOpStreamBuilder</code></td>
-<td><code>app.MapOpStreamWebSockets(path?)</code></td>
-</tr>
-<tr>
-<td><code>AddGrpcTransport()</code></td>
-<td><code>IOpStreamBuilder</code></td>
-<td><code>app.MapOpStreamGrpc()</code></td>
-</tr>
-</tbody>
-</table>
-<p>You can register <strong>more than one</strong> transport in the same app.</p>
-<h2 id="opstreamconstants">OpStreamConstants<a class="headerlink" href="#opstreamconstants" title="Permanent link">&para;</a></h2>
-<p>The string constants used on the wire — exposed so clients and tests can
-reference them instead of hard-coding strings.</p>
-<table>
-<thead>
-<tr>
-<th>Class</th>
-<th>Contents</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>OpStreamConstants.HubMethods</code></td>
-<td>SignalR client→server method names</td>
-</tr>
-<tr>
-<td><code>OpStreamConstants.ClientEvents</code></td>
-<td>SignalR server→client event names</td>
-</tr>
-<tr>
-<td><code>OpStreamConstants.BackplaneCommands</code></td>
-<td>RPC types over the backplane</td>
-</tr>
-<tr>
-<td><code>OpStreamConstants.BackplaneMessages</code></td>
-<td>Fan-out message types</td>
-</tr>
-<tr>
-<td><code>OpStreamConstants.Engines</code></td>
-<td>Built-in engine name constants</td>
-</tr>
-</tbody>
-</table>
-<h2 id="fractionalindex">FractionalIndex<a class="headerlink" href="#fractionalindex" title="Permanent link">&para;</a></h2>
-<p><code>OpStream.Server.Engine.Common.FractionalIndex.Between(left, right)</code> —
-strict-between key generator for siblings in Tree / Table CRDTs.</p>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="nf">Between</span><span class="p">(</span><span class="kt">string?</span><span class="w"> </span><span class="n">left</span><span class="p">,</span><span class="w"> </span><span class="kt">string?</span><span class="w"> </span><span class="n">right</span><span class="p">);</span>
-</span></code></pre></div>
-<ul>
-<li>Pass <code>null</code> on either side for an open boundary.</li>
-<li>Throws <code>ArgumentException</code> if <code>left &gt;= right</code> or no alphabet-valid
-  intermediate exists (e.g. <code>Between("a", "a!")</code>).</li>
-</ul>
-<h2 id="obsolete-aliases">Obsolete aliases<a class="headerlink" href="#obsolete-aliases" title="Permanent link">&para;</a></h2>
-<p>The following exist for backwards compatibility and will be removed in v1.0:</p>
-<table>
-<thead>
-<tr>
-<th>Old</th>
-<th>Use instead</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>AddOpStreamServer()</code></td>
-<td><code>AddOpStream()</code></td>
-</tr>
-<tr>
-<td><code>ConfigureDocumentType&lt;...&gt;(type)</code></td>
-<td><code>AddEngine&lt;...&gt;(type)</code></td>
-</tr>
-<tr>
-<td><code>UseNoopBackplane()</code></td>
-<td><code>UseLocalBackplane()</code></td>
-</tr>
-</tbody>
-</table>
+</div>
 
 
 
