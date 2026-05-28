@@ -116,7 +116,7 @@ if (enableSignalR)    ops.AddSignalRTransport();
 if (enableWebSockets) ops.AddWebSocketTransport();
 if (enableGrpc)       ops.AddGrpcTransport();
 
-if (enableSignalR) builder.Services.AddSignalR();
+
 
 // ─── Build pipeline ──────────────────────────────────────────────────────────
 var app = builder.Build();

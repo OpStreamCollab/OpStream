@@ -26,10 +26,7 @@ public static class GrpcTransportExtensions
         return builder;
     }
 
-    /// <inheritdoc cref="AddGrpcTransport"/>
-    [Obsolete("Use AddGrpcTransport() instead. This alias will be removed in v1.0.", error: false)]
-    public static IOpStreamBuilder AddOpStreamgRPCTransport(this IOpStreamBuilder builder)
-        => builder.AddGrpcTransport();
+
 
     /// <summary>
     /// Maps the gRPC collaboration service.

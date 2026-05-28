@@ -25,10 +25,7 @@ public static class WebSocketTransportExtensions
         return builder;
     }
 
-    /// <inheritdoc cref="AddWebSocketTransport"/>
-    [Obsolete("Use AddWebSocketTransport() instead. This alias will be removed in v1.0.", error: false)]
-    public static IOpStreamBuilder AddOpStreamWebSocketsTransport(this IOpStreamBuilder builder)
-        => builder.AddWebSocketTransport();
+
 
     // AddWebSocketTransport also registers WebSocketManagementTransport because management is
     // an optional endpoint on the same listener — no separate AddXxx call required.

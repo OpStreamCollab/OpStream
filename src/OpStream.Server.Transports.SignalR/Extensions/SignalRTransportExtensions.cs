@@ -21,14 +21,11 @@ public static class SignalRTransportExtensions
         builder.Services.AddSingleton<SignalRBackplaneRelay>();
         builder.Services.AddScoped<SignalRManagementTransport>();
         builder.Services.AddScoped<SignalRTransport>();
-
+        builder.Services.AddSignalR();
         return builder;
     }
 
-    /// <inheritdoc cref="AddSignalRTransport"/>
-    [Obsolete("Use AddSignalRTransport() instead. This alias will be removed in v1.0.", error: false)]
-    public static IOpStreamBuilder AddOpStreamSignalRTransport(this IOpStreamBuilder builder)
-        => builder.AddSignalRTransport();
+
 
     /// <summary>
     /// Maps the SignalR collaboration hub to <paramref name="pattern"/>.
