@@ -120,6 +120,44 @@ namespace OpStream.Tests.Engine
                 .Should().Be(string.Concat(sequential.Content.Select(i => i.Text)));
         }
 
+        // BUG: Transform simply concatenates transformed chunks into the result list
+        // but never calls Compact(). This leaves adjacent identical operations fragmented,
+        // which violates the standard OT normalization rules.
+        [Fact]
+        public void RichText_Transform_ShouldCompactResultingOperations()
+        {
+            var engine = new RichTextEngine();
+            
+            var opAlice = RichTextOp.Create(new Insert("A"), new Insert("B"));
+            var opBob = RichTextOp.Create(new Retain(0));
+
+            var transformed = engine.Transform(opAlice, opBob, TransformPriority.IncomingWins);
+
+            transformed.Should().NotBeNull();
+            transformed!.Components.Should().HaveCount(1, 
+                "Transform should compact adjacent Insert components into a single Insert");
+        }
+
+        // BUG: Similar to above, adjacent Retains with identical attributes remain fragmented
+        // after Transform because it lacks a final Compact() pass.
+        [Fact]
+        public void RichText_Transform_ShouldCompactAdjacentRetains()
+        {
+            var engine = new RichTextEngine();
+            
+            var opAlice = RichTextOp.Create(
+                new Retain(2, new TextAttributes { ["bold"] = true }),
+                new Retain(2, new TextAttributes { ["bold"] = true })
+            );
+            var opBob = RichTextOp.Create(new Retain(4));
+
+            var transformed = engine.Transform(opAlice, opBob, TransformPriority.IncomingWins);
+
+            transformed.Should().NotBeNull();
+            transformed!.Components.Should().HaveCount(1, 
+                "Transform should merge adjacent Retains with identical attributes");
+        }
+
         // ------------------------------------------------------------
         // JsonCrdtEngine
         // ------------------------------------------------------------
@@ -200,6 +238,61 @@ namespace OpStream.Tests.Engine
 
             ts.Should().BeGreaterThanOrEqualTo(farFuture,
                 "RestampToWin must never produce a timestamp lower than the operation already carried");
+        }
+
+        // BUG: ApplySingleOp only checks if the EXACT path exists in `registers`.
+        // It never checks if an ANCESTOR was deleted with a newer timestamp.
+        // Therefore, a stale SetPropertyOp on a child will successfully resurrect
+        // the child even if the parent has a newer tombstone!
+        [Fact]
+        public void Json_Apply_StaleChildSet_ShouldNotResurrectIfParentHasNewerTombstone()
+        {
+            var doc = new Json_Document();
+            
+            var batch1 = JsonOpBatch.Create(new DeletePropertyOp("user", 200, "p1"));
+            var state1 = Json.Apply(doc, batch1);
+
+            // A delayed operation for a child path arrives with an older timestamp (100 < 200)
+            var batch2 = JsonOpBatch.Create(new SetPropertyOp("user.name", S("Alice"), 100, "p2"));
+            var state2 = Json.Apply(state1, batch2);
+
+            state2.Registers.Should().NotContainKey("user.name", 
+                "a stale child operation should not be applied if its parent has a newer tombstone");
+        }
+
+        // BUG: Similar to above, if the parent was overwritten with a new value 
+        // at a newer timestamp, a stale child operation should be ignored.
+        [Fact]
+        public void Json_Apply_StaleChildSet_ShouldNotResurrectIfParentHasNewerSet()
+        {
+            var doc = new Json_Document();
+            
+            var batch1 = JsonOpBatch.Create(new SetPropertyOp("user", S("{}"), 200, "p1"));
+            var state1 = Json.Apply(doc, batch1);
+
+            // Stale child arrives (100 < 200)
+            var batch2 = JsonOpBatch.Create(new SetPropertyOp("user.name", S("Alice"), 100, "p2"));
+            var state2 = Json.Apply(state1, batch2);
+
+            state2.Registers.Should().NotContainKey("user.name", 
+                "a stale child operation should not be applied if its parent was overwritten at a later timestamp");
+        }
+
+        // BUG: Compose processes operations sequentially and its `childrenPaths` cleanup
+        // only removes children that are ALREADY in the `compacted` dictionary.
+        // If a parent Delete comes BEFORE a stale child Set in the sequence of batches being composed,
+        // the child Set is simply appended and survives the composition!
+        [Fact]
+        public void Json_Compose_StaleChildSetAfterParentTombstone_ShouldDropChild()
+        {
+            var batch1 = JsonOpBatch.Create(new DeletePropertyOp("user", 200, "p1"));
+            var batch2 = JsonOpBatch.Create(new SetPropertyOp("user.name", S("Alice"), 100, "p2"));
+
+            var composed = Json.Compose(batch1, batch2);
+
+            composed!.Operations.Should().HaveCount(1, 
+                "composing a stale child operation after a newer parent tombstone should drop the child operation");
+            composed.Operations[0].Should().BeOfType<DeletePropertyOp>();
         }
     }
 }
