@@ -127,6 +127,9 @@ nav:
       - Wire protocol: reference/wire-protocol.md
 
 extra:
+  analytics:
+    provider: google
+    property: G-WSCZ97WGPP
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/OpStreamCollab/OpStream
