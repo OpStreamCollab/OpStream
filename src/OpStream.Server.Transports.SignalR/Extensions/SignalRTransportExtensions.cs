@@ -44,4 +44,24 @@ public static class SignalRTransportExtensions
 
         return endpoints.MapHub<SignalRTransport>(pattern);
     }
+
+    /// <summary>
+    /// Maps the SignalR management hub to <paramref name="pattern"/>.
+    /// Exposes the OpStream administration surface (list / inspect / delete / compact / purge).
+    /// <para>
+    /// The host MUST register a real <see cref="OpStream.Shared.Abstractions.IDatabaseCommandAuthorizer"/>
+    /// via <c>UseDatabaseCommandAuthorization&lt;T&gt;()</c>; otherwise every call is denied.
+    /// </para>
+    /// </summary>
+    public static IEndpointConventionBuilder MapOpStreamSignalRManagement(
+        this IEndpointRouteBuilder endpoints,
+        string pattern = "/manage")
+    {
+        var dbRouter = endpoints.ServiceProvider.GetRequiredService<OpStream.Server.Session.DatabaseCommandRouter>();
+        // Subscribe to the cluster broadcast channel before the first client connects so
+        // tenant-eviction and document-deleted messages are honoured.
+        dbRouter.InitializeAsync().GetAwaiter().GetResult();
+
+        return endpoints.MapHub<SignalRManagementTransport>(pattern);
+    }
 }

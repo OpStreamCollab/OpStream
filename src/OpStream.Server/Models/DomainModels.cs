@@ -30,6 +30,24 @@ public record HistoryMilestone(
     string? Name
 );
 
+/// <summary>
+/// Lightweight projection used by management endpoints to enumerate persisted documents.
+/// </summary>
+public record DocumentInfo(
+    string DocumentId,
+    long Revision,
+    DateTimeOffset LastModified,
+    long OpCount
+);
+
+/// <summary>
+/// Optional filter applied when enumerating documents.
+/// </summary>
+public record DocumentQuery(
+    int? Skip = null,
+    int? Take = null
+);
+
 
 
 /// <summary>

@@ -28,5 +28,12 @@ namespace OpStream.Server.Multitenancy
             var parts = globalDocumentId.Split(Separator, 2);
             return parts.Length == 2 ? parts[1] : globalDocumentId;
         }
+
+        /// <inheritdoc/>
+        public string GetCurrentTenantPrefix()
+        {
+            var tenantId = tenantProvider.GetCurrentTenantId();
+            return $"{tenantId}{Separator}";
+        }
     }
 }

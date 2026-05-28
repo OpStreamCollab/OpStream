@@ -21,6 +21,7 @@ public static class WebSocketTransportExtensions
         builder.Services.AddSingleton<WebSocketConnectionManager>();
         builder.Services.AddSingleton<WebSocketBackplaneRelay>();
         builder.Services.AddScoped<WebSocketTransport>();
+        builder.Services.AddScoped<WebSocketManagementTransport>();
         return builder;
     }
 
@@ -28,6 +29,9 @@ public static class WebSocketTransportExtensions
     [Obsolete("Use AddWebSocketTransport() instead. This alias will be removed in v1.0.", error: false)]
     public static IOpStreamBuilder AddOpStreamWebSocketsTransport(this IOpStreamBuilder builder)
         => builder.AddWebSocketTransport();
+
+    // AddWebSocketTransport also registers WebSocketManagementTransport because management is
+    // an optional endpoint on the same listener — no separate AddXxx call required.
 
     /// <summary>
     /// Maps the WebSocket collaboration endpoint to <paramref name="pattern"/>.
@@ -44,6 +48,28 @@ public static class WebSocketTransportExtensions
         return endpoints.Map(pattern, async context =>
         {
             var transport = context.RequestServices.GetRequiredService<WebSocketTransport>();
+            await transport.HandleAsync(context);
+        });
+    }
+
+    /// <summary>
+    /// Maps the WebSocket management endpoint to <paramref name="pattern"/>.
+    /// Exposes the OpStream administration surface (list / inspect / delete / compact / purge).
+    /// <para>
+    /// The host MUST register a real <see cref="OpStream.Shared.Abstractions.IDatabaseCommandAuthorizer"/>
+    /// via <c>UseDatabaseCommandAuthorization&lt;T&gt;()</c>; otherwise every call is denied.
+    /// </para>
+    /// </summary>
+    public static IEndpointConventionBuilder MapOpStreamWebSocketsManagement(
+        this IEndpointRouteBuilder endpoints,
+        string pattern = "/manage-ws")
+    {
+        var dbRouter = endpoints.ServiceProvider.GetRequiredService<OpStream.Server.Session.DatabaseCommandRouter>();
+        dbRouter.InitializeAsync().GetAwaiter().GetResult();
+
+        return endpoints.Map(pattern, async context =>
+        {
+            var transport = context.RequestServices.GetRequiredService<WebSocketManagementTransport>();
             await transport.HandleAsync(context);
         });
     }

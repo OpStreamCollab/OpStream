@@ -25,5 +25,11 @@ namespace OpStream.Server.Multitenancy
         /// <param name="globalDocumentId">The global document identifier.</param>
         /// <returns>The local document identifier.</returns>
         string ToLocalId(string globalDocumentId);
+
+        /// <summary>
+        /// Returns the prefix every global id for the current tenant starts with.
+        /// Used by management endpoints to enumerate / fan-out without leaking the separator.
+        /// </summary>
+        string GetCurrentTenantPrefix();
     }
 }

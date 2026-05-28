@@ -189,4 +189,122 @@ public class MemoryDocumentStore : IDocumentStore, IHistoryStore
         }
         return Task.CompletedTask;
     }
+
+    // ─── Management surface ──────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public async IAsyncEnumerable<DocumentInfo> EnumerateAsync(
+        string tenantPrefix,
+        DocumentQuery query,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
+    {
+        // Union of snapshot ids and op-log ids — a document may exist in either.
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var k in _snapshots.Keys) if (k.StartsWith(tenantPrefix, StringComparison.Ordinal)) ids.Add(k);
+        foreach (var k in _opLogs.Keys) if (k.StartsWith(tenantPrefix, StringComparison.Ordinal)) ids.Add(k);
+
+        var ordered = ids.OrderBy(id => id, StringComparer.Ordinal);
+        if (query.Skip is int skip && skip > 0) ordered = (IOrderedEnumerable<string>)ordered.Skip(skip);
+        IEnumerable<string> projected = ordered;
+        if (query.Take is int take && take > 0) projected = projected.Take(take);
+
+        foreach (var id in projected)
+        {
+            ct.ThrowIfCancellationRequested();
+            var info = BuildInfo(id);
+            if (info is not null) yield return info;
+            await Task.Yield();
+        }
+    }
+
+    /// <inheritdoc/>
+    public Task<DocumentInfo?> GetInfoAsync(string documentId, CancellationToken ct = default)
+        => Task.FromResult(BuildInfo(documentId));
+
+    private DocumentInfo? BuildInfo(string documentId)
+    {
+        _snapshots.TryGetValue(documentId, out var snapshot);
+        _opLogs.TryGetValue(documentId, out var log);
+        if (snapshot is null && log is null) return null;
+
+        long opCount = 0;
+        long lastRevision = snapshot?.Revision ?? 0;
+        DateTimeOffset lastModified = snapshot?.Timestamp ?? DateTimeOffset.MinValue;
+
+        if (log is not null)
+        {
+            lock (log)
+            {
+                opCount = log.Count;
+                if (log.Count > 0)
+                {
+                    var tail = log[^1];
+                    if (tail.Revision > lastRevision) lastRevision = tail.Revision;
+                    if (tail.Timestamp > lastModified) lastModified = tail.Timestamp;
+                }
+            }
+        }
+
+        return new DocumentInfo(documentId, lastRevision, lastModified, opCount);
+    }
+
+    /// <inheritdoc/>
+    Task IDocumentStore.DeleteAsync(string documentId, CancellationToken ct)
+    {
+        _snapshots.TryRemove(documentId, out _);
+        _opLogs.TryRemove(documentId, out _);
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public Task<int> DeleteByTenantPrefixAsync(string tenantPrefix, CancellationToken ct = default)
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var k in _snapshots.Keys) if (k.StartsWith(tenantPrefix, StringComparison.Ordinal)) keys.Add(k);
+        foreach (var k in _opLogs.Keys) if (k.StartsWith(tenantPrefix, StringComparison.Ordinal)) keys.Add(k);
+
+        foreach (var k in keys)
+        {
+            _snapshots.TryRemove(k, out _);
+            _opLogs.TryRemove(k, out _);
+        }
+        return Task.FromResult(keys.Count);
+    }
+
+    /// <inheritdoc/>
+    Task IHistoryStore.DeleteAsync(string documentId, CancellationToken ct)
+    {
+        _historyOpLogs.TryRemove(documentId, out _);
+        _historySnapshots.TryRemove(documentId, out _);
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public Task PurgeUpToAsync(string documentId, long upToRevision, CancellationToken ct = default)
+    {
+        if (_historyOpLogs.TryGetValue(documentId, out var log))
+        {
+            lock (log) log.RemoveAll(o => o.Revision <= upToRevision);
+        }
+        if (_historySnapshots.TryGetValue(documentId, out var snaps))
+        {
+            lock (snaps) snaps.RemoveAll(s => s.Snapshot.Revision <= upToRevision);
+        }
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    Task<int> IHistoryStore.DeleteByTenantPrefixAsync(string tenantPrefix, CancellationToken ct)
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var k in _historyOpLogs.Keys) if (k.StartsWith(tenantPrefix, StringComparison.Ordinal)) keys.Add(k);
+        foreach (var k in _historySnapshots.Keys) if (k.StartsWith(tenantPrefix, StringComparison.Ordinal)) keys.Add(k);
+
+        foreach (var k in keys)
+        {
+            _historyOpLogs.TryRemove(k, out _);
+            _historySnapshots.TryRemove(k, out _);
+        }
+        return Task.FromResult(keys.Count);
+    }
 }

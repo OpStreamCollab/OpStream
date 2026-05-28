@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "OpStream.Shared.Messages.gRPC";
 
@@ -8,6 +9,17 @@ package opstream;
 
 service OpStreamService {
   rpc Connect (stream ClientMessage) returns (stream ServerMessage);
+}
+
+service OpStreamManagementService {
+  rpc ListDocuments    (MgmtListDocumentsRequest) returns (MgmtListDocumentsResponse);
+  rpc GetDocumentInfo  (MgmtDocumentRequest)      returns (MgmtGetDocumentInfoResponse);
+  rpc GetSnapshot      (MgmtDocumentRequest)      returns (MgmtGetSnapshotResponse);
+  rpc DeleteDocument   (MgmtDocumentRequest)      returns (MgmtOkResponse);
+  rpc CompactDocument  (MgmtRevisionRequest)      returns (MgmtOkResponse);
+  rpc ListMilestones   (MgmtDocumentRequest)      returns (MgmtListMilestonesResponse);
+  rpc PurgeHistory     (MgmtRevisionRequest)      returns (MgmtOkResponse);
+  rpc PurgeTenant      (MgmtEmptyRequest)         returns (MgmtCountResponse);
 }
 
 message ClientMessage {
@@ -81,4 +93,65 @@ message AwarenessStateProto {
 
 message PeerDisconnectedEvent {
   string peer_id = 1;
+}
+
+// ─── Management messages ──────────────────────────────────────────────────────
+
+message MgmtEmptyRequest {}
+
+message MgmtDocumentRequest {
+  string document_id = 1;
+}
+
+message MgmtRevisionRequest {
+  string document_id   = 1;
+  int64  up_to_revision = 2;
+}
+
+message MgmtListDocumentsRequest {
+  google.protobuf.Int32Value skip = 1;
+  google.protobuf.Int32Value take = 2;
+}
+
+message MgmtOkResponse {}
+
+message MgmtCountResponse {
+  int32 count = 1;
+}
+
+message MgmtDocumentInfoProto {
+  string                    document_id   = 1;
+  int64                     revision      = 2;
+  google.protobuf.Timestamp last_modified = 3;
+  int64                     op_count      = 4;
+}
+
+message MgmtSnapshotProto {
+  int64                     revision  = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  bytes                     state     = 3;
+}
+
+message MgmtMilestoneProto {
+  int64                     revision  = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  string                    name      = 3;
+}
+
+message MgmtListDocumentsResponse {
+  repeated MgmtDocumentInfoProto documents = 1;
+}
+
+message MgmtGetDocumentInfoResponse {
+  bool                   found         = 1;
+  MgmtDocumentInfoProto  document_info = 2;
+}
+
+message MgmtGetSnapshotResponse {
+  bool             found    = 1;
+  MgmtSnapshotProto snapshot = 2;
+}
+
+message MgmtListMilestonesResponse {
+  repeated MgmtMilestoneProto milestones = 1;
 }

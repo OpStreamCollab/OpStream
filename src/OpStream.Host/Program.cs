@@ -140,13 +140,20 @@ if (enableWebSockets)
 {
     app.UseWebSockets();
     app.MapOpStreamWebSockets(cfg["WebSockets:Path"] ?? "/collab-ws");
+    app.MapOpStreamWebSocketsManagement(cfg["WebSockets:ManagementPath"] ?? "/manage-ws");
 }
 
 if (enableSignalR)
+{
     app.MapOpStreamSignalR(cfg["SignalR:Path"] ?? "/collab");
+    app.MapOpStreamSignalRManagement(cfg["SignalR:ManagementPath"] ?? "/manage");
+}
 
 if (enableGrpc)
+{
     app.MapOpStreamGrpc();
+    app.MapOpStreamGrpcManagement();
+}
 
 app.Run();
 

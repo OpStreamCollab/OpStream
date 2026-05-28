@@ -41,4 +41,20 @@ public static class GrpcTransportExtensions
 
         return endpoints.MapGrpcService<gRPCTransport>();
     }
+
+    /// <summary>
+    /// Maps the gRPC management service (<see cref="gRPCManagementTransport"/>).
+    /// Exposes the OpStream administration surface (list / inspect / delete / compact / purge).
+    /// <para>
+    /// The host MUST register a real <see cref="OpStream.Shared.Abstractions.IDatabaseCommandAuthorizer"/>
+    /// via <c>UseDatabaseCommandAuthorization&lt;T&gt;()</c>; otherwise every call is denied.
+    /// </para>
+    /// </summary>
+    public static IEndpointConventionBuilder MapOpStreamGrpcManagement(this IEndpointRouteBuilder endpoints)
+    {
+        var dbRouter = endpoints.ServiceProvider.GetRequiredService<OpStream.Server.Session.DatabaseCommandRouter>();
+        dbRouter.InitializeAsync().GetAwaiter().GetResult();
+
+        return endpoints.MapGrpcService<gRPCManagementTransport>();
+    }
 }

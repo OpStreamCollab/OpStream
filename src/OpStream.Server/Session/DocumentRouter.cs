@@ -31,10 +31,20 @@ public class DocumentRouter(
     IEnumerable<IDocumentSessionFactory> factories,
     IBackplane backplane,
     IDocumentOwnershipManager ownershipManager,
-    ILogger<DocumentRouter> logger) 
+    ILogger<DocumentRouter> logger,
+    IEnumerable<IBackplaneRequestExtension>? requestExtensions = null)
 {
 
     Dictionary<string, IDocumentSessionFactory> _factories = factories.ToDictionary(f => f.DocumentType, f => f, StringComparer.OrdinalIgnoreCase);
+
+    private readonly IReadOnlyList<IBackplaneRequestExtension> _requestExtensions =
+        (requestExtensions ?? Array.Empty<IBackplaneRequestExtension>()).ToArray();
+
+    /// <summary>
+    /// Backplane that this router uses. Exposed so management routers can publish fan-out
+    /// messages on shared channels without duplicating the dependency.
+    /// </summary>
+    internal IBackplane Backplane => backplane;
 
     private readonly ConcurrentDictionary<string, IDocumentSession> _activeSessions = new();
 
@@ -124,6 +134,11 @@ public class DocumentRouter(
             }
             else
             {
+                foreach (var extension in _requestExtensions)
+                {
+                    if (extension.CanHandle(request.Type))
+                        return await extension.HandleAsync(request);
+                }
                 return new BackplaneResponse(request.RequestId, false, ReadOnlyMemory<byte>.Empty, $"Unknown request type: {request.Type}");
             }
         }
@@ -132,6 +147,40 @@ public class DocumentRouter(
             logger.LogError(ex, "Error handling incoming backplane request {RequestId} of type {Type}", request.RequestId, request.Type);
             return new BackplaneResponse(request.RequestId, false, ReadOnlyMemory<byte>.Empty, ex.Message);
         }
+    }
+
+    /// <summary>
+    /// Closes any local session/awareness/timer/subscription bound to the document and
+    /// releases ownership. Safe to call on a node that doesn't currently own the document.
+    /// </summary>
+    public async Task EvictSessionAsync(string documentId, CancellationToken ct = default)
+    {
+        await CloseSessionAsync(documentId);
+        try
+        {
+            await ownershipManager.ReleaseOwnershipAsync(documentId, backplane.NodeId, ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to release ownership for document {DocId} during eviction", documentId);
+        }
+    }
+
+    /// <summary>
+    /// Returns the ids of every document currently owned by this node (i.e. has an active
+    /// in-memory session). Used by tenant-wide eviction fan-outs.
+    /// </summary>
+    public IReadOnlyList<string> GetActiveDocumentIds() => _activeSessions.Keys.ToArray();
+
+    /// <summary>
+    /// Returns the active in-memory session for <paramref name="documentId"/>, or <c>null</c>
+    /// if this node does not currently own a session for that document. Does NOT open or load a
+    /// session — strictly a lookup against existing state.
+    /// </summary>
+    public IDocumentSession? TryGetActiveSession(string documentId)
+    {
+        _activeSessions.TryGetValue(documentId, out var session);
+        return session;
     }
 
     /// <summary>

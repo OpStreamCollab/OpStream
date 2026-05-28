@@ -1,7 +1,9 @@
+using MongoDB.Bson;
 using MongoDB.Driver;
 using OpStream.Server.Models;
 using OpStream.Server.Storage;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace OpStream.Server.Storage.MongoDB;
 
@@ -162,5 +164,164 @@ public class MongoDocumentStore : IDocumentStore, IHistoryStore
         };
 
         await _historyOps.InsertOneAsync(entity, null, ct);
+    }
+
+    // ─── Management surface ──────────────────────────────────────────────────
+
+    private static BsonRegularExpression PrefixRegex(string prefix)
+        => new($"^{Regex.Escape(prefix)}");
+
+    public async IAsyncEnumerable<DocumentInfo> EnumerateAsync(
+        string tenantPrefix,
+        DocumentQuery query,
+        [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        var regex = PrefixRegex(tenantPrefix);
+
+        // Aggregate ops per document (single round-trip, index-friendly because the match
+        // stage uses an anchored regex on DocumentId).
+        var opsAggCursor = await _ops.Aggregate()
+            .Match(Builders<MongoDocumentOp>.Filter.Regex(x => x.DocumentId, regex))
+            .Group(x => x.DocumentId, g => new
+            {
+                DocumentId = g.Key,
+                MaxRevision = g.Max(x => x.Revision),
+                MaxTimestamp = g.Max(x => x.Timestamp),
+                OpCount = g.LongCount()
+            })
+            .ToListAsync(ct);
+
+        var snapshots = await _snapshots
+            .Find(Builders<MongoDocumentSnapshot>.Filter.Regex(x => x.DocumentId, regex))
+            .Project(s => new { s.DocumentId, s.Revision, s.Timestamp })
+            .ToListAsync(ct);
+
+        var merged = new Dictionary<string, DocumentInfo>(StringComparer.Ordinal);
+        foreach (var o in opsAggCursor)
+        {
+            merged[o.DocumentId] = new DocumentInfo(
+                o.DocumentId,
+                o.MaxRevision,
+                new DateTimeOffset(DateTime.SpecifyKind(o.MaxTimestamp, DateTimeKind.Utc)),
+                o.OpCount);
+        }
+
+        foreach (var s in snapshots)
+        {
+            var snapTs = new DateTimeOffset(DateTime.SpecifyKind(s.Timestamp, DateTimeKind.Utc));
+            if (merged.TryGetValue(s.DocumentId, out var existing))
+            {
+                var rev = Math.Max(existing.Revision, s.Revision);
+                var ts = existing.LastModified > snapTs ? existing.LastModified : snapTs;
+                merged[s.DocumentId] = existing with { Revision = rev, LastModified = ts };
+            }
+            else
+            {
+                merged[s.DocumentId] = new DocumentInfo(s.DocumentId, s.Revision, snapTs, 0);
+            }
+        }
+
+        IEnumerable<DocumentInfo> projected = merged.Values.OrderBy(x => x.DocumentId, StringComparer.Ordinal);
+        if (query.Skip is int skip && skip > 0) projected = projected.Skip(skip);
+        if (query.Take is int take && take > 0) projected = projected.Take(take);
+
+        foreach (var info in projected)
+        {
+            ct.ThrowIfCancellationRequested();
+            yield return info;
+        }
+    }
+
+    public async Task<DocumentInfo?> GetInfoAsync(string documentId, CancellationToken ct = default)
+    {
+        var snapshot = await _snapshots
+            .Find(Builders<MongoDocumentSnapshot>.Filter.Eq(x => x.DocumentId, documentId))
+            .Project(s => new { s.Revision, s.Timestamp })
+            .FirstOrDefaultAsync(ct);
+
+        var opsAgg = await _ops.Aggregate()
+            .Match(Builders<MongoDocumentOp>.Filter.Eq(x => x.DocumentId, documentId))
+            .Group(x => x.DocumentId, g => new
+            {
+                MaxRevision = g.Max(x => x.Revision),
+                MaxTimestamp = g.Max(x => x.Timestamp),
+                OpCount = g.LongCount()
+            })
+            .FirstOrDefaultAsync(ct);
+
+        if (snapshot is null && opsAgg is null) return null;
+
+        long revision = Math.Max(snapshot?.Revision ?? 0, opsAgg?.MaxRevision ?? 0);
+        DateTimeOffset lastModified = DateTimeOffset.MinValue;
+        if (snapshot is not null)
+            lastModified = new DateTimeOffset(DateTime.SpecifyKind(snapshot.Timestamp, DateTimeKind.Utc));
+        if (opsAgg is not null)
+        {
+            var opTs = new DateTimeOffset(DateTime.SpecifyKind(opsAgg.MaxTimestamp, DateTimeKind.Utc));
+            if (opTs > lastModified) lastModified = opTs;
+        }
+
+        return new DocumentInfo(documentId, revision, lastModified, opsAgg?.OpCount ?? 0);
+    }
+
+    async Task IDocumentStore.DeleteAsync(string documentId, CancellationToken ct)
+    {
+        await _ops.DeleteManyAsync(Builders<MongoDocumentOp>.Filter.Eq(x => x.DocumentId, documentId), ct);
+        await _snapshots.DeleteOneAsync(Builders<MongoDocumentSnapshot>.Filter.Eq(x => x.DocumentId, documentId), ct);
+    }
+
+    public async Task<int> DeleteByTenantPrefixAsync(string tenantPrefix, CancellationToken ct = default)
+    {
+        var regex = PrefixRegex(tenantPrefix);
+
+        // Count distinct documents before deletion.
+        var opDocs = await _ops.DistinctAsync(x => x.DocumentId,
+            Builders<MongoDocumentOp>.Filter.Regex(x => x.DocumentId, regex), cancellationToken: ct);
+        var snapDocs = await _snapshots.DistinctAsync(x => x.DocumentId,
+            Builders<MongoDocumentSnapshot>.Filter.Regex(x => x.DocumentId, regex), cancellationToken: ct);
+
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        await opDocs.ForEachAsync(id => ids.Add(id), ct);
+        await snapDocs.ForEachAsync(id => ids.Add(id), ct);
+
+        await _ops.DeleteManyAsync(Builders<MongoDocumentOp>.Filter.Regex(x => x.DocumentId, regex), ct);
+        await _snapshots.DeleteManyAsync(Builders<MongoDocumentSnapshot>.Filter.Regex(x => x.DocumentId, regex), ct);
+
+        return ids.Count;
+    }
+
+    async Task IHistoryStore.DeleteAsync(string documentId, CancellationToken ct)
+    {
+        await _historyOps.DeleteManyAsync(Builders<MongoHistoryOp>.Filter.Eq(x => x.DocumentId, documentId), ct);
+        await _historySnapshots.DeleteManyAsync(Builders<MongoHistorySnapshot>.Filter.Eq(x => x.DocumentId, documentId), ct);
+    }
+
+    public async Task PurgeUpToAsync(string documentId, long upToRevision, CancellationToken ct = default)
+    {
+        await _historyOps.DeleteManyAsync(
+            Builders<MongoHistoryOp>.Filter.Eq(x => x.DocumentId, documentId) &
+            Builders<MongoHistoryOp>.Filter.Lte(x => x.Revision, upToRevision), ct);
+        await _historySnapshots.DeleteManyAsync(
+            Builders<MongoHistorySnapshot>.Filter.Eq(x => x.DocumentId, documentId) &
+            Builders<MongoHistorySnapshot>.Filter.Lte(x => x.Revision, upToRevision), ct);
+    }
+
+    async Task<int> IHistoryStore.DeleteByTenantPrefixAsync(string tenantPrefix, CancellationToken ct)
+    {
+        var regex = PrefixRegex(tenantPrefix);
+
+        var opDocs = await _historyOps.DistinctAsync(x => x.DocumentId,
+            Builders<MongoHistoryOp>.Filter.Regex(x => x.DocumentId, regex), cancellationToken: ct);
+        var snapDocs = await _historySnapshots.DistinctAsync(x => x.DocumentId,
+            Builders<MongoHistorySnapshot>.Filter.Regex(x => x.DocumentId, regex), cancellationToken: ct);
+
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        await opDocs.ForEachAsync(id => ids.Add(id), ct);
+        await snapDocs.ForEachAsync(id => ids.Add(id), ct);
+
+        await _historyOps.DeleteManyAsync(Builders<MongoHistoryOp>.Filter.Regex(x => x.DocumentId, regex), ct);
+        await _historySnapshots.DeleteManyAsync(Builders<MongoHistorySnapshot>.Filter.Regex(x => x.DocumentId, regex), ct);
+
+        return ids.Count;
     }
 }

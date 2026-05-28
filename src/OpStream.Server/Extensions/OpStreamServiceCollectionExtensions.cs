@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using OpStream.Server.Comments;
 using OpStream.Server.Diagnostics.HealthChecks;
 using OpStream.Server.Engine;
 using OpStream.Server.Engine.Text;
@@ -48,6 +49,18 @@ internal sealed class AllowAllAuthorizer : IDocumentAuthorizer
         => ValueTask.FromResult(DocumentAccess.ReadWrite());
 }
 
+/// <summary>
+/// Fallback management authorizer that denies every command.
+/// The host MUST replace this with a real implementation via
+/// <see cref="OpStreamServiceCollectionExtensions.UseDatabaseCommandAuthorization{TAuthorizer}"/>
+/// before any management endpoint will work.
+/// </summary>
+internal sealed class DenyAllDatabaseCommandAuthorizer : IDatabaseCommandAuthorizer
+{
+    public ValueTask<bool> AuthorizeAsync(DatabaseCommandContext ctx, CancellationToken ct = default)
+        => ValueTask.FromResult(false);
+}
+
 // ─── Core extension methods ───────────────────────────────────────────────────
 
 /// <summary>
@@ -85,6 +98,10 @@ public static class OpStreamServiceCollectionExtensions
 
         // Core infrastructure
         services.TryAddSingleton<DocumentRouter>();
+        services.TryAddSingleton<DatabaseCommandRouter>();
+        services.TryAddSingleton<CommentRouter>();
+        services.AddSingleton<IBackplaneRequestExtension>(sp => sp.GetRequiredService<DatabaseCommandRouter>());
+        services.AddSingleton<IBackplaneRequestExtension>(sp => sp.GetRequiredService<CommentRouter>());
         services.TryAddSingleton<IBackplane, LocalBackplane>();
         services.TryAddSingleton<IDocumentOwnershipManager, LocalDocumentOwnershipManager>();
         services.TryAddSingleton<ITimerFactory, DefaultTimerFactory>();
@@ -102,9 +119,25 @@ public static class OpStreamServiceCollectionExtensions
         services.TryAddSingleton<IDocumentStore>(sp => sp.GetRequiredService<MemoryDocumentStore>());
         services.TryAddSingleton<IHistoryStore>(sp => sp.GetRequiredService<MemoryDocumentStore>());
 
+        // Default comment store — in-memory. Persistent backends (EF Core / Redis / Mongo)
+        // do NOT yet ship an ICommentStore implementation; comments are lost on restart
+        // even when ops/history are persistent. See docs/COMMENTS_TODO.md.
+        services.TryAddSingleton<ICommentStore, MemoryCommentStore>();
+
+        // Open-generic post-apply hook that rebases comment anchors. Becomes a no-op for
+        // op types that have no IAnchorEngine<TOp> registered.
+        services.TryAddSingleton(typeof(IPostApplyHook<>), typeof(CommentAnchorRebaseHook<>));
+
+        // Anchor engines (one per op type that supports anchored comments).
+        services.TryAddSingleton<IAnchorEngine<OpStream.Server.Engine.Text.TextOp>, TextAnchorEngine>();
+
         // Default authorizer — allows everything.
         // The router will log a warning at startup if this default is still active.
         services.TryAddScoped<IDocumentAuthorizer, AllowAllAuthorizer>();
+
+        // Default management authorizer — denies everything (fail-closed).
+        // The host must replace this via UseDatabaseCommandAuthorization<T>().
+        services.TryAddScoped<IDatabaseCommandAuthorizer, DenyAllDatabaseCommandAuthorizer>();
 
         // Default document seeder — creates empty documents.
         services.TryAddScoped(typeof(IDocumentSeeder<>), typeof(EmptyDocumentSeeder<>));
@@ -245,6 +278,18 @@ public static class OpStreamServiceCollectionExtensions
         where TAuthorizer : class, IDocumentAuthorizer
     {
         builder.Services.Replace(ServiceDescriptor.Scoped<IDocumentAuthorizer, TAuthorizer>());
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers a custom <see cref="IDatabaseCommandAuthorizer"/> that decides which management
+    /// commands (list / delete / compact / purge) the current caller may execute.
+    /// Replaces the default <c>DenyAllDatabaseCommandAuthorizer</c>.
+    /// </summary>
+    public static IOpStreamBuilder UseDatabaseCommandAuthorization<TAuthorizer>(this IOpStreamBuilder builder)
+        where TAuthorizer : class, IDatabaseCommandAuthorizer
+    {
+        builder.Services.Replace(ServiceDescriptor.Scoped<IDatabaseCommandAuthorizer, TAuthorizer>());
         return builder;
     }
 

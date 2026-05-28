@@ -53,6 +53,17 @@ public interface IDocumentSession : IAsyncDisposable
     Task<OpApplyResult> ApplyOpAsync(string peerId, ReadOnlyMemory<byte> payload, long baseRevision, CancellationToken ct = default);
 
     Task RehydrateOpAsync(StoredOp storedOp);
+
+    /// <summary>
+    /// Runs <paramref name="action"/> while holding the session's serialization lock.
+    /// Used by side-effects that need an atomic snapshot of <see cref="CurrentRevision"/>
+    /// — for example, anchoring a new comment at exactly the revision the document is at
+    /// when the anchor is computed.
+    /// <para>
+    /// Keep the action cheap: it blocks every op from being applied until it completes.
+    /// </para>
+    /// </summary>
+    Task<T> ExecuteUnderLockAsync<T>(Func<long, ValueTask<T>> action, CancellationToken ct = default);
 }
 
 /// <summary>

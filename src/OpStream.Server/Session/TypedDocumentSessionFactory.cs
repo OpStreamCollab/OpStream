@@ -71,10 +71,12 @@ namespace OpStream.Server.Session
             var snapshotter = _serviceProvider.GetRequiredService<IOpSnapshotter>();
             var historySnapshotter = _serviceProvider.GetRequiredService<IOpHistorySnapshotter>();
             var validators = _serviceProvider.GetServices<IOpValidator<TOp>>();
+            var postApplyHooks = _serviceProvider.GetServices<IPostApplyHook<TOp>>();
             var logger = _loggerFactory.CreateLogger<DocumentSession<TDoc, TOp>>();
 
             return new DocumentSession<TDoc, TOp>(
-                documentId, currentState, _engine, initialRevision, store, backplane, snapshotter, historySnapshotter, validators, logger);
+                documentId, currentState, _engine, initialRevision, store, backplane,
+                snapshotter, historySnapshotter, validators, logger, postApplyHooks);
         }
     }
 }

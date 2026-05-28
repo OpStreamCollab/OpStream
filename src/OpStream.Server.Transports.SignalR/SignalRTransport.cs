@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using OpStream.Constants;
+using OpStream.Server.Comments;
 using OpStream.Server.Multitenancy;
 using OpStream.Server.Session;
 using System.Text.Json;
@@ -9,7 +10,7 @@ namespace OpStream.Server.Transports.SignalR;
 /// <summary>
 /// The bridge between SignalR clients and in-memory sessions.
 /// </summary>
-public class SignalRTransport(DocumentRouter router, IDocumentIdGlobalizer globalizer) : Hub
+public class SignalRTransport(DocumentRouter router, IDocumentIdGlobalizer globalizer, CommentRouter commentRouter) : Hub
 {
     /// <summary>
     /// Called by the client when opening a document. (The Handshake).
@@ -69,6 +70,52 @@ public class SignalRTransport(DocumentRouter router, IDocumentIdGlobalizer globa
         await router.UpdateAwarenessAsync(peerId, globalDocId, data,ct: Context.ConnectionAborted);
 
         // Broadcast is now handled via Backplane -> HandleBackplaneMessageAsync
+    }
+
+    // ─── Comments ─────────────────────────────────────────────────────────────
+
+    /// <summary>Creates a new root comment or reply on a document.</summary>
+    [HubMethodName(OpStreamConstants.HubMethods.CreateComment)]
+    public async Task<Comment> CreateComment(string documentId, NewCommentCmd cmd)
+    {
+        var result = await commentRouter.CreateAsync(Context.ConnectionId, documentId, cmd, Context.ConnectionAborted);
+        if (!result.Success) throw new HubException(result.ErrorMessage);
+        return result.Value!;
+    }
+
+    /// <summary>Edits the body of an existing comment.</summary>
+    [HubMethodName(OpStreamConstants.HubMethods.EditComment)]
+    public async Task<Comment> EditComment(string documentId, string commentId, string newBody)
+    {
+        var result = await commentRouter.EditAsync(Context.ConnectionId, documentId, commentId, newBody, Context.ConnectionAborted);
+        if (!result.Success) throw new HubException(result.ErrorMessage);
+        return result.Value!;
+    }
+
+    /// <summary>Marks a comment as resolved.</summary>
+    [HubMethodName(OpStreamConstants.HubMethods.ResolveComment)]
+    public async Task<Comment> ResolveComment(string documentId, string commentId)
+    {
+        var result = await commentRouter.ResolveAsync(Context.ConnectionId, documentId, commentId, Context.ConnectionAborted);
+        if (!result.Success) throw new HubException(result.ErrorMessage);
+        return result.Value!;
+    }
+
+    /// <summary>Deletes a comment (and cascades to its replies if the target is a root).</summary>
+    [HubMethodName(OpStreamConstants.HubMethods.DeleteComment)]
+    public async Task DeleteComment(string documentId, string commentId)
+    {
+        var result = await commentRouter.DeleteAsync(Context.ConnectionId, documentId, commentId, Context.ConnectionAborted);
+        if (!result.Success) throw new HubException(result.ErrorMessage);
+    }
+
+    /// <summary>Returns every non-deleted comment for the document (roots + replies).</summary>
+    [HubMethodName(OpStreamConstants.HubMethods.ListOpenComments)]
+    public async Task<IReadOnlyList<Comment>> ListOpenComments(string documentId)
+    {
+        var result = await commentRouter.ListOpenAsync(documentId, Context.ConnectionAborted);
+        if (!result.Success) throw new HubException(result.ErrorMessage);
+        return result.Value!;
     }
 
     /// <summary>

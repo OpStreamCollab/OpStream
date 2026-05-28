@@ -206,7 +206,7 @@ public class EfCoreDocumentStore<TContext> : IDocumentStore, IHistoryStore where
     public async Task WriteHistorySnapshotAsync(string documentId, DocumentSnapshot snapshot, string? name = null, CancellationToken ct = default)
     {
         await using var db = await _contextFactory.CreateDbContextAsync(ct);
-        
+
         var entity = new HistorySnapshotEntity
         {
             DocumentId = documentId,
@@ -218,5 +218,185 @@ public class EfCoreDocumentStore<TContext> : IDocumentStore, IHistoryStore where
 
         db.Set<HistorySnapshotEntity>().Add(entity);
         await db.SaveChangesAsync(ct);
+    }
+
+    // ─── Management surface ──────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public async IAsyncEnumerable<DocumentInfo> EnumerateAsync(
+        string tenantPrefix,
+        DocumentQuery query,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
+    {
+        await using var db = await _contextFactory.CreateDbContextAsync(ct);
+
+        // Aggregate ops per document: a doc may have ops without a snapshot.
+        var opsAgg = await db.Set<DocumentOpEntity>()
+            .AsNoTracking()
+            .Where(o => o.DocumentId.StartsWith(tenantPrefix))
+            .GroupBy(o => o.DocumentId)
+            .Select(g => new
+            {
+                DocumentId = g.Key,
+                MaxRevision = g.Max(o => o.Revision),
+                MaxTimestamp = g.Max(o => o.Timestamp),
+                OpCount = g.LongCount()
+            })
+            .ToListAsync(ct);
+
+        var snapshots = await db.Set<DocumentSnapshotEntity>()
+            .AsNoTracking()
+            .Where(s => s.DocumentId.StartsWith(tenantPrefix))
+            .Select(s => new { s.DocumentId, s.Revision, s.Timestamp })
+            .ToListAsync(ct);
+
+        var merged = new Dictionary<string, DocumentInfo>(StringComparer.Ordinal);
+        foreach (var o in opsAgg)
+            merged[o.DocumentId] = new DocumentInfo(o.DocumentId, o.MaxRevision, o.MaxTimestamp, o.OpCount);
+
+        foreach (var s in snapshots)
+        {
+            if (merged.TryGetValue(s.DocumentId, out var existing))
+            {
+                var rev = Math.Max(existing.Revision, s.Revision);
+                var ts = existing.LastModified > s.Timestamp ? existing.LastModified : s.Timestamp;
+                merged[s.DocumentId] = existing with { Revision = rev, LastModified = ts };
+            }
+            else
+            {
+                merged[s.DocumentId] = new DocumentInfo(s.DocumentId, s.Revision, s.Timestamp, 0);
+            }
+        }
+
+        IEnumerable<DocumentInfo> projected = merged.Values.OrderBy(x => x.DocumentId, StringComparer.Ordinal);
+        if (query.Skip is int skip && skip > 0) projected = projected.Skip(skip);
+        if (query.Take is int take && take > 0) projected = projected.Take(take);
+
+        foreach (var info in projected)
+        {
+            ct.ThrowIfCancellationRequested();
+            yield return info;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<DocumentInfo?> GetInfoAsync(string documentId, CancellationToken ct = default)
+    {
+        await using var db = await _contextFactory.CreateDbContextAsync(ct);
+
+        var snapshot = await db.Set<DocumentSnapshotEntity>()
+            .AsNoTracking()
+            .Where(s => s.DocumentId == documentId)
+            .Select(s => new { s.Revision, s.Timestamp })
+            .FirstOrDefaultAsync(ct);
+
+        var opsAgg = await db.Set<DocumentOpEntity>()
+            .AsNoTracking()
+            .Where(o => o.DocumentId == documentId)
+            .GroupBy(o => o.DocumentId)
+            .Select(g => new
+            {
+                MaxRevision = g.Max(o => o.Revision),
+                MaxTimestamp = g.Max(o => o.Timestamp),
+                OpCount = g.LongCount()
+            })
+            .FirstOrDefaultAsync(ct);
+
+        if (snapshot is null && opsAgg is null) return null;
+
+        long revision = Math.Max(snapshot?.Revision ?? 0, opsAgg?.MaxRevision ?? 0);
+        DateTimeOffset lastModified = (snapshot?.Timestamp, opsAgg?.MaxTimestamp) switch
+        {
+            (DateTimeOffset s, DateTimeOffset o) => s > o ? s : o,
+            (DateTimeOffset s, null) => s,
+            (null, DateTimeOffset o) => o,
+            _ => DateTimeOffset.MinValue
+        };
+        long opCount = opsAgg?.OpCount ?? 0;
+
+        return new DocumentInfo(documentId, revision, lastModified, opCount);
+    }
+
+    /// <inheritdoc/>
+    async Task IDocumentStore.DeleteAsync(string documentId, CancellationToken ct)
+    {
+        await using var db = await _contextFactory.CreateDbContextAsync(ct);
+        await db.Set<DocumentOpEntity>().Where(o => o.DocumentId == documentId).ExecuteDeleteAsync(ct);
+        await db.Set<DocumentSnapshotEntity>().Where(s => s.DocumentId == documentId).ExecuteDeleteAsync(ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task<int> DeleteByTenantPrefixAsync(string tenantPrefix, CancellationToken ct = default)
+    {
+        await using var db = await _contextFactory.CreateDbContextAsync(ct);
+
+        // Count distinct documents (across ops + snapshots) before deletion so callers
+        // get a meaningful "documents removed" figure rather than raw row counts.
+        var opDocs = await db.Set<DocumentOpEntity>()
+            .AsNoTracking()
+            .Where(o => o.DocumentId.StartsWith(tenantPrefix))
+            .Select(o => o.DocumentId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        var snapDocs = await db.Set<DocumentSnapshotEntity>()
+            .AsNoTracking()
+            .Where(s => s.DocumentId.StartsWith(tenantPrefix))
+            .Select(s => s.DocumentId)
+            .ToListAsync(ct);
+
+        var docCount = opDocs.Union(snapDocs, StringComparer.Ordinal).Count();
+
+        await db.Set<DocumentOpEntity>().Where(o => o.DocumentId.StartsWith(tenantPrefix)).ExecuteDeleteAsync(ct);
+        await db.Set<DocumentSnapshotEntity>().Where(s => s.DocumentId.StartsWith(tenantPrefix)).ExecuteDeleteAsync(ct);
+
+        return docCount;
+    }
+
+    /// <inheritdoc/>
+    async Task IHistoryStore.DeleteAsync(string documentId, CancellationToken ct)
+    {
+        await using var db = await _contextFactory.CreateDbContextAsync(ct);
+        await db.Set<HistoryOpEntity>().Where(o => o.DocumentId == documentId).ExecuteDeleteAsync(ct);
+        await db.Set<HistorySnapshotEntity>().Where(s => s.DocumentId == documentId).ExecuteDeleteAsync(ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task PurgeUpToAsync(string documentId, long upToRevision, CancellationToken ct = default)
+    {
+        await using var db = await _contextFactory.CreateDbContextAsync(ct);
+        await db.Set<HistoryOpEntity>()
+            .Where(o => o.DocumentId == documentId && o.Revision <= upToRevision)
+            .ExecuteDeleteAsync(ct);
+        await db.Set<HistorySnapshotEntity>()
+            .Where(s => s.DocumentId == documentId && s.Revision <= upToRevision)
+            .ExecuteDeleteAsync(ct);
+    }
+
+    /// <inheritdoc/>
+    async Task<int> IHistoryStore.DeleteByTenantPrefixAsync(string tenantPrefix, CancellationToken ct)
+    {
+        await using var db = await _contextFactory.CreateDbContextAsync(ct);
+
+        var opDocs = await db.Set<HistoryOpEntity>()
+            .AsNoTracking()
+            .Where(o => o.DocumentId.StartsWith(tenantPrefix))
+            .Select(o => o.DocumentId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        var snapDocs = await db.Set<HistorySnapshotEntity>()
+            .AsNoTracking()
+            .Where(s => s.DocumentId.StartsWith(tenantPrefix))
+            .Select(s => s.DocumentId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        var docCount = opDocs.Union(snapDocs, StringComparer.Ordinal).Count();
+
+        await db.Set<HistoryOpEntity>().Where(o => o.DocumentId.StartsWith(tenantPrefix)).ExecuteDeleteAsync(ct);
+        await db.Set<HistorySnapshotEntity>().Where(s => s.DocumentId.StartsWith(tenantPrefix)).ExecuteDeleteAsync(ct);
+
+        return docCount;
     }
 }

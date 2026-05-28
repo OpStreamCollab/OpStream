@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using OpStream.Constants;
+using OpStream.Server.Comments;
 using OpStream.Server.Session;
 using OpStream.Shared.Abstractions;
 using OpStream.Shared.Messages;
@@ -63,6 +64,35 @@ public class SignalRBackplaneRelay
             case OpStreamConstants.BackplaneMessages.PeerDisconnected:
                 await _hubContext.Clients.Group(documentId).SendAsync(OpStreamConstants.ClientEvents.PeerDisconnected, message.SenderPeerId);
                 break;
+
+            case OpStreamConstants.BackplaneMessages.CommentCreated:
+            {
+                var comment = JsonSerializer.Deserialize<Comment>(message.Payload.Span, JsonOptions);
+                if (comment != null)
+                    await _hubContext.Clients.Group(documentId).SendAsync(
+                        OpStreamConstants.ClientEvents.ReceiveCommentCreated, comment);
+                break;
+            }
+
+            case OpStreamConstants.BackplaneMessages.CommentUpdated:
+            {
+                var comment = JsonSerializer.Deserialize<Comment>(message.Payload.Span, JsonOptions);
+                if (comment != null)
+                    await _hubContext.Clients.Group(documentId).SendAsync(
+                        OpStreamConstants.ClientEvents.ReceiveCommentUpdated, comment);
+                break;
+            }
+
+            case OpStreamConstants.BackplaneMessages.CommentDeleted:
+            {
+                var deleted = JsonSerializer.Deserialize<DeletedCommentPayload>(message.Payload.Span, JsonOptions);
+                if (deleted != null)
+                    await _hubContext.Clients.Group(documentId).SendAsync(
+                        OpStreamConstants.ClientEvents.ReceiveCommentDeleted, deleted.CommentId);
+                break;
+            }
         }
     }
+
+    private record DeletedCommentPayload(string CommentId, string DocumentId);
 }

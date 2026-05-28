@@ -1,4 +1,5 @@
 using OpStream.Constants;
+using OpStream.Server.Comments;
 using OpStream.Server.Diagnostics;
 using OpStream.Server.Engine;
 using OpStream.Server.Models;
@@ -29,6 +30,7 @@ public class DocumentSession<TDoc, TOp> : IDocumentSession
 
     private readonly ConcurrentDictionary<string, int> _activePeers = new();
     private readonly IEnumerable<IOpValidator<TOp>> _validators;
+    private readonly IReadOnlyList<IPostApplyHook<TOp>> _postApplyHooks;
 
     /// <summary>Unique identifier of the document this session represents.</summary>
     public string DocumentId { get; }
@@ -68,7 +70,8 @@ public class DocumentSession<TDoc, TOp> : IDocumentSession
         IOpSnapshotter opSnapshotter,
         IOpHistorySnapshotter historySnapshotter,
         IEnumerable<IOpValidator<TOp>> validators,
-        ILogger<DocumentSession<TDoc, TOp>> logger)
+        ILogger<DocumentSession<TDoc, TOp>> logger,
+        IEnumerable<IPostApplyHook<TOp>>? postApplyHooks = null)
     {
         DocumentId = documentId;
         _currentState = initialState;
@@ -80,6 +83,7 @@ public class DocumentSession<TDoc, TOp> : IDocumentSession
         _historySnapshotter = historySnapshotter;
         _validators = validators;
         _logger = logger;
+        _postApplyHooks = (postApplyHooks ?? Array.Empty<IPostApplyHook<TOp>>()).ToArray();
 
         OpStreamTelemetry.ActiveDocuments.Add(1);
         OpStreamEventSource.Log.AdjustActiveDocuments(1);
@@ -228,13 +232,17 @@ public class DocumentSession<TDoc, TOp> : IDocumentSession
             await _historySnapshotter.AppendOpAsync(DocumentId, newStoredOp, ct);
             await _opSnapshotter.OpAddedAsync(_currentState, DocumentId, CurrentRevision, OpStreamJsonOptions.Default, ct);
 
+            // 6b. Post-apply hooks (anchor rebases, audit sinks, …). Still under the session
+            // lock so any side-effects stay consistent with the op log.
+            var anchorUpdates = await RunPostApplyHooksAsync(incomingOp, peerId, isRehydration: false, ct);
+
             // 7. Broadcast
             using (var bpActivity = OpStreamTelemetry.ActivitySource.StartActivity("opstream.backplane.publish"))
             {
                 bpActivity?.SetTag("doc.id", DocumentId);
                 bpActivity?.SetTag("revision", CurrentRevision);
 
-                var broadcastPayload = new OpAppliedBackplanePayload(transformedPayload, CurrentRevision);
+                var broadcastPayload = new OpAppliedBackplanePayload(transformedPayload, CurrentRevision, anchorUpdates);
                 var backplaneMsg = new BackplaneMessage(
                     _backplane.NodeId,
                     OpStreamConstants.BackplaneMessages.OpApplied,
@@ -335,10 +343,61 @@ public class DocumentSession<TDoc, TOp> : IDocumentSession
             var op = JsonSerializer.Deserialize<TOp>(storedOp.Payload.Span, OpStreamJsonOptions.Default)!;
             _currentState = _engine.Apply(_currentState, op);
             CurrentRevision = storedOp.Revision;
+
+            // Re-run post-apply hooks during rehydration so derived state (e.g. comment anchors)
+            // stays consistent with the op log even after a cold start or a partial-write crash.
+            await RunPostApplyHooksAsync(op, storedOp.AuthorId, isRehydration: true, CancellationToken.None);
         }
         finally
         {
             _lock.Release();
         }
+    }
+
+    /// <inheritdoc/>
+    public async Task<T> ExecuteUnderLockAsync<T>(Func<long, ValueTask<T>> action, CancellationToken ct = default)
+    {
+        await _lock.WaitAsync(ct);
+        try
+        {
+            return await action(CurrentRevision);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Invokes every registered <see cref="IPostApplyHook{TOp}"/> and merges their anchor-update
+    /// results. Exceptions inside a hook are logged but never propagate — a single misbehaving
+    /// side-effect must not prevent the op from being broadcast.
+    /// </summary>
+    private async Task<IReadOnlyList<AnchorUpdate>?> RunPostApplyHooksAsync(
+        TOp appliedOp, string peerId, bool isRehydration, CancellationToken ct)
+    {
+        if (_postApplyHooks.Count == 0) return null;
+
+        List<AnchorUpdate>? merged = null;
+        var ctx = new PostApplyContext<TOp>(DocumentId, CurrentRevision, appliedOp, peerId, isRehydration);
+
+        foreach (var hook in _postApplyHooks)
+        {
+            try
+            {
+                var result = await hook.AfterApplyAsync(ctx, ct);
+                if (result.AnchorUpdates is { Count: > 0 } updates)
+                {
+                    merged ??= new List<AnchorUpdate>(updates.Count);
+                    merged.AddRange(updates);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Post-apply hook {Hook} failed for doc {DocId} rev {Revision}",
+                    hook.GetType().Name, DocumentId, CurrentRevision);
+            }
+        }
+        return merged;
     }
 }

@@ -31,4 +31,27 @@ public interface IHistoryStore
     /// Appends a new operation to the immutable historical log.
     /// </summary>
     Task AppendHistoryOpAsync(string documentId, StoredOp op, CancellationToken ct = default);
+
+    // ─── Management surface ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// Removes the document's historical snapshots and op log entirely.
+    /// </summary>
+    Task DeleteAsync(string documentId, CancellationToken ct = default)
+        => throw new NotSupportedException(
+            $"{GetType().Name} does not implement DeleteAsync.");
+
+    /// <summary>
+    /// Removes historical operations and snapshots up to the specified revision (inclusive).
+    /// </summary>
+    Task PurgeUpToAsync(string documentId, long upToRevision, CancellationToken ct = default)
+        => throw new NotSupportedException(
+            $"{GetType().Name} does not implement PurgeUpToAsync.");
+
+    /// <summary>
+    /// Removes every history record whose document id starts with the supplied tenant prefix.
+    /// </summary>
+    Task<int> DeleteByTenantPrefixAsync(string tenantPrefix, CancellationToken ct = default)
+        => throw new NotSupportedException(
+            $"{GetType().Name} does not implement DeleteByTenantPrefixAsync.");
 }
