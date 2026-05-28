@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "OpStream.Shared.Messages.gRPC";
+
+package opstream;
+
+service OpStreamService {
+  rpc Connect (stream ClientMessage) returns (stream ServerMessage);
+}
+
+message ClientMessage {
+  string correlation_id = 1;
+  oneof message_type {
+    JoinRequest join_request = 2;
+    OpRequest op_request = 3;
+    AwarenessRequest awareness_request = 4;
+  }
+}
+
+message ServerMessage {
+  string correlation_id = 1;
+  oneof message_type {
+    JoinResponse join_response = 2;
+    OpResponse op_response = 3;
+    ReceiveOpEvent receive_op_event = 4;
+    ReceiveAwarenessEvent receive_awareness_event = 5;
+    PeerDisconnectedEvent peer_disconnected_event = 6;
+    ErrorResponse error_response = 7;
+  }
+}
+
+message JoinRequest {
+  string document_id = 1;
+  string document_type = 2;
+  int32 client_proto_version = 3;
+}
+
+message JoinResponse {
+  int64 revision = 1;
+  bytes snapshot = 2;
+  repeated AwarenessStateProto awareness = 3;
+}
+
+message OpRequest {
+  string document_id = 1;
+  bytes payload = 2;
+  int64 base_revision = 3;
+}
+
+message OpResponse {
+  bool success = 1;
+  int64 new_revision = 2;
+  string error_message = 3;
+}
+
+message AwarenessRequest {
+  string document_id = 1;
+  string data_json = 2; 
+}
+
+message ErrorResponse {
+  string message = 1;
+}
+
+message ReceiveOpEvent {
+  bytes payload = 1;
+  int64 new_revision = 2;
+}
+
+message ReceiveAwarenessEvent {
+  repeated AwarenessStateProto awareness = 1;
+}
+
+message AwarenessStateProto {
+  string peer_id = 1;
+  string data_json = 2; 
+  google.protobuf.Timestamp last_updated = 3;
+}
+
+message PeerDisconnectedEvent {
+  string peer_id = 1;
+}

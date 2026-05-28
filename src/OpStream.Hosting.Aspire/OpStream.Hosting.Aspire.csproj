@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Description>
+      AppHost extensions for OpStream:
+      • Wires well-known environment variables when an OpStream-backed service
+        is referenced together with its Redis / Postgres / SQL Server resources.
+      • Targets the Microsoft.Extensions.Hosting AppHost surface so the same
+        helpers work with Aspire AppHost or with a plain DistributedApplicationBuilder.
+    </Description>
+    <!-- The Aspire AppHost SDK is currently in preview and pinned per Aspire release.
+         Until the consumer wires it in their AppHost, this package only carries
+         resource-name constants and configuration shape extensions. -->
+  </PropertyGroup>
+</Project>

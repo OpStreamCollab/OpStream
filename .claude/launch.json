@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "threejs-editor-collab",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["samples/ejemplo-threejs-editor/node_modules/vite/bin/vite.js", "--config", "samples/ejemplo-threejs-editor/vite.config.js", "--port", "5173"],
+      "port": 5173
+    }
+  ]
+}

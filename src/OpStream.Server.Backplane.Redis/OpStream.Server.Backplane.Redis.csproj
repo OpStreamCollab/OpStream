@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StackExchange.Redis" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpStream.Server\OpStream.Server.csproj" />
+    <ProjectReference Include="..\OpStream.Shared.Abstractions\OpStream.Shared.Abstractions.csproj" />
+    <ProjectReference Include="..\OpStream.Shared.Messages\OpStream.Shared.Messages.csproj" />
+  </ItemGroup>
+</Project>

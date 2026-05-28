@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <!-- Multi-targeting for maximum adoption and performance -->
+    <TargetFrameworks>net9.0</TargetFrameworks>
+    
+    <!-- Use the latest C# features (C# 13) -->
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    
+    <!-- Treat warnings as errors in CI to maintain quality -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    
+    <!-- NuGet Configuration -->
+    <Authors>jvera71</Authors>
+    <RepositoryUrl>https://github.com/jvera71/OpStream</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+</Project>

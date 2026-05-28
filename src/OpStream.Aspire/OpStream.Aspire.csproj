@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Inherit multi-targeting from Directory.Build.props (net8.0;net9.0) -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Description>
+      Aspire / OpenTelemetry integration for OpStream:
+      • AddOpStreamTelemetry() — wires the Meter("OpStream") and ActivitySource("OpStream")
+        into the OpenTelemetry pipeline configured by Aspire's ServiceDefaults.
+      • MapOpStreamDiagnostics() — opt-in GET /opstream/diag/{docId} endpoint.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpStream.Server\OpStream.Server.csproj" />
+  </ItemGroup>
+</Project>
