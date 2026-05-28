@@ -1,0 +1,134 @@
+site_name: OpStream
+site_description: Real-time collaborative editing toolkit for .NET
+site_url: https://opstreamcollab.github.io/OpStream/
+repo_url: https://github.com/OpStreamCollab/OpStream
+repo_name: OpStreamCollab/OpStream
+edit_uri: edit/main/mkdocs/docs/
+
+theme:
+  name: material
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - search.highlight
+    - search.suggest
+    - search.share
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.caret
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Run with Docker: getting-started/docker.md
+      - Installation: getting-started/installation.md
+      - Quickstart: getting-started/quickstart.md
+      - Core concepts: getting-started/concepts.md
+  - Recipes:
+      - Collaborative text editor: recipes/collaborative-text-editor.md
+      - Notion-style block tree: recipes/notion-blocks.md
+      - Settings dialog (form): recipes/settings-form.md
+      - Spreadsheet: recipes/spreadsheet.md
+  - Transports:
+      - Overview: transports/index.md
+      - SignalR: transports/signalr.md
+      - WebSockets: transports/websockets.md
+      - gRPC: transports/grpc.md
+  - Storage:
+      - Overview: storage/index.md
+      - In-memory: storage/memory.md
+      - Entity Framework Core: storage/ef-core.md
+      - SQL Server: storage/sql-server.md
+      - PostgreSQL: storage/postgresql.md
+      - MySQL: storage/mysql.md
+      - SQLite: storage/sqlite.md
+      - MongoDB: storage/mongodb.md
+      - Redis: storage/redis.md
+  - Architecture: architecture.md
+  - Engines:
+      - Overview: engines/index.md
+      - Text OT: engines/text-ot.md
+      - Rich Text: engines/rich-text.md
+      - JSON CRDT: engines/json-crdt.md
+      - Tree CRDT: engines/tree-crdt.md
+      - Table CRDT: engines/table-crdt.md
+      - Form OT: engines/form-ot.md
+      - Awareness: engines/awareness.md
+      - Undo / Redo: engines/undo-redo.md
+  - Operations:
+      - Backplane (scaling out): operations/backplane.md
+      - Authorization: operations/authorization.md
+      - Multi-tenancy: operations/multitenancy.md
+      - Observability: operations/observability.md
+      - Snapshots: operations/snapshots.md
+      - Deployment: operations/deployment.md
+      - Docker image: operations/docker.md
+  - Reference:
+      - Builder API: reference/builder-api.md
+      - Engine contracts: reference/interfaces.md
+      - Wire protocol: reference/wire-protocol.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/OpStreamCollab/OpStream
+
+copyright: Copyright &copy; 2026 OpStream contributors — MIT License

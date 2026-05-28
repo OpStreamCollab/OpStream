@@ -1,0 +1,31 @@
+# Build artefacts
+**/bin/
+**/obj/
+**/out/
+**/publish/
+
+# IDE / tooling state
+**/.vs/
+**/.vscode/
+**/.idea/
+**/*.user
+**/*.suo
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docs / packaging
+*.md
+LICENSE
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# Node (if frontend bits ever land here)
+**/node_modules/
+
+# OS noise
+**/.DS_Store
+**/Thumbs.db

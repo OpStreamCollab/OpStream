@@ -32,5 +32,8 @@
     <Project Path="OpStream.Aspire/OpStream.Aspire.csproj" />
     <Project Path="OpStream.Hosting.Aspire/OpStream.Hosting.Aspire.csproj" />
   </Folder>
+  <Folder Name="/Host/">
+    <Project Path="OpStream.Host/OpStream.Host.csproj" />
+  </Folder>
   <Project Path="OpStream.Tests/OpStream.Tests.csproj" />
 </Solution>

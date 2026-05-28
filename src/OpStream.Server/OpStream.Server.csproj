@@ -15,7 +15,6 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>opstream;realtime;collaboration;ot;crdt;operational-transformation;server;aspnetcore</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>

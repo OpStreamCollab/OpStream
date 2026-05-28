@@ -14,7 +14,6 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>opstream;realtime;collaboration;redis;backplane;scale-out;distributed;server</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
