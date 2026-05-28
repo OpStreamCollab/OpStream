@@ -1,0 +1,39 @@
+<Solution>
+  <Folder Name="/Client/">
+    <Project Path="src/OpStream.Client.Transports.gRPC/OpStream.Client.Transports.gRPC.csproj" Id="ea8afdaa-e379-4ef6-b463-5a4ad9b9307a" />
+    <Project Path="src/OpStream.Client.Transports.SignalR/OpStream.Client.Transports.SignalR.csproj" Id="a8d8501a-5b27-48f3-a7e8-115eda2b2ce9" />
+    <Project Path="src/OpStream.Client.Transports.WebSockets/OpStream.Client.Transports.WebSockets.csproj" />
+    <Project Path="src/OpStream.Client.Transports/OpStream.Client.Transports.csproj" Id="4b40e9ba-26aa-46a6-a3e3-1cf5fdc85e8b" />
+  </Folder>
+  <Folder Name="/Server/">
+    <Project Path="src/OpStream.Server.Backplane.Redis/OpStream.Server.Backplane.Redis.csproj" />
+    <Project Path="src/OpStream.Server/OpStream.Server.csproj" />
+  </Folder>
+  <Folder Name="/Server/Storage/">
+    <Project Path="src/OpStream.Server.Storage.EntityFrameworkCore/OpStream.Server.Storage.EntityFrameworkCore.csproj" />
+    <Project Path="src/OpStream.Server.Storage.MongoDB/OpStream.Server.Storage.MongoDB.csproj" />
+    <Project Path="src/OpStream.Server.Storage.MySQL/OpStream.Server.Storage.MySQL.csproj" />
+    <Project Path="src/OpStream.Server.Storage.PostgreSQL/OpStream.Server.Storage.PostgreSQL.csproj" />
+    <Project Path="src/OpStream.Server.Storage.Redis/OpStream.Server.Storage.Redis.csproj" />
+    <Project Path="src/OpStream.Server.Storage.SQLite/OpStream.Server.Storage.SQLite.csproj" />
+    <Project Path="src/OpStream.Server.Storage.SqlServer/OpStream.Server.Storage.SqlServer.csproj" />
+  </Folder>
+  <Folder Name="/Server/Transports/">
+    <Project Path="src/OpStream.Server.Transports.gRPC/OpStream.Server.Transports.gRPC.csproj" Id="5e8fe5ba-73cc-4d38-9eb4-b207424c102d" />
+    <Project Path="src/OpStream.Server.Transports.SignalR/OpStream.Server.Transports.SignalR.csproj" />
+    <Project Path="src/OpStream.Server.Transports.WebSockets/OpStream.Server.Transports.WebSockets.csproj" />
+  </Folder>
+  <Folder Name="/Shared/">
+    <Project Path="src/OpStream.Constants/OpStream.Constants.csproj" Id="c29ec4dc-b904-4762-89e9-f4dd8e375a3b" />
+    <Project Path="src/OpStream.Shared.Abstractions/OpStream.Shared.Abstractions.csproj" Id="db95dba5-ee25-483b-93ca-ce89898e1656" />
+    <Project Path="src/OpStream.Shared.Messages/OpStream.Shared.Messages.csproj" Id="a0aaf2b5-459f-464a-baf8-86d738f06fd4" />
+  </Folder>
+  <Folder Name="/Aspire/">
+    <Project Path="src/OpStream.Aspire/OpStream.Aspire.csproj" />
+    <Project Path="src/OpStream.Hosting.Aspire/OpStream.Hosting.Aspire.csproj" />
+  </Folder>
+  <Folder Name="/Host/">
+    <Project Path="src/OpStream.Host/OpStream.Host.csproj" />
+  </Folder>
+  <Project Path="src/OpStream.Tests/OpStream.Tests.csproj" />
+</Solution>

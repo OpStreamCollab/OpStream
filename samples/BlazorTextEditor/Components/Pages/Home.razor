@@ -1,0 +1,100 @@
+﻿@page "/"
+@using OpStream.Client.Transports
+@using System.Text
+@using System.Text.Json
+@implements IAsyncDisposable
+@inject IOpStreamClient Client
+@inject IJSRuntime JS
+
+<PageTitle>Home</PageTitle>
+
+<h1>Collaborative Text Editor</h1>
+
+<div class="opstream-editor-container">
+    <div class="opstream-status" style="font-size: 12px; color: gray; margin-bottom: 5px;">
+        @_statusMessage | Revision: @_currentRevision
+    </div>
+    <textarea id="@_editorId" disabled="@_isDisabled" style="width: 100%; height: 400px; font-family: monospace; padding: 10px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+</div>
+
+@code {
+    private string _editorId = $"editor-{Guid.NewGuid():N}";
+    private DotNetObjectReference<Home>? _objRef;
+
+    private long _currentRevision = 0;
+    private string _statusMessage = "Connecting...";
+    private bool _isDisabled = true;
+    private string DocumentId = "main-document";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+           
+
+            _objRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("OpStreamAdapter.init", _editorId, _objRef);
+
+            await InitializeClientAsync();
+        }
+    }
+
+    private async Task InitializeClientAsync()
+    {
+        try
+        {
+            Client.OnReceiveOp += HandleRemoteOp;
+
+            var result = await Client.ConnectAndJoinAsync(DocumentId, "text");
+            _currentRevision = result.Revision;
+
+            if (!result.Snapshot.IsEmpty)
+            {
+                using var doc = JsonDocument.Parse(result.Snapshot);
+                var content = doc.RootElement.GetProperty("content").GetString() ?? "";
+                await JS.InvokeVoidAsync("OpStreamAdapter.setContent", _editorId, content);
+            }
+
+            _isDisabled = false;
+            _statusMessage = "Connected";
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Error: {ex.Message}";
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleRemoteOp(ReadOnlyMemory<byte> payload, long newRev)
+    {
+        _currentRevision = newRev;
+        var opJson = Encoding.UTF8.GetString(payload.Span);
+        await JS.InvokeVoidAsync("OpStreamAdapter.applyRemoteOp", _editorId, opJson);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task OnLocalInput(string opJson)
+    {
+        var payload = Encoding.UTF8.GetBytes(opJson);
+        var result = await Client.SendOpAsync(DocumentId, payload, _currentRevision);
+
+        if (result.Success)
+        {
+            _currentRevision = result.NewRevision;
+            StateHasChanged();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _objRef?.Dispose();
+        if (Client != null)
+        {
+            Client.OnReceiveOp -= HandleRemoteOp;
+        }
+    }
+}
+
+

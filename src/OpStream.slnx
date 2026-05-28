@@ -5,6 +5,9 @@
     <Project Path="OpStream.Client.Transports.WebSockets/OpStream.Client.Transports.WebSockets.csproj" />
     <Project Path="OpStream.Client.Transports/OpStream.Client.Transports.csproj" Id="4b40e9ba-26aa-46a6-a3e3-1cf5fdc85e8b" />
   </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="../samples/BlazorTextEditor/BlazorTextEditor.csproj" />
+  </Folder>
   <Folder Name="/Server/">
     <Project Path="OpStream.Server.Backplane.Redis/OpStream.Server.Backplane.Redis.csproj" />
     <Project Path="OpStream.Server/OpStream.Server.csproj" />
