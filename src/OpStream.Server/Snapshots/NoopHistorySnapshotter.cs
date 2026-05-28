@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OpStream.Server.Session.Snapshots;
+namespace OpStream.Server.Snapshots;
 
 /// <summary>
 /// A no-op implementation of <see cref="IOpHistorySnapshotter"/> that does nothing.

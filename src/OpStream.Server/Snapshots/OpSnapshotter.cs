@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace OpStream.Server.Session.Snapshots
+namespace OpStream.Server.Snapshots
 {
     /// <summary>
     /// Handles the creation of document snapshots based on defined policies.

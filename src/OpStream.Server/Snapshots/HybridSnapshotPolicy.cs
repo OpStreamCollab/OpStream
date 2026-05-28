@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpStream.Server.Session.Snapshots
+namespace OpStream.Server.Snapshots
 {
     /// <summary>
     /// Implements a snapshot policy that triggers based on either a maximum number of operations or a maximum elapsed time.

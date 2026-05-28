@@ -7,7 +7,7 @@ using OpStream.Server.Engine;
 using OpStream.Server.Engine.Text;
 using OpStream.Server.Models;
 using OpStream.Server.Session;
-using OpStream.Server.Session.Snapshots;
+using OpStream.Server.Snapshots;
 using OpStream.Server.Storage;
 using OpStream.Shared.Abstractions;
 using System.Text.Json;

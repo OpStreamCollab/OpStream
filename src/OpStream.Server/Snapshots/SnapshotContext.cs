@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpStream.Server.Session.Snapshots
+namespace OpStream.Server.Snapshots
 {
     /// <summary>
     /// Provides context information for determining if a snapshot should be taken.

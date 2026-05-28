@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace OpStream.Server.Session.Snapshots
+namespace OpStream.Server.Snapshots
 {
     public interface IOpSnapshotter
     {

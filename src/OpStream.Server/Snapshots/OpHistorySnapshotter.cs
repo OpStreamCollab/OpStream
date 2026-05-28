@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OpStream.Server.Session.Snapshots;
+namespace OpStream.Server.Snapshots;
 
 /// <summary>
 /// Default implementation of <see cref="IOpHistorySnapshotter"/> that creates history snapshots based on configuration.

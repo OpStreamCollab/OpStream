@@ -1,12 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpStream.Constants;
-using OpStream.Server.Comments;
 using OpStream.Server.Multitenancy;
+using OpStream.Server.Session;
 using OpStream.Shared.Abstractions;
 using System.Text.Json;
 
-namespace OpStream.Server.Session;
+namespace OpStream.Server.Comments;
 
 /// <summary>
 /// Routes comment mutations (create / edit / resolve / delete) through the same authorization

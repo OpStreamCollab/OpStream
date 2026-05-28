@@ -1,7 +1,7 @@
 using OpStream.Server.Models;
 using System.Text.Json;
 
-namespace OpStream.Server.Session.Snapshots
+namespace OpStream.Server.Snapshots
 {
     /// <summary>
     /// Handles the creation of historical snapshots for documents.

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using OpStream.Server.Engine;
 using OpStream.Server.Models;
-using OpStream.Server.Session.Snapshots;
 using OpStream.Server.Storage;
 using OpStream.Shared.Abstractions;
 using System;
@@ -12,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using OpStream.Server.Snapshots;
 
 namespace OpStream.Server.Session
 {
