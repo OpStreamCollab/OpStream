@@ -1,20 +1,33 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-   
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <Version>1.0.0</Version>
+    <Authors>OpStream Contributors</Authors>
+    <Description>SignalR client transport for OpStream. Implements IOpStreamClient over ASP.NET Core SignalR for browser-friendly, fallback-capable real-time collaboration. Requires OpStream.Server.Transports.SignalR on the server side.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/OpStreamCollab/OpStream</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/OpStreamCollab/OpStream</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>opstream;realtime;collaboration;signalr;transport;client</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\OpStream.Client.Transports\OpStream.Client.Transports.csproj" />
-    <ProjectReference Include="..\OpStream.Constants\OpStream.Constants.csproj" />   
+    <ProjectReference Include="..\OpStream.Constants\OpStream.Constants.csproj" />
   </ItemGroup>
-
-
 
 </Project>

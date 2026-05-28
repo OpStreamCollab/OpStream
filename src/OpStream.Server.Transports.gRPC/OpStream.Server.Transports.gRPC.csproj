@@ -4,7 +4,22 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <Version>1.0.0</Version>
+    <Authors>OpStream Contributors</Authors>
+    <Description>gRPC server transport for OpStream. Exposes the OpStream session engine as a bidirectional gRPC streaming service using Grpc.AspNetCore. Best for .NET-to-.NET scenarios requiring maximum throughput and binary framing.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/OpStreamCollab/OpStream</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/OpStreamCollab/OpStream</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>opstream;realtime;collaboration;grpc;transport;server;aspnetcore</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

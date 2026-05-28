@@ -1,10 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-   
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <Version>1.0.0</Version>
+    <Authors>OpStream Contributors</Authors>
+    <Description>gRPC client transport for OpStream. Implements IOpStreamClient over a bidirectional gRPC stream for low-latency, multiplexed real-time collaboration. Requires OpStream.Server.Transports.gRPC on the server side.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/OpStreamCollab/OpStream</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/OpStreamCollab/OpStream</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>opstream;realtime;collaboration;grpc;transport;client</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\OpStream.Client.Transports\OpStream.Client.Transports.csproj" />

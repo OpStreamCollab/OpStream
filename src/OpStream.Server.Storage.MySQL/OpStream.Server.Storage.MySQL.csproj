@@ -1,5 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <Version>1.0.0</Version>
+    <Authors>OpStream Contributors</Authors>
+    <Description>MySQL storage for OpStream via Entity Framework Core and Pomelo.EntityFrameworkCore.MySql. Stores operation logs and document snapshots in a MySQL or MariaDB database. Provides EF Core migrations out of the box.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/OpStreamCollab/OpStream</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/OpStreamCollab/OpStream</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>opstream;realtime;collaboration;mysql;mariadb;efcore;storage;server</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">

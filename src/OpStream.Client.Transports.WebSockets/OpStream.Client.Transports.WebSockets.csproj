@@ -1,14 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-  
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <Version>1.0.0</Version>
+    <Authors>OpStream Contributors</Authors>
+    <Description>Raw WebSocket client transport for OpStream. Implements IOpStreamClient over a plain WebSocket connection for maximum portability with minimal dependencies. Requires OpStream.Server.Transports.WebSockets on the server side.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/OpStreamCollab/OpStream</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/OpStreamCollab/OpStream</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>opstream;realtime;collaboration;websockets;transport;client</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\OpStream.Client.Transports\OpStream.Client.Transports.csproj" />
     <ProjectReference Include="..\OpStream.Constants\OpStream.Constants.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Options" />
   </ItemGroup>
+
 </Project>

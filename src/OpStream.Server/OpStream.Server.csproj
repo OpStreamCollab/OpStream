@@ -1,15 +1,37 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+    <Version>1.0.0</Version>
+    <Authors>OpStream Contributors</Authors>
+    <Description>Core OpStream server engine. Provides OT and CRDT convergence algorithms (TextOT, RichText, JSON CRDT, List CRDT, Table, Tree, Form), document session management, consistent-hash document routing, awareness/presence, undo/redo, and snapshot policies. All subsystems are interface-driven and DI-friendly.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/OpStreamCollab/OpStream</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/OpStreamCollab/OpStream</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>opstream;realtime;collaboration;ot;crdt;operational-transformation;server;aspnetcore</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\OpStream.Constants\OpStream.Constants.csproj" />
     <ProjectReference Include="..\OpStream.Shared.Abstractions\OpStream.Shared.Abstractions.csproj" />
     <ProjectReference Include="..\OpStream.Shared.Messages\OpStream.Shared.Messages.csproj" />
   </ItemGroup>
+
 </Project>
