@@ -12,6 +12,8 @@ using OpStream.Server.Storage;
 using OpStream.Server.Multitenancy;
 using OpStream.Shared.Abstractions;
 using OpStream.Server.Snapshots;
+using OpStream.Server.Engine.RichText;
+using OpStream.Server.Engine.Json;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -119,9 +121,8 @@ public static class OpStreamServiceCollectionExtensions
         services.TryAddSingleton<IDocumentStore>(sp => sp.GetRequiredService<MemoryDocumentStore>());
         services.TryAddSingleton<IHistoryStore>(sp => sp.GetRequiredService<MemoryDocumentStore>());
 
-        // Default comment store — in-memory. Persistent backends (EF Core / Redis / Mongo)
-        // do NOT yet ship an ICommentStore implementation; comments are lost on restart
-        // even when ops/history are persistent. See docs/COMMENTS_TODO.md.
+        // Default comment store — in-memory. Replace via UseEfCoreCommentStorage(),
+        // UseMongoDbCommentStorage(), or UseRedisCommentStorage().
         services.TryAddSingleton<ICommentStore, MemoryCommentStore>();
 
         // Open-generic post-apply hook that rebases comment anchors. Becomes a no-op for
@@ -129,7 +130,15 @@ public static class OpStreamServiceCollectionExtensions
         services.TryAddSingleton(typeof(IPostApplyHook<>), typeof(CommentAnchorRebaseHook<>));
 
         // Anchor engines (one per op type that supports anchored comments).
-        services.TryAddSingleton<IAnchorEngine<OpStream.Server.Engine.Text.TextOp>, TextAnchorEngine>();
+        services.TryAddSingleton<IAnchorEngine<TextOp>, TextAnchorEngine>();
+        services.TryAddSingleton<IAnchorEngine<RichTextOp>, RichTextAnchorEngine>();
+        services.TryAddSingleton<IAnchorEngine<JsonOpBatch>, JsonPathAnchorEngine>();
+
+        // Anchor engine registry (maps engine-type-string → adapter for CompactWithAnchorsService).
+        services.TryAddSingleton<IAnchorEngineRegistry, AnchorEngineRegistry>();
+
+        // Compact + anchor-rebase service — hooks into CompactDocument to keep anchors safe.
+        services.TryAddSingleton<CompactWithAnchorsService>();
 
         // Default authorizer — allows everything.
         // The router will log a warning at startup if this default is still active.
@@ -151,6 +160,9 @@ public static class OpStreamServiceCollectionExtensions
 
         // Default engine: plain text
         builder.AddEngine<TextDocument, TextOp, TextOtEngine>("text");
+        builder.AddAnchorEngine<TextOp>("text");
+        builder.AddAnchorEngine<RichTextOp>("richtext");
+        builder.AddAnchorEngine<JsonOpBatch>("json");
 
         // Default health checks — Memory/Noop variants. Replaced when the user
         // wires a real provider via UseRedisStorage / UseRedisBackplane etc.
@@ -219,6 +231,25 @@ public static class OpStreamServiceCollectionExtensions
         where TValidator : class, IOpValidator<TOp>
     {
         builder.Services.AddScoped<IOpValidator<TOp>, TValidator>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers a mapping from <paramref name="documentType"/> to the <see cref="IAnchorEngine{TOp}"/>
+    /// already in DI, so <see cref="CompactWithAnchorsService"/> can rebase anchors during compaction.
+    /// Call this alongside <c>AddEngine&lt;TDoc, TOp, TEngine&gt;(documentType)</c> for every engine
+    /// that has a corresponding <c>IAnchorEngine&lt;TOp&gt;</c> registered.
+    /// </summary>
+    public static IOpStreamBuilder AddAnchorEngine<TOp>(
+        this IOpStreamBuilder builder,
+        string documentType)
+    {
+        builder.Services.AddSingleton<AnchorEngineRegistration>(sp =>
+        {
+            var engine = sp.GetRequiredService<IAnchorEngine<TOp>>();
+            IAnchorEngineAdapter adapter = new AnchorEngineAdapter<TOp>(engine);
+            return new AnchorEngineRegistration(documentType, adapter);
+        });
         return builder;
     }
 

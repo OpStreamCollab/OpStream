@@ -1,4 +1,5 @@
 using OpStream.Constants;
+using OpStream.Server.Comments;
 using OpStream.Server.Session;
 using OpStream.Shared.Abstractions;
 using OpStream.Shared.Messages;
@@ -72,6 +73,53 @@ public class WebSocketBackplaneRelay
                 };
                 await _connectionManager.BroadcastToDocumentAsync(documentId, disconnectBroadcast);
                 break;
+
+            case OpStreamConstants.BackplaneMessages.CommentCreated:
+            {
+                var comment = JsonSerializer.Deserialize<Comment>(message.Payload.Span, JsonOptions);
+                if (comment is not null)
+                {
+                    var broadcast = new WebSocketMessage
+                    {
+                        MessageType = WebSocketOpMessageType.ReceiveCommentCreated,
+                        ReceiveCommentCreated = comment
+                    };
+                    await _connectionManager.BroadcastToDocumentAsync(documentId, broadcast);
+                }
+                break;
+            }
+
+            case OpStreamConstants.BackplaneMessages.CommentUpdated:
+            {
+                var comment = JsonSerializer.Deserialize<Comment>(message.Payload.Span, JsonOptions);
+                if (comment is not null)
+                {
+                    var broadcast = new WebSocketMessage
+                    {
+                        MessageType = WebSocketOpMessageType.ReceiveCommentUpdated,
+                        ReceiveCommentUpdated = comment
+                    };
+                    await _connectionManager.BroadcastToDocumentAsync(documentId, broadcast);
+                }
+                break;
+            }
+
+            case OpStreamConstants.BackplaneMessages.CommentDeleted:
+            {
+                var deleted = JsonSerializer.Deserialize<DeletedCommentPayload>(message.Payload.Span, JsonOptions);
+                if (deleted is not null)
+                {
+                    var broadcast = new WebSocketMessage
+                    {
+                        MessageType = WebSocketOpMessageType.ReceiveCommentDeleted,
+                        ReceiveCommentDeleted = new CommentDeletedData(deleted.CommentId)
+                    };
+                    await _connectionManager.BroadcastToDocumentAsync(documentId, broadcast);
+                }
+                break;
+            }
         }
     }
+
+    private record DeletedCommentPayload(string CommentId, string DocumentId);
 }

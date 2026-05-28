@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using OpStream.Server.Diagnostics;
 using OpStream.Server.Session;
 
 namespace OpStream.Server.Comments;
@@ -28,6 +30,9 @@ public class CommentAnchorRebaseHook<TOp> : IPostApplyHook<TOp>
     {
         if (_anchorEngine is null) return PostApplyResult.Empty;
 
+        using var activity = OpStreamTelemetry.ActivitySource.StartActivity("opstream.comments.rebase");
+        var sw = Stopwatch.GetTimestamp();
+
         IReadOnlyList<Comment> comments;
         try
         {
@@ -42,6 +47,8 @@ public class CommentAnchorRebaseHook<TOp> : IPostApplyHook<TOp>
         if (comments.Count == 0) return PostApplyResult.Empty;
 
         List<AnchorUpdate>? updates = null;
+        int orphanedCount = 0;
+
         foreach (var comment in comments)
         {
             // Replies don't have anchors.
@@ -66,9 +73,23 @@ public class CommentAnchorRebaseHook<TOp> : IPostApplyHook<TOp>
             if (rebase.Outcome == AnchorOutcome.Unchanged && !comment.IsOrphaned)
                 continue;
 
+            if (rebase.Outcome == AnchorOutcome.Orphaned)
+                orphanedCount++;
+
             updates ??= new List<AnchorUpdate>();
             updates.Add(new AnchorUpdate(comment.Id, rebase.Anchor, rebase.Outcome));
         }
+
+        int affected = updates?.Count ?? 0;
+        activity?.SetTag("comments.affected", affected);
+        activity?.SetTag("comments.orphaned", orphanedCount);
+
+        OpStreamTelemetry.CommentRebaseLatency.RecordElapsedMs(sw,
+            new KeyValuePair<string, object?>("comments.affected", affected),
+            new KeyValuePair<string, object?>("comments.orphaned", orphanedCount));
+
+        if (orphanedCount > 0)
+            OpStreamTelemetry.CommentsOrphanedTotal.Add(orphanedCount);
 
         if (updates is null) return PostApplyResult.Empty;
 

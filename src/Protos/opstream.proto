@@ -155,3 +155,81 @@ message MgmtGetSnapshotResponse {
 message MgmtListMilestonesResponse {
   repeated MgmtMilestoneProto milestones = 1;
 }
+
+// ─── Comments service ─────────────────────────────────────────────────────────
+
+service OpStreamCommentsService {
+  rpc CreateComment    (CreateCommentRequest)    returns (CommentResponse);
+  rpc EditComment      (EditCommentRequest)      returns (CommentResponse);
+  rpc ResolveComment   (CommentActionRequest)    returns (CommentResponse);
+  rpc DeleteComment    (CommentActionRequest)    returns (CommentOkResponse);
+  rpc ListOpenComments (ListCommentsRequest)     returns (ListCommentsResponse);
+  // Server-streaming push: client subscribes; server sends events as they arrive.
+  rpc SubscribeComments (SubscribeCommentsRequest) returns (stream CommentEvent);
+}
+
+message CreateCommentRequest {
+  string peer_id     = 1;
+  string document_id = 2;
+  string body        = 3;
+  string anchor_json = 4;          // JSON-serialised Anchor; empty for replies
+  string parent_comment_id = 5;    // empty for root comments
+}
+
+message EditCommentRequest {
+  string peer_id     = 1;
+  string document_id = 2;
+  string comment_id  = 3;
+  string new_body    = 4;
+}
+
+message CommentActionRequest {
+  string peer_id     = 1;
+  string document_id = 2;
+  string comment_id  = 3;
+}
+
+message ListCommentsRequest {
+  string document_id = 1;
+}
+
+message SubscribeCommentsRequest {
+  string document_id = 1;
+}
+
+message CommentProto {
+  string                    id                   = 1;
+  string                    document_id          = 2;
+  string                    parent_comment_id    = 3;
+  string                    author_peer_id       = 4;
+  string                    body                 = 5;
+  string                    anchor_json          = 6;
+  int64                     anchored_at_revision = 7;
+  google.protobuf.Timestamp created_at           = 8;
+  google.protobuf.Timestamp resolved_at          = 9;
+  string                    resolved_by_peer_id  = 10;
+  bool                      is_orphaned          = 11;
+}
+
+message CommentResponse {
+  bool         success       = 1;
+  string       error_message = 2;
+  CommentProto comment       = 3;
+}
+
+message CommentOkResponse {
+  bool   success       = 1;
+  string error_message = 2;
+}
+
+message ListCommentsResponse {
+  repeated CommentProto comments = 1;
+}
+
+message CommentEvent {
+  oneof event_type {
+    CommentProto created = 1;
+    CommentProto updated = 2;
+    string       deleted_comment_id = 3;
+  }
+}

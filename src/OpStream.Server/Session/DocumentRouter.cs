@@ -28,14 +28,16 @@ public class DocumentRouter(
     IEnumerable<IDocumentSessionFactory> factories,
     IBackplane backplane,
     IDocumentOwnershipManager ownershipManager,
-    ILogger<DocumentRouter> logger,
-    IEnumerable<IBackplaneRequestExtension>? requestExtensions = null)
+    ILogger<DocumentRouter> logger)
 {
 
     Dictionary<string, IDocumentSessionFactory> _factories = factories.ToDictionary(f => f.DocumentType, f => f, StringComparer.OrdinalIgnoreCase);
 
-    private readonly IReadOnlyList<IBackplaneRequestExtension> _requestExtensions =
-        (requestExtensions ?? Array.Empty<IBackplaneRequestExtension>()).ToArray();
+    // Resolved lazily to break the circular dependency:
+    // DocumentRouter → IBackplaneRequestExtension → DatabaseCommandRouter/CommentRouter → DocumentRouter
+    private IReadOnlyList<IBackplaneRequestExtension>? _requestExtensions;
+    private IReadOnlyList<IBackplaneRequestExtension> RequestExtensions =>
+        _requestExtensions ??= serviceProvider.GetServices<IBackplaneRequestExtension>().ToArray();
 
     /// <summary>
     /// Backplane that this router uses. Exposed so management routers can publish fan-out
@@ -131,7 +133,7 @@ public class DocumentRouter(
             }
             else
             {
-                foreach (var extension in _requestExtensions)
+                foreach (var extension in RequestExtensions)
                 {
                     if (extension.CanHandle(request.Type))
                         return await extension.HandleAsync(request);

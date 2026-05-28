@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using MongoDB.Driver;
+using OpStream.Server.Comments;
 using OpStream.Server.Storage;
 using OpStream.Server.Storage.MongoDB;
 
@@ -35,5 +36,22 @@ public static class MongoOpStreamExtensions
         return builder;
     }
 
-   
+    /// <summary>
+    /// Replaces the default <see cref="ICommentStore"/> with <see cref="MongoCommentStore"/>,
+    /// backed by the same MongoDB database already configured via
+    /// <see cref="UseMongoDbStorage"/>.
+    /// </summary>
+    /// <remarks>
+    /// Call this <em>after</em> <c>UseMongoDbStorage()</c> so the
+    /// <c>IMongoDatabase</c> is already registered.
+    /// Atomicity note: without a replica set MongoDB cannot do multi-document transactions;
+    /// anchor recovery falls back to the <c>RehydrateOpAsync</c> replay path.
+    /// </remarks>
+    public static IOpStreamBuilder UseMongoDbCommentStorage(this IOpStreamBuilder builder)
+    {
+        builder.Services.TryAddSingleton<MongoCommentStore>();
+        builder.Services.Replace(ServiceDescriptor.Singleton<ICommentStore>(
+            sp => sp.GetRequiredService<MongoCommentStore>()));
+        return builder;
+    }
 }

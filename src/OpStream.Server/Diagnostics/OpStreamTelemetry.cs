@@ -114,6 +114,39 @@ public static class OpStreamTelemetry
             unit: "ms",
             description: "Latency of publishing a backplane message.");
 
+    // ─── Comments / Anchors ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// Cumulative count of anchors marked orphaned since process start.
+    /// </summary>
+    public static readonly Counter<long> CommentsOrphanedTotal =
+        Meter.CreateCounter<long>(
+            "opstream.comments.orphaned_total",
+            unit: "{comments}",
+            description: "Total number of comment anchors that became orphaned.");
+
+    /// <summary>
+    /// Wall-clock time to rebase all open comment anchors for one op, in milliseconds.
+    /// Tagged with <c>comments.affected</c> and <c>comments.orphaned</c>.
+    /// </summary>
+    public static readonly Histogram<double> CommentRebaseLatency =
+        Meter.CreateHistogram<double>(
+            "opstream.comments.rebase_latency_ms",
+            unit: "ms",
+            description: "Time spent rebasing comment anchors for a single applied operation.");
+
+    /// <summary>
+    /// Wall-clock time to rebase all open comment anchors during a compaction run, in milliseconds.
+    /// Tagged with <c>comments.rebased_count</c>.
+    /// </summary>
+    public static readonly Histogram<double> CommentCompactRebaseLatency =
+        Meter.CreateHistogram<double>(
+            "opstream.comments.compact_rebase_latency_ms",
+            unit: "ms",
+            description: "Time spent rebasing comment anchors during a document compaction.");
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────
+
     /// <summary>
     /// Records the time that elapsed since <paramref name="startTimestamp"/> on the supplied histogram.
     /// </summary>

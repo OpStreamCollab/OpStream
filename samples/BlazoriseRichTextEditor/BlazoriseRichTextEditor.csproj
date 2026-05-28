@@ -13,4 +13,9 @@
 		<PackageReference Include="Blazorise.RichTextEdit" Version="2.1.3" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\OpStream.Client.Transports.SignalR\OpStream.Client.Transports.SignalR.csproj" />
+		<ProjectReference Include="..\..\src\OpStream.Client.Transports\OpStream.Client.Transports.csproj" />
+	</ItemGroup>
+
 </Project>

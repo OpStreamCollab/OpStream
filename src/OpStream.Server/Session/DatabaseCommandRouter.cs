@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpStream.Constants;
+using OpStream.Server.Comments;
 using OpStream.Server.Models;
 using OpStream.Server.Multitenancy;
 using OpStream.Server.Storage;
@@ -25,6 +26,7 @@ public class DatabaseCommandRouter(
     IDocumentOwnershipManager ownershipManager,
     IDocumentIdGlobalizer globalizer,
     DocumentRouter documentRouter,
+    CompactWithAnchorsService compactWithAnchors,
     ILogger<DatabaseCommandRouter> logger) : IBackplaneRequestExtension
 {
     private IAsyncDisposable? _broadcastSubscription;
@@ -249,7 +251,7 @@ public class DatabaseCommandRouter(
                 return OpResult.Ok();
 
             case DatabaseCommandType.CompactDocument:
-                await store.CompactAsync(data.GlobalDocumentId, ParseLong(data.Args, "upToRevision"), ct);
+                await compactWithAnchors.CompactAsync(data.GlobalDocumentId, ParseLong(data.Args, "upToRevision"), ct);
                 return OpResult.Ok();
 
             case DatabaseCommandType.PurgeHistory:

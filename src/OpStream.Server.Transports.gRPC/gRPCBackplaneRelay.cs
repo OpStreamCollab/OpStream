@@ -1,5 +1,6 @@
 using Google.Protobuf.WellKnownTypes;
 using OpStream.Constants;
+using OpStream.Server.Comments;
 using OpStream.Server.Session;
 using OpStream.Shared.Abstractions;
 using OpStream.Shared.Messages;
@@ -14,20 +15,20 @@ namespace OpStream.Server.Transports.gRPC;
 public class gRPCBackplaneRelay
 {
     private readonly gRPCConnectionManager _connectionManager;
+    private readonly gRPCCommentConnectionManager _commentConnections;
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="gRPCBackplaneRelay"/> class.
-    /// </summary>
-    /// <param name="router">The document router to subscribe to backplane messages.</param>
-    /// <param name="connectionManager">The manager for gRPC client connections.</param>
-    public gRPCBackplaneRelay(DocumentRouter router, gRPCConnectionManager connectionManager)
+    public gRPCBackplaneRelay(
+        DocumentRouter router,
+        gRPCConnectionManager connectionManager,
+        gRPCCommentConnectionManager commentConnections)
     {
         _connectionManager = connectionManager;
+        _commentConnections = commentConnections;
         router.OnBackplaneMessage += HandleBackplaneMessageAsync;
     }
 
@@ -76,8 +77,43 @@ public class gRPCBackplaneRelay
                 };
                 await _connectionManager.BroadcastToDocumentAsync(documentId, disconnectBroadcast);
                 break;
+
+            case OpStreamConstants.BackplaneMessages.CommentCreated:
+            {
+                var comment = JsonSerializer.Deserialize<Comment>(message.Payload.Span, JsonOptions);
+                if (comment is not null)
+                    await _commentConnections.BroadcastAsync(documentId, new CommentEvent
+                    {
+                        Created = gRPCCommentsTransport.ToProto(comment)
+                    });
+                break;
+            }
+
+            case OpStreamConstants.BackplaneMessages.CommentUpdated:
+            {
+                var comment = JsonSerializer.Deserialize<Comment>(message.Payload.Span, JsonOptions);
+                if (comment is not null)
+                    await _commentConnections.BroadcastAsync(documentId, new CommentEvent
+                    {
+                        Updated = gRPCCommentsTransport.ToProto(comment)
+                    });
+                break;
+            }
+
+            case OpStreamConstants.BackplaneMessages.CommentDeleted:
+            {
+                var deleted = JsonSerializer.Deserialize<DeletedCommentPayload>(message.Payload.Span, JsonOptions);
+                if (deleted is not null)
+                    await _commentConnections.BroadcastAsync(documentId, new CommentEvent
+                    {
+                        DeletedCommentId = deleted.CommentId
+                    });
+                break;
+            }
         }
     }
+
+    private record DeletedCommentPayload(string CommentId, string DocumentId);
 
     /// <summary>
     /// Converts an <see cref="AwarenessState"/> object to its gRPC protobuf representation.

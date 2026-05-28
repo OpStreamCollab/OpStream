@@ -27,6 +27,12 @@ namespace BlazoriseRichTextEditor
 
             builder.Services.AddBlazoriseRichTextEdit();
 
+            builder.Services.AddOpStreamClient()
+                   .UseSignalRTransport(options =>
+                   {
+                       options.HubUrl = "http://localhost:8080/collab";
+                   });
+
 
 
             var app = builder.Build();

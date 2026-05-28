@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using OpStream.Server.Comments;
 using OpStream.Server.Storage;
 using OpStream.Server.Storage.EntityFrameworkCore;
 
@@ -29,6 +30,24 @@ public static class OpStreamEfCoreExtensions
         builder.Services.Replace(ServiceDescriptor.Singleton<IHistoryStore>(
             sp => sp.GetRequiredService<EfCoreDocumentStore<TContext>>()));
 
+        return builder;
+    }
+
+    /// <summary>
+    /// Replaces the default <see cref="ICommentStore"/> with <see cref="EfCoreCommentStore{TContext}"/>,
+    /// backed by the same <typeparamref name="TContext"/> already configured via
+    /// <see cref="UseEfCoreStorage{TContext}"/>.
+    /// </summary>
+    /// <remarks>
+    /// Call this <em>after</em> <c>UseEfCoreStorage&lt;TContext&gt;()</c> so the
+    /// <c>IDbContextFactory&lt;TContext&gt;</c> is already registered.
+    /// </remarks>
+    public static IOpStreamBuilder UseEfCoreCommentStorage<TContext>(this IOpStreamBuilder builder)
+        where TContext : OpStreamDbContext
+    {
+        builder.Services.TryAddSingleton<EfCoreCommentStore<TContext>>();
+        builder.Services.Replace(ServiceDescriptor.Singleton<ICommentStore>(
+            sp => sp.GetRequiredService<EfCoreCommentStore<TContext>>()));
         return builder;
     }
 }

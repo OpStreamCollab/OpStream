@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using StackExchange.Redis;
+using OpStream.Server.Comments;
 using OpStream.Server.Storage;
 using OpStream.Server.Storage.Redis;
 
@@ -84,5 +85,16 @@ public static class RedisOpStreamExtensions
         string connectionString)
         => builder.UseRedisStorage(o => o.ConnectionString = connectionString);
 
-
+    /// <summary>
+    /// Replaces the default <see cref="ICommentStore"/> with <see cref="RedisCommentStore"/>.
+    /// Call this <em>after</em> <c>UseRedisStorage()</c> so the
+    /// <c>IConnectionMultiplexer</c> is already registered.
+    /// </summary>
+    public static IOpStreamBuilder UseRedisCommentStorage(this IOpStreamBuilder builder)
+    {
+        builder.Services.TryAddSingleton<RedisCommentStore>();
+        builder.Services.Replace(ServiceDescriptor.Singleton<ICommentStore>(
+            sp => sp.GetRequiredService<RedisCommentStore>()));
+        return builder;
+    }
 }

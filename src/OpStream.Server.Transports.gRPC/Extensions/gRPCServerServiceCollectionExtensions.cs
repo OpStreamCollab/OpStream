@@ -19,9 +19,11 @@ public static class GrpcTransportExtensions
     public static IOpStreamBuilder AddGrpcTransport(this IOpStreamBuilder builder)
     {
         builder.Services.AddSingleton<gRPCConnectionManager>();
+        builder.Services.AddSingleton<gRPCCommentConnectionManager>();
         builder.Services.AddSingleton<gRPCBackplaneRelay>();
         builder.Services.AddScoped<gRPCManagementTransport>();
         builder.Services.AddScoped<gRPCTransport>();
+        builder.Services.AddScoped<gRPCCommentsTransport>();
         builder.Services.AddGrpc();
         return builder;
     }
@@ -55,5 +57,19 @@ public static class GrpcTransportExtensions
         dbRouter.InitializeAsync().GetAwaiter().GetResult();
 
         return endpoints.MapGrpcService<gRPCManagementTransport>();
+    }
+
+    /// <summary>
+    /// Maps the gRPC comments service (<see cref="gRPCCommentsTransport"/>).
+    /// Exposes CreateComment, EditComment, ResolveComment, DeleteComment, ListOpenComments
+    /// as unary RPCs, and SubscribeComments as a server-streaming RPC for real-time push.
+    /// </summary>
+    public static IEndpointConventionBuilder MapOpStreamGrpcComments(this IEndpointRouteBuilder endpoints)
+    {
+        // Ensure the comment connection manager is resolved (it's a singleton that does
+        // no background work, but we resolve it here for symmetry with the relay pattern).
+        endpoints.ServiceProvider.GetService<gRPCCommentConnectionManager>();
+
+        return endpoints.MapGrpcService<gRPCCommentsTransport>();
     }
 }

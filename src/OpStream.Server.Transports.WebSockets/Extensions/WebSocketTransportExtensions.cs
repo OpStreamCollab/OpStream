@@ -22,6 +22,7 @@ public static class WebSocketTransportExtensions
         builder.Services.AddSingleton<WebSocketBackplaneRelay>();
         builder.Services.AddScoped<WebSocketTransport>();
         builder.Services.AddScoped<WebSocketManagementTransport>();
+        builder.Services.AddScoped<WebSocketCommentsTransport>();
         return builder;
     }
 
@@ -67,6 +68,24 @@ public static class WebSocketTransportExtensions
         return endpoints.Map(pattern, async context =>
         {
             var transport = context.RequestServices.GetRequiredService<WebSocketManagementTransport>();
+            await transport.HandleAsync(context);
+        });
+    }
+
+    /// <summary>
+    /// Maps the WebSocket comments endpoint to <paramref name="pattern"/>.
+    /// Exposes CreateComment, EditComment, ResolveComment, DeleteComment, and ListOpenComments
+    /// over the same JSON-envelope protocol used by the management transport.
+    /// Server-push events (CommentCreated / CommentUpdated / CommentDeleted) are delivered
+    /// to all document peers via <see cref="WebSocketBackplaneRelay"/>.
+    /// </summary>
+    public static IEndpointConventionBuilder MapOpStreamWebSocketsComments(
+        this IEndpointRouteBuilder endpoints,
+        string pattern = "/comments-ws")
+    {
+        return endpoints.Map(pattern, async context =>
+        {
+            var transport = context.RequestServices.GetRequiredService<WebSocketCommentsTransport>();
             await transport.HandleAsync(context);
         });
     }
