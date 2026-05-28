@@ -121,6 +121,8 @@ nav:
       - Snapshots: operations/snapshots.md
       - Deployment: operations/deployment.md
       - Docker image: operations/docker.md
+  - Internals:
+      - First user join flow: internals/first-join-flow.md
   - Reference:
       - Builder API: reference/builder-api.md
       - Engine contracts: reference/interfaces.md
