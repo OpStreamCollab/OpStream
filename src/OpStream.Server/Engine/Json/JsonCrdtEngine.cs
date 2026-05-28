@@ -53,6 +53,27 @@ namespace OpStream.Server.Engine.Json
             long ts = op switch { SetPropertyOp s => s.Timestamp, DeletePropertyOp d => d.Timestamp, _ => 0 };
             string peer = op switch { SetPropertyOp s => s.PeerId, DeletePropertyOp d => d.PeerId, _ => "" };
 
+            // BUG FIX: Check if an ANCESTOR was modified (Set or Delete) with a newer timestamp.
+            // If so, this child operation is stale and must be ignored.
+            string currentPath = path;
+            while (currentPath.Contains('.'))
+            {
+                int lastDot = currentPath.LastIndexOf('.');
+                currentPath = currentPath.Substring(0, lastDot);
+
+                if (registers.TryGetValue(currentPath, out var ancestor))
+                {
+                    // If both the child and the ancestor are part of the same batch,
+                    // we must respect the sequential intent (isCompactingSingleBatch = true).
+                    bool isSameBatch = pathsInBatch.Contains(path) && pathsInBatch.Contains(currentPath);
+
+                    if (!WinsLWW(ts, peer, op, ancestor.Timestamp, ancestor.PeerId, ancestor.Value, ancestor.IsDeleted, isSameBatch))
+                    {
+                        return;
+                    }
+                }
+            }
+
             if (registers.TryGetValue(path, out var existing))
             {
                 if (!WinsLWW(ts, peer, op, existing.Timestamp, existing.PeerId, existing.Value, existing.IsDeleted, false))
@@ -134,6 +155,40 @@ namespace OpStream.Server.Engine.Json
                 string path = op switch { SetPropertyOp s => s.Path, DeletePropertyOp d => d.Path, _ => "" };
                 long ts = op switch { SetPropertyOp s => s.Timestamp, DeletePropertyOp d => d.Timestamp, _ => 0 };
                 string peer = op switch { SetPropertyOp s => s.PeerId, DeletePropertyOp d => d.PeerId, _ => "" };
+
+                // BUG FIX: Check if an ANCESTOR already exists in the compacted batch that wins over this op.
+                // This handles cases where a stale child arrives after a parent tombstone in the composition sequence.
+                bool isKilledByAncestor = false;
+                string currentPath = path;
+                while (currentPath.Contains('.'))
+                {
+                    int lastDot = currentPath.LastIndexOf('.');
+                    currentPath = currentPath.Substring(0, lastDot);
+
+                    if (compacted.TryGetValue(currentPath, out var ancestorOp))
+                    {
+                        long aTs = ancestorOp switch { SetPropertyOp s => s.Timestamp, DeletePropertyOp d => d.Timestamp, _ => 0 };
+                        string aPeer = ancestorOp switch { SetPropertyOp s => s.PeerId, DeletePropertyOp d => d.PeerId, _ => "" };
+                        JsonElement aVal = ancestorOp is SetPropertyOp s4 ? s4.Value : CreateJsonNull();
+                        bool aIsDel = ancestorOp is DeletePropertyOp;
+
+                        if (WinsLWW(aTs, aPeer, ancestorOp, ts, peer, op is SetPropertyOp s5 ? s5.Value : CreateJsonNull(), op is DeletePropertyOp, isCompacting))
+                        {
+                            // Protection for explicit children in same-ts/same-peer batch.
+                            if (isCompacting && ts == aTs && peer == aPeer)
+                            {
+                                // Sequential intent, child wins over parent
+                            }
+                            else
+                            {
+                                isKilledByAncestor = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (isKilledByAncestor) continue;
 
                 if (compacted.TryGetValue(path, out var existing))
                 {

@@ -65,16 +65,16 @@ namespace OpStream.Server.Engine.RichText
             }
 
             return new RichTextDocument(builder.Build());
-        }
+            }
 
-        /// <summary>
-        /// Generates the inverse operation for the given rich text operation.
-        /// </summary>
-        /// <param name="op">The operation to invert.</param>
-        /// <param name="preState">The state of the document before the operation was applied.</param>
-        /// <returns>The inverse operation.</returns>
-        public RichTextOp Invert(RichTextOp op, RichTextDocument preState)
-        {
+            /// <summary>
+            /// Generates the inverse operation for the given rich text operation.
+            /// </summary>
+            /// <param name="op">The operation to invert.</param>
+            /// <param name="preState">The state of the document before the operation was applied.</param>
+            /// <returns>The inverse operation.</returns>
+            public RichTextOp Invert(RichTextOp op, RichTextDocument preState)
+            {
             var invertedComponents = new List<RichTextComponent>();
 
             // Iterate through the original document to know what we are deleting or rewriting
@@ -134,16 +134,15 @@ namespace OpStream.Server.Engine.RichText
                 }
             }
 
-            // Ideally we should compact the resulting operations (e.g., Insert("A") + Insert("B") -> Insert("AB"))
-            return new RichTextOp(invertedComponents);
-        }
+            return Compact(invertedComponents) ?? new RichTextOp(new List<RichTextComponent>());
+            }
 
-        
-        /// <summary>
-        /// Calculates exactly what format to send to return a block of text to its original state.
-        /// </summary>
-        private static TextAttributes? InvertAttributes(TextAttributes appliedAttrs, TextAttributes? originalAttrs)
-        {
+
+            /// <summary>
+            /// Calculates exactly what format to send to return a block of text to its original state.
+            /// </summary>
+            private static TextAttributes? InvertAttributes(TextAttributes appliedAttrs, TextAttributes? originalAttrs)
+            {
             var inverted = new TextAttributes();
 
             foreach (var key in appliedAttrs.Keys)
@@ -163,17 +162,17 @@ namespace OpStream.Server.Engine.RichText
             }
 
             return inverted.Count > 0 ? inverted : null;
-        }
+            }
 
-        /// <summary>
-        /// Transforms an incoming operation against an existing operation to ensure convergence.
-        /// </summary>
-        /// <param name="incoming">The operation coming from a client.</param>
-        /// <param name="existing">The operation already applied on the server.</param>
-        /// <param name="priority">Specifies which operation takes priority in case of conflict.</param>
-        /// <returns>The transformed operation, or null if it becomes a no-op.</returns>
-        public RichTextOp? Transform(RichTextOp incoming, RichTextOp existing, TransformPriority priority)
-        {
+            /// <summary>
+            /// Transforms an incoming operation against an existing operation to ensure convergence.
+            /// </summary>
+            /// <param name="incoming">The operation coming from a client.</param>
+            /// <param name="existing">The operation already applied on the server.</param>
+            /// <param name="priority">Specifies which operation takes priority in case of conflict.</param>
+            /// <returns>The transformed operation, or null if it becomes a no-op.</returns>
+            public RichTextOp? Transform(RichTextOp incoming, RichTextOp existing, TransformPriority priority)
+            {
             var incomingIter = new OpIterator(incoming.Components);
             var existingIter = new OpIterator(existing.Components);
             var result = new List<RichTextComponent>();
@@ -263,17 +262,8 @@ namespace OpStream.Server.Engine.RichText
                 }
             }
 
-            // Clean up unnecessary Retains at the end of the operation
-            while (result.Count > 0 && result[^1] is Retain r && r.Attributes == null)
-            {
-                result.RemoveAt(result.Count - 1);
+            return Compact(result);
             }
-
-            if (result.Count == 0) return null;
-
-            return new RichTextOp(result);
-        }
-
         /// <summary>
         /// Transforms attributes in case of concurrent formatting updates.
         /// </summary>
@@ -408,12 +398,6 @@ namespace OpStream.Server.Engine.RichText
                 {
                     compacted.Add(component);
                 }
-            }
-
-            // Remove useless Retains at the end
-            while (compacted.Count > 0 && compacted[^1] is Retain r && r.Attributes == null)
-            {
-                compacted.RemoveAt(compacted.Count - 1);
             }
 
             return compacted.Count > 0 ? new RichTextOp(compacted) : null;
