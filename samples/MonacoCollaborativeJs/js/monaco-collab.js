@@ -171,6 +171,8 @@ export function attachCollab(editor, opts) {
   // ── Presence / remote cursors ───────────────────────────────────────────────
   const remoteDecorations = new Map();
   const peerColors = new Map();
+  const peerNames = new Map();
+  const peerTypingTimers = new Map();
   let colorIdx = 0;
   let awarenessTimer = null;
 
@@ -206,19 +208,72 @@ export function attachCollab(editor, opts) {
     const m = editor.getModel();
     if (!m || !data) return;
     const color = colorFor(peerId, data.color);
+    const peerName = data.name || "Anonymous";
+
+    // Track peer name for typing label
+    peerNames.set(peerId, peerName);
+
+    // Notify the online users UI in index.html
+    if (window._collabCallbacks && window._collabCallbacks.onAwareness) {
+      window._collabCallbacks.onAwareness(peerId, { name: peerName, color });
+    }
+
     const a = m.getPositionAt(Math.min(data.anchor ?? 0, m.getValueLength?.() ?? Number.MAX_SAFE_INTEGER));
     const h = m.getPositionAt(data.head ?? data.anchor ?? 0);
-    ensurePeerStyle(peerId, color, data.name);
-    const decos = [{
-      range: monaco.Range.fromPositions(a, h),
+    const id = cssId(peerId);
+
+    ensurePeerStyle(peerId, color, peerName);
+
+    const hasSelection = !a.equals(h);
+    const decos = [];
+
+    if (hasSelection) {
+      // Selection range with colored background + name label
+      decos.push({
+        range: monaco.Range.fromPositions(a, h),
+        options: {
+          className: `collab-remote-selection collab-peer-${id}`,
+          beforeContentClassName: `collab-remote-caret collab-peer-${id}`,
+          stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+        },
+      });
+    } else {
+      // Just a caret with name label
+      decos.push({
+        range: monaco.Range.fromPositions(a, h),
+        options: {
+          beforeContentClassName: `collab-remote-caret collab-peer-${id}`,
+          stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+        },
+      });
+    }
+
+    // Always show the name label at the caret position
+    decos.push({
+      range: monaco.Range.fromPositions(h, h),
       options: {
-        className: a.equals(h) ? undefined : `collab-remote-selection collab-peer-${cssId(peerId)}`,
-        beforeContentClassName: `collab-remote-caret collab-peer-${cssId(peerId)}`,
+        beforeContentClassName: `collab-remote-label-widget collab-peer-label-${id}`,
         stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
       },
-    }];
+    });
+
     const prev = remoteDecorations.get(peerId) || [];
     remoteDecorations.set(peerId, editor.deltaDecorations(prev, decos));
+
+    // Typing indicator: flash the label on each awareness update
+    // Auto-hide the label after 3 seconds of inactivity
+    clearTimeout(peerTypingTimers.get(peerId));
+    showPeerLabel(id, true);
+    peerTypingTimers.set(peerId, setTimeout(() => {
+      showPeerLabel(id, false);
+    }, 3000));
+  }
+
+  function showPeerLabel(id, visible) {
+    const els = document.querySelectorAll(`.collab-peer-label-${id}`);
+    els.forEach(el => {
+      el.style.opacity = visible ? "1" : "0";
+    });
   }
 
   function cssId(peerId) { return peerId.replace(/[^a-zA-Z0-9_-]/g, ""); }
@@ -226,12 +281,51 @@ export function attachCollab(editor, opts) {
   const injectedStyles = new Set();
   function ensurePeerStyle(peerId, color, name) {
     const id = cssId(peerId);
-    if (injectedStyles.has(id)) return;
+    // Always update (re-create) the style to keep name in sync
+    const existingStyle = document.getElementById(`collab-style-${id}`);
+    if (existingStyle) existingStyle.remove();
+
     injectedStyles.add(id);
     const style = document.createElement("style");
+    style.id = `collab-style-${id}`;
+
+    const escapedName = (name || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
+
     style.textContent =
-      `.collab-peer-${id}.collab-remote-selection{background:${hexToRgba(color, 0.25)};}` +
-      `.collab-peer-${id}.collab-remote-caret{border-left:2px solid ${color};margin-left:-1px;}`;
+      // Selection background
+      `.collab-peer-${id}.collab-remote-selection {
+        background: ${hexToRgba(color, 0.18)};
+        border: 1px solid ${hexToRgba(color, 0.4)};
+        border-radius: 2px;
+      }` +
+      // Caret line
+      `.collab-peer-${id}.collab-remote-caret {
+        border-left: 2px solid ${color};
+        margin-left: -1px;
+      }` +
+      // Name label widget
+      `.collab-peer-label-${id} {
+        position: relative;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }` +
+      `.collab-peer-label-${id}::before {
+        content: '${escapedName}';
+        position: absolute;
+        top: -1.4em;
+        left: 0;
+        font-size: 0.65rem;
+        font-family: 'Inter', system-ui, sans-serif;
+        font-weight: 600;
+        padding: 0.05rem 0.4rem;
+        border-radius: 3px 3px 3px 0;
+        white-space: nowrap;
+        line-height: 1.4;
+        z-index: 100;
+        background: ${color};
+        color: #fff;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      }`;
     document.head.appendChild(style);
   }
 
@@ -250,6 +344,20 @@ export function attachCollab(editor, opts) {
   client.onPeerDisconnected = (peerId) => {
     const prev = remoteDecorations.get(peerId);
     if (prev) { editor.deltaDecorations(prev, []); remoteDecorations.delete(peerId); }
+    peerNames.delete(peerId);
+    clearTimeout(peerTypingTimers.get(peerId));
+    peerTypingTimers.delete(peerId);
+
+    // Remove the injected style
+    const id = cssId(peerId);
+    const existingStyle = document.getElementById(`collab-style-${id}`);
+    if (existingStyle) existingStyle.remove();
+    injectedStyles.delete(id);
+
+    // Notify the online users UI
+    if (window._collabCallbacks && window._collabCallbacks.onPeerDisconnected) {
+      window._collabCallbacks.onPeerDisconnected(peerId);
+    }
   };
 
   // ── Join / resync ───────────────────────────────────────────────────────────
@@ -291,6 +399,8 @@ export function attachCollab(editor, opts) {
       cursorSub.dispose();
       for (const ids of remoteDecorations.values()) editor.deltaDecorations(ids, []);
       remoteDecorations.clear();
+      for (const timer of peerTypingTimers.values()) clearTimeout(timer);
+      peerTypingTimers.clear();
       client.disposeAsync();
     },
   };

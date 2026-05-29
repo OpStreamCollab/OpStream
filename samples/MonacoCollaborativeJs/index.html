@@ -4,24 +4,241 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OpStream · Collaborative Monaco (HTML + JS)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    :root { color-scheme: light dark; }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; font-family: system-ui, sans-serif; }
-    body { display: flex; flex-direction: column; }
-    header {
-      display: flex; align-items: center; gap: 1rem;
-      padding: 0.5rem 1rem; border-bottom: 1px solid #8884;
+    :root {
+      color-scheme: dark;
+      --bg-body: #0d1117;
+      --bg-header: rgba(22, 27, 34, 0.85);
+      --border-color: rgba(136, 136, 136, 0.15);
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --accent: #58a6ff;
+      --accent-glow: rgba(88, 166, 255, 0.25);
+      --success: #3fb950;
+      --warning: #d29922;
+      --danger: #f85149;
     }
-    header h1 { font-size: 1rem; margin: 0; font-weight: 600; }
-    header .doc { font-family: monospace; opacity: 0.7; }
-    .status { margin-left: auto; display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; }
-    .dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: #bbb; }
-    .dot.open { background: #2ecc71; }
-    .dot.connecting { background: #f1c40f; }
-    .dot.closed, .dot.error { background: #e74c3c; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+    }
+    body { display: flex; flex-direction: column; }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1.25rem;
+      background: var(--bg-header);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      z-index: 10;
+      flex-shrink: 0;
+    }
+    header h1 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--accent), #bc8cff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      white-space: nowrap;
+    }
+    header .separator {
+      width: 1px;
+      height: 1.2rem;
+      background: var(--border-color);
+      flex-shrink: 0;
+    }
+    header .doc {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    /* ── Language Dropdown ──────────────────────────────────── */
+    .lang-select-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .lang-select-wrapper label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-right: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    #langSelect {
+      appearance: none;
+      -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 0.3rem 2rem 0.3rem 0.6rem;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    #langSelect:hover {
+      border-color: var(--accent);
+    }
+    #langSelect:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    #langSelect option {
+      background: #1c2128;
+      color: var(--text-primary);
+    }
+    .lang-select-wrapper::after {
+      content: '▾';
+      position: absolute;
+      right: 0.55rem;
+      pointer-events: none;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+    }
+
+    /* ── Online Users ──────────────────────────────────────── */
+    .online-users {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .online-users-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      margin-right: 0.15rem;
+    }
+    .user-avatars {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .user-avatar {
+      width: 1.6rem;
+      height: 1.6rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #fff;
+      border: 2px solid var(--bg-body);
+      margin-left: -0.35rem;
+      text-transform: uppercase;
+      cursor: default;
+      position: relative;
+      transition: transform 0.2s, z-index 0.2s;
+      z-index: 1;
+    }
+    .user-avatar:first-child { margin-left: 0; }
+    .user-avatar:hover {
+      transform: scale(1.2);
+      z-index: 10;
+    }
+    .user-avatar .tooltip {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1c2128;
+      color: var(--text-primary);
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      border: 1px solid var(--border-color);
+    }
+    .user-avatar:hover .tooltip {
+      opacity: 1;
+    }
+    .user-avatar.self {
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+
+    /* ── Connection Status ─────────────────────────────────── */
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+      margin-left: 0.5rem;
+    }
+    .dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      transition: background 0.3s;
+    }
+    .dot.open       { background: var(--success); box-shadow: 0 0 6px rgba(63,185,80,0.5); }
+    .dot.connecting { background: var(--warning); box-shadow: 0 0 6px rgba(210,153,34,0.5); }
+    .dot.closed,
+    .dot.error      { background: var(--danger); box-shadow: 0 0 6px rgba(248,81,73,0.5); }
+
+    /* ── Editor ─────────────────────────────────────────────── */
     #editor { flex: 1 1 auto; min-height: 0; }
-    .hint { padding: 0.4rem 1rem; font-size: 0.8rem; opacity: 0.7; border-top: 1px solid #8884; }
+
+    /* ── Footer Hint ───────────────────────────────────────── */
+    .hint {
+      padding: 0.4rem 1.25rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-header);
+    }
+    .hint code {
+      background: rgba(255,255,255,0.08);
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      font-size: 0.72rem;
+    }
+
+    /* ── Remote Typing Label (injected dynamically) ─────── */
+    .collab-remote-label {
+      position: absolute;
+      top: -1.3em;
+      left: 0;
+      font-size: 0.65rem;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-weight: 600;
+      padding: 0.05rem 0.35rem;
+      border-radius: 3px 3px 3px 0;
+      white-space: nowrap;
+      pointer-events: none;
+      line-height: 1.4;
+      z-index: 100;
+    }
   </style>
   <link
     rel="stylesheet"
@@ -30,21 +247,43 @@
 <body>
   <header>
     <h1>Collaborative Monaco</h1>
+    <span class="separator"></span>
     <span class="doc" id="docLabel"></span>
+    <span class="separator"></span>
+    <div class="lang-select-wrapper">
+      <label for="langSelect">Lang</label>
+      <select id="langSelect">
+        <option value="html">HTML</option>
+        <option value="javascript">JavaScript</option>
+      </select>
+    </div>
+    <div class="online-users">
+      <span class="online-users-label">Online</span>
+      <div class="user-avatars" id="userAvatars"></div>
+    </div>
     <span class="status"><span class="dot" id="dot"></span><span id="statusText">starting…</span></span>
   </header>
   <div id="editor"></div>
   <div class="hint">
     Open this page in a second tab (or share the URL) to edit the same document live.
-    Add <code>?doc=my-doc&name=Ada</code> to choose a document / display name.
+    Add <code>?doc=my-doc</code> to choose a document name.
   </div>
 
   <!-- Monaco ships as AMD; load it the standard way, then dynamically import our ESM glue. -->
   <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
   <script>
+    // ── Ask for user name via prompt ──────────────────────────
     const params = new URLSearchParams(location.search);
     const documentId = params.get("doc") || "monaco-doc-1";
-    const name = params.get("name") || "User-" + Math.floor(Math.random() * 1000);
+
+    let name = params.get("name") || "";
+    if (!name) {
+      name = prompt("Enter your display name:", "") || "";
+    }
+    if (!name) {
+      name = "User-" + Math.floor(Math.random() * 1000);
+    }
+
     document.getElementById("docLabel").textContent = "#" + documentId;
 
     const dot = document.getElementById("dot");
@@ -54,15 +293,96 @@
       dot.className = "dot " + (s.startsWith("error") ? "error" : s);
     }
 
+    // ── Online users management ──────────────────────────────
+    const AVATAR_COLORS = [
+      "#e91e63", "#3f51b5", "#009688", "#ff9800",
+      "#9c27b0", "#795548", "#00bcd4", "#8bc34a",
+      "#ff5722", "#607d8b", "#673ab7", "#4caf50",
+    ];
+    let avatarColorIdx = 0;
+    const peerColorMap = new Map();
+
+    function getAvatarColor(peerId) {
+      if (!peerColorMap.has(peerId)) {
+        peerColorMap.set(peerId, AVATAR_COLORS[avatarColorIdx++ % AVATAR_COLORS.length]);
+      }
+      return peerColorMap.get(peerId);
+    }
+
+    const onlineUsers = new Map(); // peerId -> { name, color }
+    const SELF_PEER_ID = "__self__";
+
+    function addSelfUser() {
+      onlineUsers.set(SELF_PEER_ID, { name: name, color: "#58a6ff" });
+      renderOnlineUsers();
+    }
+
+    function updateOnlineUser(peerId, data) {
+      if (!data || !data.name) return;
+      const color = data.color || getAvatarColor(peerId);
+      onlineUsers.set(peerId, { name: data.name, color });
+      renderOnlineUsers();
+    }
+
+    function removeOnlineUser(peerId) {
+      onlineUsers.delete(peerId);
+      peerColorMap.delete(peerId);
+      renderOnlineUsers();
+    }
+
+    function renderOnlineUsers() {
+      const container = document.getElementById("userAvatars");
+      container.innerHTML = "";
+      for (const [peerId, user] of onlineUsers) {
+        const el = document.createElement("div");
+        el.className = "user-avatar" + (peerId === SELF_PEER_ID ? " self" : "");
+        el.style.background = user.color;
+        const initials = user.name.substring(0, 2);
+        el.innerHTML = `${initials}<span class="tooltip">${user.name}${peerId === SELF_PEER_ID ? " (you)" : ""}</span>`;
+        container.appendChild(el);
+      }
+    }
+
+    // ── Expose callbacks for monaco-collab.js ────────────────
+    window._collabCallbacks = {
+      onAwareness(peerId, data) {
+        updateOnlineUser(peerId, data);
+      },
+      onPeerDisconnected(peerId) {
+        removeOnlineUser(peerId);
+      },
+    };
+
+    // ── Monaco setup ─────────────────────────────────────────
+    const langSelect = document.getElementById("langSelect");
+
     require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs" } });
     require(["vs/editor/editor.main"], function () {
       const editor = monaco.editor.create(document.getElementById("editor"), {
         value: "",
-        language: "plaintext",
+        language: "html",
+        theme: "vs-dark",
         automaticLayout: true,
         minimap: { enabled: false },
         wordWrap: "on",
+        fontSize: 14,
+        fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace",
+        fontLigatures: true,
+        smoothScrolling: true,
+        cursorSmoothCaretAnimation: "on",
+        cursorBlinking: "smooth",
+        padding: { top: 12 },
+        renderLineHighlight: "gutter",
+        bracketPairColorization: { enabled: true },
       });
+
+      // Language switch
+      langSelect.addEventListener("change", () => {
+        const lang = langSelect.value;
+        monaco.editor.setModelLanguage(editor.getModel(), lang);
+      });
+
+      addSelfUser();
 
       import("./js/monaco-collab.js").then(({ attachCollab }) => {
         const session = attachCollab(editor, {
