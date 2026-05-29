@@ -26,6 +26,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OpStream.Shared.Messages\OpStream.Shared.Messages.csproj" />
+    <ProjectReference Include="..\OpStream.Server\OpStream.Server.csproj" />
+    <ProjectReference Include="..\OpStream.Constants\OpStream.Constants.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpStream.Server.Storage.SQLite;
 
@@ -10,9 +11,11 @@ using OpStream.Server.Storage.SQLite;
 namespace OpStream.Server.Storage.SQLite.Migrations
 {
     [DbContext(typeof(SqliteOpStreamDbContext))]
-    partial class SqliteOpStreamDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260529085317_UpdateModel")]
+    partial class UpdateModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");

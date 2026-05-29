@@ -8,12 +8,14 @@ A small vocabulary that the rest of the documentation assumes you've internalize
 |---|---|---|
 | **Awareness** | Ephemeral, in-memory | Cursors, presence, "user typing" — never persisted |
 | **Backplane** | Shared infra (Redis) | Cluster fan-out and ownership coordination |
+| **Branching** | Ref registry | Named divergent history lines, fork/merge metadata |
 | **Comment** | Shared storage | Collaborative feedback, threaded replies, anchors |
 | **Comment Router** | One per server process | Routing of comment mutations to the owning node |
 | **Document** | Logical unit | Id, type, state, revision counter |
 | **Document Router** | One per server process | Auth, ownership, routing, awareness |
 | **Health Checks** | Network edge | Diagnostic endpoints for liveness and readiness |
 | **History** | Cold storage | Permanent immutable log, state milestones, versioning |
+| **Merging** | Document engine | Integration of divergent branches via 3-way transformation |
 | **Multitenancy** | Core plumbing | Isolation of data via document ID globalization |
 | **Op** | In-flight / op log | A single atomic change to the document |
 | **Peer** | Per connection | One connected client, one peer id |
@@ -22,6 +24,7 @@ A small vocabulary that the rest of the documentation assumes you've internalize
 | **Snapshot** | Storage | Compact state checkpoint; shortens replay on reload |
 | **Storage** | External infra (DB / Redis / …) | Op log, snapshots, durable state |
 | **Transport** | Network edge | Wire protocol between clients and server |
+| **Versioning** | Ref registry | Immutable named pointers to past revisions (tags) |
 
 ## Awareness
 
@@ -38,6 +41,15 @@ in-process `LocalBackplane`; for production you swap in `UseRedisBackplane()`.
 Its job is to ensure that an op applied on node A is broadcast to peers
 connected to nodes B, C, …, and that ownership of a document is moved
 between nodes when needed. See [Backplane](../operations/backplane.md).
+
+## Branching
+
+A **branch** is a named, independent line of edits derived from a parent 
+document's state at a specific revision (the fork point). Each branch has 
+its own physical op log and can grow independently. OpStream supports 
+Git-style branching and **merging**, where a branch's edits are transformed 
+against the target's history to integrate changes cleanly across different 
+lines of work.
 
 ## Comment
 
@@ -101,6 +113,16 @@ and important state checkpoint (milestone) in a document's lifecycle. While the
 active op log may be compacted, the history store allows for features like
 audit logs, "time travel" browsing of past versions, and restoration to 
 specific revisions. See [History](../operations/history.md).
+
+## Merging
+
+**Merging** is the process of integrating changes from one branch into another. 
+OpStream performs a **3-way merge** using the fork point as the common ancestor. 
+Instead of simple text diffs, the merge is driven by the document's [engine](../engines/index.md): 
+concurrent operations from the source branch are **transformed** against the 
+target's history. This ensures that the merge is deterministic, preserves 
+intent, and leverages the same conflict-resolution logic used during live 
+collaboration.
 
 ## Multitenancy
 
@@ -213,5 +235,13 @@ OPSTREAM__TRANSPORTS="signalr,websockets,grpc"
 ```
 
 See [Transports](../transports/index.md) for per-transport configuration.
+
+## Versioning
+
+A **version** (or tag) is an immutable, named pointer to a specific revision 
+in a document's history. It allows you to reliably "time travel" to a past 
+state and read the document exactly as it was when the version was created. 
+Versions are backed by history milestones to ensure they remain accessible 
+even after the active op log is compacted.
 
 ## Next: [Transports →](../transports/index.md)

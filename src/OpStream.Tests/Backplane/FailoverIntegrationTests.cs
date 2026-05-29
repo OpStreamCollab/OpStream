@@ -36,23 +36,24 @@ public class FailoverIntegrationTests : IAsyncLifetime
     {
         _network = new NetworkBuilder().WithName($"opstream-test-{Guid.NewGuid():N}").Build();
         await _network.CreateAsync();
+_redis = new RedisBuilder("redis:latest").WithNetwork(_network).WithNetworkAliases("redis")
+    .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("redis-cli", "ping")).Build();
+await _redis.StartAsync();
 
-        _redis = new RedisBuilder().WithNetwork(_network).WithNetworkAliases("redis")
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("redis-cli", "ping")).Build();
-        await _redis.StartAsync();
+var repoRoot = FindRepoRoot();
+_hostImage = new ImageFromDockerfileBuilder()
+    .WithDockerfileDirectory(repoRoot)
+    .WithDockerfile("Dockerfile")
+    .WithName($"opstream-test:{Guid.NewGuid():N}")
+    .WithCleanUp(true)
+    .Build();
+await _hostImage.CreateAsync();
 
-        var repoRoot = FindRepoRoot();
-        _hostImage = new ImageFromDockerfileBuilder()
-            .WithDockerfileDirectory(repoRoot)
-            .WithDockerfile("Dockerfile")
-            .WithName($"opstream-test:{Guid.NewGuid():N}")
-            .WithCleanUp(true)
-            .Build();
-        await _hostImage.CreateAsync();
-
-        _hostA = BuildHostContainer("host-a");
-        await _hostA.StartAsync();
-        _hostAPort = _hostA.GetMappedPublicPort(ContainerPort);
+_hostA = new ContainerBuilder(_hostImage)
+    .WithNetwork(_network)
+    .Build();
+await _hostA.StartAsync();
+_hostAPort = _hostA.GetMappedPublicPort(ContainerPort);
 
         _hostB = BuildHostContainer("host-b");
         await _hostB.StartAsync();
@@ -61,8 +62,7 @@ public class FailoverIntegrationTests : IAsyncLifetime
 
     private IContainer BuildHostContainer(string alias)
     {
-        return new ContainerBuilder()
-            .WithImage(_hostImage)
+        return new ContainerBuilder(_hostImage)
             .WithNetwork(_network)
             .WithNetworkAliases(alias)
             .WithPortBinding(ContainerPort, true)

@@ -6,6 +6,7 @@ using OpStream.Server.Comments;
 using OpStream.Server.Engine.Text;
 using OpStream.Server.Models;
 using OpStream.Server.Storage;
+using OpStream.Server.Versioning;
 using System.Text.Json;
 using Xunit;
 
@@ -13,6 +14,7 @@ namespace OpStream.Tests.Comments;
 
 public class CompactWithAnchorsServiceTests
 {
+    private static readonly Mock<VersioningRouter> VersioningRouterMock = new(null!, null!, null!, null!, null!);
     private static Anchor TextAnchor(int start, int end)
         => new("text", JsonSerializer.SerializeToElement(new
         {
@@ -27,6 +29,7 @@ public class CompactWithAnchorsServiceTests
         var registry = new Mock<IAnchorEngineRegistry>();
         var svc = new CompactWithAnchorsService(
             store, docStore.Object, registry.Object,
+            VersioningRouterMock.Object,
             NullLogger<CompactWithAnchorsService>.Instance);
 
         await svc.CompactAsync("doc1", upToRevision: 10);
@@ -64,6 +67,7 @@ public class CompactWithAnchorsServiceTests
 
         var svc = new CompactWithAnchorsService(
             commentStore, docStoreMock.Object, registry,
+            VersioningRouterMock.Object,
             NullLogger<CompactWithAnchorsService>.Instance);
 
         await svc.CompactAsync(docId, upToRevision: 5);

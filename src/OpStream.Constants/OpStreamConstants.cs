@@ -101,6 +101,7 @@ public static class OpStreamConstants
         // Names
         public const string RegisterName = "VRegisterName";
         public const string ListNames    = "VListNames";
+        public const string DeleteName   = "VDeleteName";
 
         // Branches
         public const string ListBranches  = "VListBranches";
@@ -111,6 +112,7 @@ public static class OpStreamConstants
         public const string CreateVersion       = "VCreateVersion";
         public const string ListVersions        = "VListVersions";
         public const string ReadVersionSnapshot = "VReadVersionSnapshot";
+        public const string DeleteVersion       = "VDeleteVersion";
 
         // Merge
         public const string MergeBranch    = "VMergeBranch";

@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 namespace OpStream.Shared.Abstractions
 {
     /// <summary>
-    /// Discriminator for management commands evaluated by <see cref="IDatabaseCommandAuthorizer"/>.
+    /// Discriminator for management and versioning commands evaluated by <see cref="IDatabaseCommandAuthorizer"/>.
     /// </summary>
     public enum DatabaseCommandType
     {
+        // ── documents & history ─────────────────────────────────────────────
         ListDocuments,
         GetDocumentInfo,
         GetSnapshot,
@@ -16,7 +17,20 @@ namespace OpStream.Shared.Abstractions
         CompactDocument,
         ListMilestones,
         PurgeHistory,
-        PurgeTenant
+        PurgeTenant,
+
+        // ── versioning control plane ────────────────────────────────────────
+        RegisterName,
+        ListNames,
+        DeleteName,
+        ListBranches,
+        ForkBranch,
+        DeleteBranch,
+        CreateVersion,
+        ListVersions,
+        ReadVersionSnapshot,
+        DeleteVersion,
+        MergeBranch,
     }
 
     /// <summary>

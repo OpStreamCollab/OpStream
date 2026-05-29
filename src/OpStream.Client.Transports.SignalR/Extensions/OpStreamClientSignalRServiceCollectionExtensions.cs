@@ -1,12 +1,6 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpStream.Client.Transports;
 using OpStream.Client.Transports.SignalR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -16,32 +10,47 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class OpStreamClientSignalRServiceCollectionExtensions
 {
     /// <summary>
-    /// Configures the client to use SignalR as transport.
+    /// Configures the collaboration client to use SignalR as transport.
     /// </summary>
     public static IOpStreamClientBuilder UseSignalRTransport(
         this IOpStreamClientBuilder builder,
         Action<OpStreamSignalROptions> configureOptions)
     {
-        // 1. Configure the options so the developer can set the URL
         builder.Services.Configure(configureOptions);
-
-        // 2. Register the client as TRANSIENT (or Scoped in Blazor Server). 
-        // It is vital that it be Transient if you want to allow the app to connect 
-        // to 2 different documents with 2 different SignalR instances at the same time.
-        // Optionally we can register a Factory if you need more flexibility.
         builder.Services.TryAddTransient<IOpStreamClient, SignalROpStreamClient>();
+        return builder;
+    }
 
+    /// <summary>
+    /// Registers <see cref="SignalROpStreamManagementClient"/> as <see cref="IOpStreamManagementClient"/>.
+    /// </summary>
+    public static IOpStreamClientBuilder UseSignalRManagementTransport(
+        this IOpStreamClientBuilder builder,
+        Action<OpStreamSignalRManagementOptions> configureOptions)
+    {
+        builder.Services.Configure(configureOptions);
+        builder.Services.TryAddTransient<IOpStreamManagementClient>(sp =>
+        {
+            var opts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<OpStreamSignalRManagementOptions>>().Value;
+            return new SignalROpStreamManagementClient(opts.ManagementHubUrl, opts.VersioningHubUrl);
+        });
         return builder;
     }
 }
 
-/// <summary>
-/// Configuration options for the OpStream SignalR transport.
-/// </summary>
+/// <summary>Configuration options for the OpStream SignalR collaboration transport.</summary>
 public class OpStreamSignalROptions
 {
-    /// <summary>
-    /// Gets or sets the SignalR Hub URL.
-    /// </summary>
+    /// <summary>Gets or sets the SignalR collaboration hub URL.</summary>
     public string HubUrl { get; set; } = "/collab";
+}
+
+/// <summary>Configuration options for the OpStream SignalR management transport.</summary>
+public class OpStreamSignalRManagementOptions
+{
+    /// <summary>Gets or sets the management hub URL.</summary>
+    public string ManagementHubUrl { get; set; } = "/mgmt";
+
+    /// <summary>Gets or sets the versioning hub URL.</summary>
+    public string VersioningHubUrl { get; set; } = "/versioning";
 }

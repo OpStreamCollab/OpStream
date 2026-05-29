@@ -33,6 +33,11 @@ public interface IDocumentRefStore
     Task DeleteBranchAsync(string globalName, string branchId, CancellationToken ct = default)
         => throw new NotSupportedException($"{GetType().Name} does not implement {nameof(DeleteBranchAsync)}.");
 
+    // ─── Names (delete) ───────────────────────────────────────────────────────
+
+    Task DeleteNameAsync(string globalName, CancellationToken ct = default)
+        => throw new NotSupportedException($"{GetType().Name} does not implement {nameof(DeleteNameAsync)}.");
+
     // ─── Versions / tags (immutable) ─────────────────────────────────────────
 
     Task CreateVersionAsync(VersionRef version, CancellationToken ct = default)
@@ -43,6 +48,9 @@ public interface IDocumentRefStore
 
     IAsyncEnumerable<VersionRef> EnumerateVersionsAsync(string globalName, string branchId, CancellationToken ct = default)
         => throw new NotSupportedException($"{GetType().Name} does not implement {nameof(EnumerateVersionsAsync)}.");
+
+    Task DeleteVersionAsync(string globalName, string branchId, string tag, CancellationToken ct = default)
+        => throw new NotSupportedException($"{GetType().Name} does not implement {nameof(DeleteVersionAsync)}.");
 
     // ─── Compaction pin guard ─────────────────────────────────────────────────
 

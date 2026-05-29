@@ -32,6 +32,13 @@ public class SignalRVersioningTransport(VersioningRouter router) : Hub
         return result.Value!;
     }
 
+    [HubMethodName(OpStreamConstants.VersioningHubMethods.DeleteName)]
+    public async Task DeleteName(string name, bool cascade = false)
+    {
+        var result = await router.DeleteNameAsync(name, cascade, Context.ConnectionAborted);
+        if (!result.Success) throw new HubException(result.ErrorMessage);
+    }
+
     // ─── Branches ────────────────────────────────────────────────────────────
 
     [HubMethodName(OpStreamConstants.VersioningHubMethods.ListBranches)]
@@ -81,6 +88,13 @@ public class SignalRVersioningTransport(VersioningRouter router) : Hub
         var result = await router.ReadVersionSnapshotAsync(name, branchId, tag, Context.ConnectionAborted);
         if (!result.Success) throw new HubException(result.ErrorMessage);
         return result.Value;
+    }
+
+    [HubMethodName(OpStreamConstants.VersioningHubMethods.DeleteVersion)]
+    public async Task DeleteVersion(string name, string branchId, string tag, bool dropSnapshot = false)
+    {
+        var result = await router.DeleteVersionAsync(name, branchId, tag, dropSnapshot, Context.ConnectionAborted);
+        if (!result.Success) throw new HubException(result.ErrorMessage);
     }
 
     // ─── Merge ───────────────────────────────────────────────────────────────

@@ -23,6 +23,103 @@ namespace OpStream.Server.Storage.MySQL.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.CommentEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("AnchorJson")
+                        .HasColumnType("longtext");
+
+                    b.Property<long>("AnchoredAtRevision")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("AuthorPeerId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DocumentId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("IsOrphaned")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ParentCommentId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ResolvedByPeerId")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentId", "ParentCommentId", "ResolvedAt");
+
+                    b.ToTable("Comments", "opstream");
+                });
+
+            modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.DocumentBranchEntity", b =>
+                {
+                    b.Property<string>("GlobalName")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("BranchId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ForkParentBranchId")
+                        .HasColumnType("longtext");
+
+                    b.Property<long>("ForkRevision")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsReadOnly")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("PhysicalDocumentId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("GlobalName", "BranchId");
+
+                    b.HasIndex("PhysicalDocumentId");
+
+                    b.ToTable("DocumentBranches", "opstream");
+                });
+
+            modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.DocumentNameEntity", b =>
+                {
+                    b.Property<string>("GlobalName")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DefaultBranchId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("EngineType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("GlobalName");
+
+                    b.ToTable("DocumentNames", "opstream");
+                });
+
             modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.DocumentOpEntity", b =>
                 {
                     b.Property<string>("DocumentId")
@@ -71,6 +168,34 @@ namespace OpStream.Server.Storage.MySQL.Migrations
                     b.HasKey("DocumentId");
 
                     b.ToTable("DocumentSnapshots", "opstream");
+                });
+
+            modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.DocumentVersionEntity", b =>
+                {
+                    b.Property<string>("GlobalName")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("BranchId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Tag")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("HistorySnapshotName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<long>("Revision")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("GlobalName", "BranchId", "Tag");
+
+                    b.HasIndex("GlobalName", "BranchId");
+
+                    b.ToTable("DocumentVersions", "opstream");
                 });
 
             modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.HistoryOpEntity", b =>

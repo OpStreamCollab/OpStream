@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpStream · Collaborative Monaco (HTML + JS)</title>
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: system-ui, sans-serif; }
+    body { display: flex; flex-direction: column; }
+    header {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0.5rem 1rem; border-bottom: 1px solid #8884;
+    }
+    header h1 { font-size: 1rem; margin: 0; font-weight: 600; }
+    header .doc { font-family: monospace; opacity: 0.7; }
+    .status { margin-left: auto; display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; }
+    .dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: #bbb; }
+    .dot.open { background: #2ecc71; }
+    .dot.connecting { background: #f1c40f; }
+    .dot.closed, .dot.error { background: #e74c3c; }
+    #editor { flex: 1 1 auto; min-height: 0; }
+    .hint { padding: 0.4rem 1rem; font-size: 0.8rem; opacity: 0.7; border-top: 1px solid #8884; }
+  </style>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/editor/editor.main.css" />
+</head>
+<body>
+  <header>
+    <h1>Collaborative Monaco</h1>
+    <span class="doc" id="docLabel"></span>
+    <span class="status"><span class="dot" id="dot"></span><span id="statusText">starting…</span></span>
+  </header>
+  <div id="editor"></div>
+  <div class="hint">
+    Open this page in a second tab (or share the URL) to edit the same document live.
+    Add <code>?doc=my-doc&name=Ada</code> to choose a document / display name.
+  </div>
+
+  <!-- Monaco ships as AMD; load it the standard way, then dynamically import our ESM glue. -->
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const documentId = params.get("doc") || "monaco-doc-1";
+    const name = params.get("name") || "User-" + Math.floor(Math.random() * 1000);
+    document.getElementById("docLabel").textContent = "#" + documentId;
+
+    const dot = document.getElementById("dot");
+    const statusText = document.getElementById("statusText");
+    function setStatus(s) {
+      statusText.textContent = s;
+      dot.className = "dot " + (s.startsWith("error") ? "error" : s);
+    }
+
+    require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs" } });
+    require(["vs/editor/editor.main"], function () {
+      const editor = monaco.editor.create(document.getElementById("editor"), {
+        value: "",
+        language: "plaintext",
+        automaticLayout: true,
+        minimap: { enabled: false },
+        wordWrap: "on",
+      });
+
+      import("./js/monaco-collab.js").then(({ attachCollab }) => {
+        const session = attachCollab(editor, {
+          documentId,
+          presence: { name },
+          onStatus: setStatus,
+        });
+        window.addEventListener("beforeunload", () => session.dispose());
+      });
+    });
+  </script>
+</body>
+</html>

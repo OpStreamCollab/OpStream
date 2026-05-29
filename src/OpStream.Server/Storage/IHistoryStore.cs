@@ -54,4 +54,12 @@ public interface IHistoryStore
     Task<int> DeleteByTenantPrefixAsync(string tenantPrefix, CancellationToken ct = default)
         => throw new NotSupportedException(
             $"{GetType().Name} does not implement DeleteByTenantPrefixAsync.");
+
+    /// <summary>
+    /// Removes a named milestone snapshot (e.g. a tag snapshot written by <c>CreateVersion</c>).
+    /// Optional — providers that do not support milestone deletion may throw <see cref="NotSupportedException"/>.
+    /// </summary>
+    Task DeleteMilestoneAsync(string documentId, string milestoneName, CancellationToken ct = default)
+        => throw new NotSupportedException(
+            $"{GetType().Name} does not implement DeleteMilestoneAsync.");
 }

@@ -39,7 +39,7 @@ public class TransportInteropIntegrationTests : IAsyncLifetime
         _network = new NetworkBuilder().WithName($"opstream-test-{Guid.NewGuid():N}").Build();
         await _network.CreateAsync();
 
-        _redis = new RedisBuilder().WithNetwork(_network).WithNetworkAliases("redis")
+        _redis = new RedisBuilder("redis:latest").WithNetwork(_network).WithNetworkAliases("redis")
             .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("redis-cli", "ping")).Build();
         await _redis.StartAsync();
 
@@ -64,8 +64,7 @@ public class TransportInteropIntegrationTests : IAsyncLifetime
     private IContainer BuildHostContainer(string alias)
     {
         // Notice we enable both signalr and websockets here!
-        return new ContainerBuilder()
-            .WithImage(_hostImage)
+        return new ContainerBuilder(_hostImage)
             .WithNetwork(_network)
             .WithNetworkAliases(alias)
             .WithPortBinding(ContainerPort, true)

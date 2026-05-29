@@ -2,249 +2,258 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using OpStream.Server.Storage.SQLite;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using OpStream.Server.Storage.PostgreSQL;
 
 #nullable disable
 
-namespace OpStream.Server.Storage.SQLite.Migrations
+namespace OpStream.Server.Storage.PostgreSQL.Migrations
 {
-    [DbContext(typeof(SqliteOpStreamDbContext))]
-    partial class SqliteOpStreamDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(PostgreSqlOpStreamDbContext))]
+    [Migration("20260529085249_UpdateModel")]
+    partial class UpdateModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
+            modelBuilder
+                .HasDefaultSchema("opstream")
+                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.CommentEntity", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("AnchorJson")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<long>("AnchoredAtRevision")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("AuthorPeerId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Body")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DocumentId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsOrphaned")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("ParentCommentId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("ResolvedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ResolvedByPeerId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("DocumentId", "ParentCommentId", "ResolvedAt");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", "opstream");
                 });
 
             modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.DocumentBranchEntity", b =>
                 {
                     b.Property<string>("GlobalName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("BranchId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ForkParentBranchId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<long>("ForkRevision")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bigint");
 
                     b.Property<bool>("IsReadOnly")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("PhysicalDocumentId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("GlobalName", "BranchId");
 
                     b.HasIndex("PhysicalDocumentId");
 
-                    b.ToTable("DocumentBranches");
+                    b.ToTable("DocumentBranches", "opstream");
                 });
 
             modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.DocumentNameEntity", b =>
                 {
                     b.Property<string>("GlobalName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DefaultBranchId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("EngineType")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("GlobalName");
 
-                    b.ToTable("DocumentNames");
+                    b.ToTable("DocumentNames", "opstream");
                 });
 
             modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.DocumentOpEntity", b =>
                 {
                     b.Property<string>("DocumentId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<long>("Revision")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("AuthorId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("EngineType")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<byte[]>("Payload")
                         .IsRequired()
-                        .HasColumnType("BLOB");
+                        .HasColumnType("bytea");
 
                     b.Property<DateTimeOffset>("Timestamp")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("DocumentId", "Revision");
 
                     b.HasIndex("DocumentId", "Revision");
 
-                    b.ToTable("DocumentOps");
+                    b.ToTable("DocumentOps", "opstream");
                 });
 
             modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.DocumentSnapshotEntity", b =>
                 {
                     b.Property<string>("DocumentId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<long>("Revision")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bigint");
 
                     b.Property<byte[]>("State")
                         .IsRequired()
-                        .HasColumnType("BLOB");
+                        .HasColumnType("bytea");
 
                     b.Property<DateTimeOffset>("Timestamp")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("DocumentId");
 
-                    b.ToTable("DocumentSnapshots");
+                    b.ToTable("DocumentSnapshots", "opstream");
                 });
 
             modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.DocumentVersionEntity", b =>
                 {
                     b.Property<string>("GlobalName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("BranchId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Tag")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("HistorySnapshotName")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<long>("Revision")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bigint");
 
                     b.HasKey("GlobalName", "BranchId", "Tag");
 
                     b.HasIndex("GlobalName", "BranchId");
 
-                    b.ToTable("DocumentVersions");
+                    b.ToTable("DocumentVersions", "opstream");
                 });
 
             modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.HistoryOpEntity", b =>
                 {
                     b.Property<string>("DocumentId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<long>("Revision")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("AuthorId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("EngineType")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<byte[]>("Payload")
                         .IsRequired()
-                        .HasColumnType("BLOB");
+                        .HasColumnType("bytea");
 
                     b.Property<DateTimeOffset>("Timestamp")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("DocumentId", "Revision");
 
                     b.HasIndex("DocumentId", "Revision");
 
-                    b.ToTable("HistoryOps");
+                    b.ToTable("HistoryOps", "opstream");
                 });
 
             modelBuilder.Entity("OpStream.Server.Storage.EntityFrameworkCore.HistorySnapshotEntity", b =>
                 {
                     b.Property<string>("DocumentId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<long>("Revision")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<byte[]>("State")
                         .IsRequired()
-                        .HasColumnType("BLOB");
+                        .HasColumnType("bytea");
 
                     b.Property<DateTimeOffset>("Timestamp")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("DocumentId", "Revision");
 
                     b.HasIndex("DocumentId", "Revision");
 
-                    b.ToTable("HistorySnapshots");
+                    b.ToTable("HistorySnapshots", "opstream");
                 });
 #pragma warning restore 612, 618
         }

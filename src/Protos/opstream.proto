@@ -156,6 +156,147 @@ message MgmtListMilestonesResponse {
   repeated MgmtMilestoneProto milestones = 1;
 }
 
+// ─── Versioning service ───────────────────────────────────────────────────────
+
+service OpStreamVersioningService {
+  rpc RegisterName          (VerRegisterNameRequest)   returns (VerNameInfoResponse);
+  rpc ListNames             (VerEmptyRequest)           returns (VerListNamesResponse);
+  rpc DeleteName            (VerDeleteNameRequest)      returns (VerOkResponse);
+  rpc ListBranches          (VerNameRequest)            returns (VerListBranchesResponse);
+  rpc ForkBranch            (VerForkBranchRequest)      returns (VerBranchResponse);
+  rpc DeleteBranch          (VerBranchRequest)          returns (VerOkResponse);
+  rpc CreateVersion         (VerCreateVersionRequest)   returns (VerVersionResponse);
+  rpc ListVersions          (VerBranchRequest)          returns (VerListVersionsResponse);
+  rpc ReadVersionSnapshot   (VerVersionRequest)         returns (VerGetSnapshotResponse);
+  rpc DeleteVersion         (VerDeleteVersionRequest)   returns (VerOkResponse);
+  rpc MergeBranch           (VerMergeRequest)           returns (VerMergeReportResponse);
+}
+
+message VerEmptyRequest {}
+
+message VerNameRequest {
+  string name = 1;
+}
+
+message VerBranchRequest {
+  string name      = 1;
+  string branch_id = 2;
+}
+
+message VerVersionRequest {
+  string name      = 1;
+  string branch_id = 2;
+  string tag       = 3;
+}
+
+message VerRegisterNameRequest {
+  string name                  = 1;
+  string physical_document_id  = 2;
+  string engine_type           = 3;
+  string root_branch_id        = 4;
+}
+
+message VerDeleteNameRequest {
+  string name    = 1;
+  bool   cascade = 2;
+}
+
+message VerForkBranchRequest {
+  string                      name           = 1;
+  string                      from_branch_id = 2;
+  string                      new_branch_id  = 3;
+  google.protobuf.Int64Value  at_revision    = 4;
+}
+
+message VerCreateVersionRequest {
+  string name      = 1;
+  string branch_id = 2;
+  string tag       = 3;
+}
+
+message VerDeleteVersionRequest {
+  string name          = 1;
+  string branch_id     = 2;
+  string tag           = 3;
+  bool   drop_snapshot = 4;
+}
+
+message VerMergeRequest {
+  string name             = 1;
+  string target_branch_id = 2;
+  string source_branch_id = 3;
+  bool   dry_run          = 4;
+}
+
+message VerOkResponse {}
+
+message VerNameInfoProto {
+  string                    name              = 1;
+  string                    default_branch_id = 2;
+  string                    engine_type       = 3;
+  google.protobuf.Timestamp created_at        = 4;
+}
+
+message VerBranchProto {
+  string                    name                  = 1;
+  string                    branch_id             = 2;
+  string                    physical_document_id  = 3;
+  string                    fork_parent_branch_id = 4;
+  int64                     fork_revision         = 5;
+  google.protobuf.Timestamp created_at            = 6;
+  bool                      is_read_only          = 7;
+}
+
+message VerVersionProto {
+  string                    name                  = 1;
+  string                    branch_id             = 2;
+  string                    tag                   = 3;
+  int64                     revision              = 4;
+  string                    history_snapshot_name = 5;
+  google.protobuf.Timestamp created_at            = 6;
+}
+
+message VerMergeReportProto {
+  string source_branch_id   = 1;
+  string target_branch_id   = 2;
+  int32  rebased_op_count   = 3;
+  int32  nullified_op_count = 4;
+  bool   is_dry_run         = 5;
+}
+
+message VerNameInfoResponse {
+  VerNameInfoProto name_info = 1;
+}
+
+message VerListNamesResponse {
+  repeated VerNameInfoProto names = 1;
+}
+
+message VerBranchResponse {
+  VerBranchProto branch = 1;
+}
+
+message VerListBranchesResponse {
+  repeated VerBranchProto branches = 1;
+}
+
+message VerVersionResponse {
+  VerVersionProto version = 1;
+}
+
+message VerListVersionsResponse {
+  repeated VerVersionProto versions = 1;
+}
+
+message VerGetSnapshotResponse {
+  bool             found    = 1;
+  MgmtSnapshotProto snapshot = 2;
+}
+
+message VerMergeReportResponse {
+  VerMergeReportProto merge_report = 1;
+}
+
 // ─── Comments service ─────────────────────────────────────────────────────────
 
 service OpStreamCommentsService {

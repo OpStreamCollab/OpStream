@@ -11,6 +11,7 @@ namespace OpStream.Server.Versioning;
 /// Control-plane router for naming, branching, tagging, and merging.
 /// Follows the same conventions as <c>DatabaseCommandRouter</c>:
 /// <list type="bullet">
+///   <item>Every public method calls <see cref="AuthorizeAsync"/> first.</item>
 ///   <item>Receives <em>local</em> names from the transport.</item>
 ///   <item>Globalizes them via <see cref="IDocumentIdGlobalizer"/> before hitting any store.</item>
 ///   <item>Strips the global prefix before returning to callers.</item>
@@ -35,6 +36,8 @@ public class VersioningRouter(
         string rootBranchId = "main",
         CancellationToken ct = default)
     {
+        if (!await AuthorizeAsync(new DatabaseCommandContext(DatabaseCommandType.RegisterName, localName), ct))
+            return Forbidden<DocumentNameInfo>();
         try
         {
             if (!ValidateId(localName, out var e1)) return OpResult<DocumentNameInfo>.Fail(e1);
@@ -61,6 +64,8 @@ public class VersioningRouter(
 
     public async Task<OpResult<IReadOnlyList<DocumentNameInfo>>> ListNamesAsync(CancellationToken ct = default)
     {
+        if (!await AuthorizeAsync(new DatabaseCommandContext(DatabaseCommandType.ListNames, null), ct))
+            return Forbidden<IReadOnlyList<DocumentNameInfo>>();
         try
         {
             var prefix  = globalizer.GetCurrentTenantPrefix();
@@ -76,11 +81,71 @@ public class VersioningRouter(
         }
     }
 
+    /// <summary>
+    /// Deletes a name and, when <paramref name="cascade"/> is true, all its branches and versions.
+    /// When <paramref name="cascade"/> is false the call is refused if any branch still exists.
+    /// </summary>
+    public async Task<OpResult> DeleteNameAsync(
+        string localName, bool cascade = false, CancellationToken ct = default)
+    {
+        if (!await AuthorizeAsync(new DatabaseCommandContext(
+                DatabaseCommandType.DeleteName, localName,
+                new Dictionary<string, string> { ["cascade"] = cascade.ToString() }), ct))
+            return OpResult.Fail("Forbidden: Insufficient permissions for this operation.");
+        try
+        {
+            var globalName = globalizer.ToGlobalId(localName);
+
+            var branches = new List<BranchRef>();
+            await foreach (var b in refStore.EnumerateBranchesAsync(globalName, ct))
+                branches.Add(b);
+
+            if (branches.Count > 0 && !cascade)
+                return OpResult.Fail(
+                    $"Cannot delete name '{localName}': {branches.Count} branch(es) still exist. " +
+                    "Delete them first or pass cascade=true.");
+
+            if (cascade)
+            {
+                // Delete leaf branches first (no children), repeat until empty.
+                var remaining = branches.ToList();
+                int maxPasses = remaining.Count + 1;
+                for (int pass = 0; pass < maxPasses && remaining.Count > 0; pass++)
+                {
+                    var deletedAny = false;
+                    for (int i = remaining.Count - 1; i >= 0; i--)
+                    {
+                        var b = remaining[i];
+                        bool hasChild = remaining.Any(x =>
+                            string.Equals(x.ForkParentBranchId, b.BranchId, StringComparison.Ordinal));
+                        if (hasChild) continue;
+
+                        var del = await DeleteBranchAsync(localName, b.BranchId, ct);
+                        if (!del.Success) return del;
+                        remaining.RemoveAt(i);
+                        deletedAny = true;
+                    }
+                    if (!deletedAny) break;
+                }
+            }
+
+            await refStore.DeleteNameAsync(globalName, ct);
+            return OpResult.Ok();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "DeleteName failed for {Name}", localName);
+            return OpResult.Fail(ex.Message);
+        }
+    }
+
     // ─── Branches ────────────────────────────────────────────────────────────
 
     public async Task<OpResult<IReadOnlyList<BranchRef>>> ListBranchesAsync(
         string localName, CancellationToken ct = default)
     {
+        if (!await AuthorizeAsync(new DatabaseCommandContext(DatabaseCommandType.ListBranches, localName), ct))
+            return Forbidden<IReadOnlyList<BranchRef>>();
         try
         {
             var globalName = globalizer.ToGlobalId(localName);
@@ -108,6 +173,10 @@ public class VersioningRouter(
         long? atRevision = null,
         CancellationToken ct = default)
     {
+        if (!await AuthorizeAsync(new DatabaseCommandContext(
+                DatabaseCommandType.ForkBranch, localName,
+                new Dictionary<string, string> { ["fromBranchId"] = fromBranchId, ["newBranchId"] = newBranchId }), ct))
+            return Forbidden<BranchRef>();
         try
         {
             if (!ValidateId(newBranchId, out var err)) return OpResult<BranchRef>.Fail(err);
@@ -117,7 +186,6 @@ public class VersioningRouter(
             if (fromBranch is null)  return OpResult<BranchRef>.Fail($"Branch '{fromBranchId}' not found.");
             if (fromBranch.IsReadOnly) return OpResult<BranchRef>.Fail($"Branch '{fromBranchId}' is read-only.");
 
-            // Refuse if the new branch id already exists.
             var existing = await refStore.GetBranchAsync(globalName, newBranchId, ct);
             if (existing is not null) return OpResult<BranchRef>.Fail($"Branch '{newBranchId}' already exists.");
 
@@ -148,10 +216,8 @@ public class VersioningRouter(
                 forkRevision = snap.Revision;
             }
 
-            // The new branch lives under a physical id: tenant:#:localName@newBranchId
             var newGlobalPhysId = globalizer.ToGlobalId($"{localName}@{newBranchId}");
 
-            // Write the forked state as revision 0 on the new branch.
             await store.WriteSnapshotAsync(
                 newGlobalPhysId,
                 forkSnapshot with { Revision = 0, Timestamp = DateTimeOffset.UtcNow },
@@ -178,6 +244,10 @@ public class VersioningRouter(
     public async Task<OpResult> DeleteBranchAsync(
         string localName, string branchId, CancellationToken ct = default)
     {
+        if (!await AuthorizeAsync(new DatabaseCommandContext(
+                DatabaseCommandType.DeleteBranch, localName,
+                new Dictionary<string, string> { ["branchId"] = branchId }), ct))
+            return OpResult.Fail("Forbidden: Insufficient permissions for this operation.");
         try
         {
             var globalName = globalizer.ToGlobalId(localName);
@@ -219,6 +289,10 @@ public class VersioningRouter(
     public async Task<OpResult<VersionRef>> CreateVersionAsync(
         string localName, string branchId, string tag, CancellationToken ct = default)
     {
+        if (!await AuthorizeAsync(new DatabaseCommandContext(
+                DatabaseCommandType.CreateVersion, localName,
+                new Dictionary<string, string> { ["branchId"] = branchId, ["tag"] = tag }), ct))
+            return Forbidden<VersionRef>();
         try
         {
             if (!ValidateId(tag, out var err)) return OpResult<VersionRef>.Fail(err);
@@ -262,6 +336,10 @@ public class VersioningRouter(
     public async Task<OpResult<IReadOnlyList<VersionRef>>> ListVersionsAsync(
         string localName, string branchId, CancellationToken ct = default)
     {
+        if (!await AuthorizeAsync(new DatabaseCommandContext(
+                DatabaseCommandType.ListVersions, localName,
+                new Dictionary<string, string> { ["branchId"] = branchId }), ct))
+            return Forbidden<IReadOnlyList<VersionRef>>();
         try
         {
             var globalName = globalizer.ToGlobalId(localName);
@@ -283,6 +361,10 @@ public class VersioningRouter(
     public async Task<OpResult<DocumentSnapshot?>> ReadVersionSnapshotAsync(
         string localName, string branchId, string tag, CancellationToken ct = default)
     {
+        if (!await AuthorizeAsync(new DatabaseCommandContext(
+                DatabaseCommandType.ReadVersionSnapshot, localName,
+                new Dictionary<string, string> { ["branchId"] = branchId, ["tag"] = tag }), ct))
+            return Forbidden<DocumentSnapshot?>();
         try
         {
             var globalName = globalizer.ToGlobalId(localName);
@@ -304,6 +386,49 @@ public class VersioningRouter(
         }
     }
 
+    /// <summary>
+    /// Removes a version tag and unpins the compaction floor.
+    /// The backing history snapshot is left intact by default; pass <paramref name="dropSnapshot"/>
+    /// to also delete it (only if the history store supports it).
+    /// </summary>
+    public async Task<OpResult> DeleteVersionAsync(
+        string localName, string branchId, string tag,
+        bool dropSnapshot = false,
+        CancellationToken ct = default)
+    {
+        if (!await AuthorizeAsync(new DatabaseCommandContext(
+                DatabaseCommandType.DeleteVersion, localName,
+                new Dictionary<string, string> { ["branchId"] = branchId, ["tag"] = tag }), ct))
+            return OpResult.Fail("Forbidden: Insufficient permissions for this operation.");
+        try
+        {
+            var globalName = globalizer.ToGlobalId(localName);
+            var version    = await refStore.GetVersionAsync(globalName, branchId, tag, ct);
+            if (version is null) return OpResult.Ok(); // idempotent
+
+            await refStore.DeleteVersionAsync(globalName, branchId, tag, ct);
+
+            if (dropSnapshot)
+            {
+                var branch = await refStore.GetBranchAsync(globalName, branchId, ct);
+                if (branch is not null)
+                {
+                    using var scope = scopeFactory.CreateScope();
+                    var history     = scope.ServiceProvider.GetRequiredService<IHistoryStore>();
+                    try { await history.DeleteMilestoneAsync(branch.PhysicalDocumentId, version.HistorySnapshotName, ct); }
+                    catch (NotSupportedException) { }
+                }
+            }
+
+            return OpResult.Ok();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "DeleteVersion failed {Tag} on {Branch} for {Name}", tag, branchId, localName);
+            return OpResult.Fail(ex.Message);
+        }
+    }
+
     // ─── Merge ───────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -319,6 +444,15 @@ public class VersioningRouter(
         bool dryRun = false,
         CancellationToken ct = default)
     {
+        if (!await AuthorizeAsync(new DatabaseCommandContext(
+                DatabaseCommandType.MergeBranch, localName,
+                new Dictionary<string, string>
+                {
+                    ["targetBranchId"] = targetBranchId,
+                    ["sourceBranchId"] = sourceBranchId,
+                    ["dryRun"] = dryRun.ToString()
+                }), ct))
+            return Forbidden<MergeReport>();
         try
         {
             var globalName  = globalizer.ToGlobalId(localName);
@@ -358,7 +492,7 @@ public class VersioningRouter(
     /// Returns the minimum revision pinned by a tag on the given physical document,
     /// or null if no tags exist. Used by compaction to determine the safe purge floor.
     /// </summary>
-    public async Task<long?> GetMinPinnedRevisionAsync(string physicalDocumentId, CancellationToken ct = default)
+    public virtual async Task<long?> GetMinPinnedRevisionAsync(string physicalDocumentId, CancellationToken ct = default)
     {
         long? min = null;
         try
@@ -374,6 +508,16 @@ public class VersioningRouter(
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
+
+    private async ValueTask<bool> AuthorizeAsync(DatabaseCommandContext ctx, CancellationToken ct)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var authorizer = scope.ServiceProvider.GetRequiredService<IDatabaseCommandAuthorizer>();
+        return await authorizer.AuthorizeAsync(ctx, ct);
+    }
+
+    private static OpResult<T> Forbidden<T>() =>
+        OpResult<T>.Fail("Forbidden: Insufficient permissions for this operation.");
 
     private BranchRef LocaliseBranch(BranchRef b) => b with
     {

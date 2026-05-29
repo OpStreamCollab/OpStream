@@ -41,14 +41,14 @@ public class PostgreSqlIntegrationTests : IAsyncLifetime
         _network = new NetworkBuilder().WithName($"opstream-test-{Guid.NewGuid():N}").Build();
         await _network.CreateAsync();
 
-        _redis = new RedisBuilder()
+        _redis = new RedisBuilder("redis:latest")
             .WithNetwork(_network)
             .WithNetworkAliases("redis")
             .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("redis-cli", "ping"))
             .Build();
         await _redis.StartAsync();
 
-        _postgres = new PostgreSqlBuilder()
+        _postgres = new PostgreSqlBuilder("postgres:latest")
             .WithNetwork(_network)
             .WithNetworkAliases("postgres")
             .WithDatabase("opstream")
@@ -72,8 +72,7 @@ public class PostgreSqlIntegrationTests : IAsyncLifetime
         // Connection string pointing to the postgres container inside the docker network
         var pgConnectionString = "Host=postgres;Port=5432;Database=opstream;Username=postgres;Password=password";
 
-        return new ContainerBuilder()
-            .WithImage(_hostImage)
+        return new ContainerBuilder(_hostImage)
             .WithNetwork(_network)
             .WithNetworkAliases(alias)
             .WithPortBinding(ContainerPort, true)
