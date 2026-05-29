@@ -1,9 +1,12 @@
 # Engines overview
 
-An **engine** is a pure, side-effect-free implementation of
-`IOpEngine<TDoc, TOp>` that defines how a document type merges concurrent
-edits. OpStream ships **eight** of them — six for persisted document
-shapes and two transversal engines that work on top of the others.
+An **engine** is the part of OpStream that knows how to merge two people's
+edits to the *same kind of document* without anyone's work getting lost. You
+pick the one that matches what you're building — a text editor, a spreadsheet,
+an outline, a form — and OpStream does the merging for you.
+
+There are eight: six for the document shapes you save, plus two extras
+(presence and undo/redo) that work on top of the others.
 
 ## Choose by document shape
 
@@ -61,6 +64,10 @@ application code works with domain POCOs. The wire format and storage
 remain uniform across all clients.
 
 ## Registering an engine
+
+> Under the hood, an engine is a pure, side-effect-free implementation of
+> `IOpEngine<TDoc, TOp>` — the merge logic, with no I/O. You only touch that
+> interface if you're writing your own; see [Engine contracts](../reference/interfaces.md).
 
 Every engine plugs in through the builder:
 
