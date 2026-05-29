@@ -30,6 +30,9 @@ public static class OpStreamEfCoreExtensions
         builder.Services.Replace(ServiceDescriptor.Singleton<IHistoryStore>(
             sp => sp.GetRequiredService<EfCoreDocumentStore<TContext>>()));
 
+        // Register the migrator for this context.
+        builder.Services.AddSingleton<IStorageMigrator, EfCoreStorageMigrator<TContext>>();
+
         return builder;
     }
 

@@ -29,15 +29,7 @@ public static class PostgreSqlOpStreamExtensions
                 connectionString,
                 b => b.MigrationsAssembly(typeof(PostgreSqlOpStreamDbContext).Assembly.FullName)));
 
-        builder.Services.TryAddSingleton<EfCoreDocumentStore<PostgreSqlOpStreamDbContext>>();
-
-        // Replace the defaults registered by AddOpStream().
-        builder.Services.Replace(ServiceDescriptor.Singleton<IDocumentStore>(
-            sp => sp.GetRequiredService<EfCoreDocumentStore<PostgreSqlOpStreamDbContext>>()));
-        builder.Services.Replace(ServiceDescriptor.Singleton<IHistoryStore>(
-            sp => sp.GetRequiredService<EfCoreDocumentStore<PostgreSqlOpStreamDbContext>>()));
-
-        return builder;
+        return builder.UseEfCoreStorage<PostgreSqlOpStreamDbContext>();
     }
 
   

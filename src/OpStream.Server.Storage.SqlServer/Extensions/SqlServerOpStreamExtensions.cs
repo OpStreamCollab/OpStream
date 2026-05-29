@@ -29,15 +29,7 @@ public static class SqlServerOpStreamExtensions
                 connectionString,
                 b => b.MigrationsAssembly(typeof(SqlServerOpStreamDbContext).Assembly.FullName)));
 
-        builder.Services.TryAddSingleton<EfCoreDocumentStore<SqlServerOpStreamDbContext>>();
-
-        // Replace the defaults registered by AddOpStream().
-        builder.Services.Replace(ServiceDescriptor.Singleton<IDocumentStore>(
-            sp => sp.GetRequiredService<EfCoreDocumentStore<SqlServerOpStreamDbContext>>()));
-        builder.Services.Replace(ServiceDescriptor.Singleton<IHistoryStore>(
-            sp => sp.GetRequiredService<EfCoreDocumentStore<SqlServerOpStreamDbContext>>()));
-
-        return builder;
+        return builder.UseEfCoreStorage<SqlServerOpStreamDbContext>();
     }
 
 

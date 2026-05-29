@@ -30,15 +30,7 @@ public static class MySqlOpStreamExtensions
                 ServerVersion.AutoDetect(connectionString),
                 b => b.MigrationsAssembly(typeof(MySqlOpStreamDbContext).Assembly.FullName)));
 
-        builder.Services.TryAddSingleton<EfCoreDocumentStore<MySqlOpStreamDbContext>>();
-
-        // Replace the defaults registered by AddOpStream().
-        builder.Services.Replace(ServiceDescriptor.Singleton<IDocumentStore>(
-            sp => sp.GetRequiredService<EfCoreDocumentStore<MySqlOpStreamDbContext>>()));
-        builder.Services.Replace(ServiceDescriptor.Singleton<IHistoryStore>(
-            sp => sp.GetRequiredService<EfCoreDocumentStore<MySqlOpStreamDbContext>>()));
-
-        return builder;
+        return builder.UseEfCoreStorage<MySqlOpStreamDbContext>();
     }
 
 

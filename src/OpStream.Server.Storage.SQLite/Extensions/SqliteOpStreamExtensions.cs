@@ -29,15 +29,7 @@ public static class SqliteOpStreamExtensions
                 connectionString,
                 b => b.MigrationsAssembly(typeof(SqliteOpStreamDbContext).Assembly.FullName)));
 
-        builder.Services.TryAddSingleton<EfCoreDocumentStore<SqliteOpStreamDbContext>>();
-
-        // Replace the defaults registered by AddOpStream().
-        builder.Services.Replace(ServiceDescriptor.Singleton<IDocumentStore>(
-            sp => sp.GetRequiredService<EfCoreDocumentStore<SqliteOpStreamDbContext>>()));
-        builder.Services.Replace(ServiceDescriptor.Singleton<IHistoryStore>(
-            sp => sp.GetRequiredService<EfCoreDocumentStore<SqliteOpStreamDbContext>>()));
-
-        return builder;
+        return builder.UseEfCoreStorage<SqliteOpStreamDbContext>();
     }
 
 

@@ -121,6 +121,9 @@ if (enableGrpc)       ops.AddGrpcTransport();
 // ─── Build pipeline ──────────────────────────────────────────────────────────
 var app = builder.Build();
 
+// ─── Migrations ──────────────────────────────────────────────────────────────
+await app.Services.GetRequiredService<OpStream.Server.Storage.MigrationApplicator>().ApplyMigrationsAsync();
+
 app.MapGet("/", () => Results.Text(
     $"OpStream host. Storage={storage}, Backplane={backplane}, Transports={string.Join(',', transports)}",
     "text/plain"));
