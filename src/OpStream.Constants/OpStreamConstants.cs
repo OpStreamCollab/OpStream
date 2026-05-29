@@ -91,10 +91,7 @@ public static class OpStreamConstants
         public const string PurgeTenant = "MgmtPurgeTenant";
     }
     
-    public static class Engines
-    {
-        public const string TextOt = "TextOtEngine";
-    }
+   
 
     public static class VersioningHubMethods
     {
