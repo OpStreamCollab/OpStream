@@ -521,7 +521,14 @@ public class DocumentRouter(
 
                 if (session.ActivePeersCount == 0)
                 {
-                    ScheduleSessionClosure(documentId);
+                    // The document just drained (last peer left). Notify host drain handlers
+                    // with the final state; they may ask us to delete the document entirely.
+                    var decision = await NotifyDrainHandlersAsync(session);
+
+                    if (decision == DocumentDrainDecision.Delete)
+                        await DeleteDrainedDocumentAsync(documentId);
+                    else
+                        ScheduleSessionClosure(documentId);
                 }
             }
 
@@ -538,6 +545,104 @@ public class DocumentRouter(
                 peerId);
 
             await backplane.PublishAsync(documentId, backplaneMsg);
+        }
+    }
+
+    /// <summary>
+    /// Invokes every registered <see cref="IDocumentDrainHandler"/> with the final state of a
+    /// document that has just lost its last peer. Handlers are resolved in a fresh DI scope so
+    /// they may depend on scoped services (e.g. a DbContext). Exceptions in a handler are
+    /// logged and never interrupt the disconnect path.
+    /// </summary>
+    /// <returns>
+    /// <see cref="DocumentDrainDecision.Delete"/> if <em>any</em> handler asked for deletion;
+    /// otherwise <see cref="DocumentDrainDecision.Keep"/>.
+    /// </returns>
+    private async Task<DocumentDrainDecision> NotifyDrainHandlersAsync(IDocumentSession session)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var handlers = scope.ServiceProvider.GetServices<IDocumentDrainHandler>().ToArray();
+        if (handlers.Length == 0)
+            return DocumentDrainDecision.Keep;
+
+        DocumentDrainContext drainContext;
+        try
+        {
+            drainContext = new DocumentDrainContext(
+                session.DocumentId,
+                session.DocumentType,
+                session.CurrentRevision,
+                session.SerializeState(),
+                DateTimeOffset.UtcNow);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to capture final state for drained document {DocId}", session.DocumentId);
+            return DocumentDrainDecision.Keep;
+        }
+
+        var decision = DocumentDrainDecision.Keep;
+        foreach (var handler in handlers)
+        {
+            try
+            {
+                var result = await handler.OnDocumentDrainedAsync(drainContext);
+                if (result == DocumentDrainDecision.Delete)
+                    decision = DocumentDrainDecision.Delete; // delete wins; still run the rest
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Document drain handler {Handler} failed for document {DocId}",
+                    handler.GetType().Name, session.DocumentId);
+            }
+        }
+
+        return decision;
+    }
+
+    /// <summary>
+    /// Permanently deletes a drained document and all of its data — current state, op log,
+    /// snapshots and history — then broadcasts a cluster-wide eviction and releases ownership.
+    /// Invoked when a <see cref="IDocumentDrainHandler"/> returns
+    /// <see cref="DocumentDrainDecision.Delete"/>.
+    /// </summary>
+    /// <param name="documentId">The ID of the document to delete.</param>
+    /// <param name="ct">The cancellation token.</param>
+    private async Task DeleteDrainedDocumentAsync(string documentId, CancellationToken ct = default)
+    {
+        try
+        {
+            // Close the live (now empty) session and its awareness/subscriptions locally.
+            await CloseSessionAsync(documentId);
+
+            using var scope = scopeFactory.CreateScope();
+            var store = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
+            var history = scope.ServiceProvider.GetRequiredService<IHistoryStore>();
+
+            await store.DeleteAsync(documentId, ct);
+            try { await history.DeleteAsync(documentId, ct); }
+            catch (NotSupportedException) { /* history backend may not support delete */ }
+
+            // Tell every other node to drop any cached state for this document.
+            await backplane.PublishAsync(
+                OpStreamConstants.ManagementChannels.ClusterBroadcast,
+                new BackplaneMessage(
+                    backplane.NodeId,
+                    OpStreamConstants.BackplaneMessages.DocumentDeleted,
+                    JsonSerializer.SerializeToUtf8Bytes(documentId, OpStreamJsonOptions.Default)),
+                ct);
+
+            try { await ownershipManager.ReleaseOwnershipAsync(documentId, backplane.NodeId, ct); }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to release ownership for deleted drained document {DocId}", documentId);
+            }
+
+            logger.LogInformation("Deleted drained document {DocId} at host request", documentId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to delete drained document {DocId}", documentId);
         }
     }
 

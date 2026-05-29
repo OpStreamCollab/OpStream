@@ -35,6 +35,9 @@ public class DocumentSession<TDoc, TOp> : IDocumentSession
     /// <summary>Unique identifier of the document this session represents.</summary>
     public string DocumentId { get; }
 
+    /// <summary>The document-type discriminator this session was opened with (e.g. "text").</summary>
+    public string DocumentType { get; }
+
     /// <summary>The latest accepted revision number.</summary>
     public long CurrentRevision { get; private set; }
 
@@ -71,9 +74,11 @@ public class DocumentSession<TDoc, TOp> : IDocumentSession
         IOpHistorySnapshotter historySnapshotter,
         IEnumerable<IOpValidator<TOp>> validators,
         ILogger<DocumentSession<TDoc, TOp>> logger,
-        IEnumerable<IPostApplyHook<TOp>>? postApplyHooks = null)
+        IEnumerable<IPostApplyHook<TOp>>? postApplyHooks = null,
+        string documentType = "")
     {
         DocumentId = documentId;
+        DocumentType = documentType;
         _currentState = initialState;
         CurrentRevision = initialRevision;
         _engine = engine;
@@ -322,6 +327,10 @@ public class DocumentSession<TDoc, TOp> : IDocumentSession
             await _opSnapshotter.TakeSnapshotAsync(_currentState, DocumentId, CurrentRevision, OpStreamJsonOptions.Default, ct);
         }
     }
+
+    /// <inheritdoc/>
+    public ReadOnlyMemory<byte> SerializeState()
+        => JsonSerializer.SerializeToUtf8Bytes(_currentState, OpStreamJsonOptions.Default);
 
     /// <inheritdoc/>
     public ValueTask DisposeAsync()

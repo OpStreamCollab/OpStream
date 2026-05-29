@@ -82,6 +82,19 @@ nav:
       - Installation: getting-started/installation.md
       - Quickstart: getting-started/quickstart.md
       - Core concepts: getting-started/concepts.md
+  - Concepts:
+      - Document: concepts/document.md
+      - Document Router: concepts/document-router.md
+      - Session: concepts/session.md
+      - Peer: concepts/peer.md
+      - Revision: concepts/revision.md
+      - Comment: concepts/comments.md
+      - Comment Router: concepts/comment-router.md
+      - Branching: concepts/branching.md
+      - Versioning: concepts/versioning.md
+      - Merging: concepts/merging.md
+      - History: concepts/history.md
+      - Compaction: concepts/compaction.md
   - Recipes:
       - Collaborative text editor: recipes/collaborative-text-editor.md
       - Notion-style block tree: recipes/notion-blocks.md

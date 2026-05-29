@@ -77,7 +77,7 @@ namespace OpStream.Server.Session
 
             return new DocumentSession<TDoc, TOp>(
                 documentId, currentState, _engine, initialRevision, store, backplane,
-                snapshotter, historySnapshotter, validators, logger, postApplyHooks);
+                snapshotter, historySnapshotter, validators, logger, postApplyHooks, DocumentType);
         }
     }
 }

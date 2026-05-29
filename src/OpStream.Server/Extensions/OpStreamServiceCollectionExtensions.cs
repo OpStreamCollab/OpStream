@@ -273,6 +273,25 @@ public static class OpStreamServiceCollectionExtensions
     }
 
     /// <summary>
+    /// Registers a handler invoked when a document loses its last peer (it "drains"). The
+    /// handler receives the final, full document state — for example to persist it into the
+    /// host's own database — and may return <c>DocumentDrainDecision.Delete</c> to have
+    /// OpStream permanently remove the document and all of its data (state, op log, snapshots
+    /// and history).
+    /// <para>
+    /// Multiple handlers may be registered; they all run when a document drains, and if any of
+    /// them asks for deletion the document is deleted. Handlers are resolved per drain in a
+    /// fresh scope, so they may depend on scoped services such as a <c>DbContext</c>.
+    /// </para>
+    /// </summary>
+    public static IOpStreamBuilder AddDocumentDrainHandler<THandler>(this IOpStreamBuilder builder)
+        where THandler : class, IDocumentDrainHandler
+    {
+        builder.Services.AddScoped<IDocumentDrainHandler, THandler>();
+        return builder;
+    }
+
+    /// <summary>
     /// Registers a 3-way merge driver for the given engine type so that
     /// <see cref="VersioningRouter.MergeAsync"/> can merge branches of that type.
     /// Call alongside <see cref="AddEngine{TDoc,TOp,TEngine}"/> for every engine that should support merge.

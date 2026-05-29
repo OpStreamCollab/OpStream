@@ -20,6 +20,11 @@ public interface IDocumentSession : IAsyncDisposable
     string DocumentId { get; }
 
     /// <summary>
+    /// Gets the document-type discriminator this session was opened with (e.g. "text").
+    /// </summary>
+    string DocumentType { get; }
+
+    /// <summary>
     /// Gets the current revision number of the document.
     /// </summary>
     long CurrentRevision { get; }
@@ -52,6 +57,13 @@ public interface IDocumentSession : IAsyncDisposable
     Task<OpApplyResult> ApplyOpAsync(string peerId, ReadOnlyMemory<byte> payload, long baseRevision, CancellationToken ct = default);
 
     Task RehydrateOpAsync(StoredOp storedOp);
+
+    /// <summary>
+    /// Serializes the current in-memory document state to UTF-8 JSON
+    /// (using <c>OpStreamJsonOptions.Default</c>). Used to hand the final state of a drained
+    /// document to <see cref="IDocumentDrainHandler"/> implementations.
+    /// </summary>
+    ReadOnlyMemory<byte> SerializeState();
 
     /// <summary>
     /// Runs <paramref name="action"/> while holding the session's serialization lock.

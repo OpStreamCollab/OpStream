@@ -254,6 +254,66 @@ See [Snapshots](../operations/snapshots.md).
 
 ---
 
+## Document drain handler
+
+### `AddDocumentDrainHandler<THandler>()`
+
+Registers an `IDocumentDrainHandler` invoked when a document loses its **last peer** — i.e.
+everyone editing it has disconnected and the document goes quiet ("drains"). The handler
+receives the **final, complete document state** so the host can persist it into its own
+database, archive it, or trigger a downstream workflow.
+
+```csharp
+public static IOpStreamBuilder AddDocumentDrainHandler<THandler>(this IOpStreamBuilder builder)
+    where THandler : class, IDocumentDrainHandler;
+```
+
+The handler returns a `DocumentDrainDecision`:
+
+| Decision | Effect |
+|---|---|
+| `Keep` (default) | Leave the document in place; the session closes after the normal idle grace period. |
+| `Delete` | Permanently delete the document and **all** of its data — current state, op log, snapshots, and history — and broadcast a cluster-wide eviction. |
+
+The `DocumentDrainContext` handed to the handler carries:
+
+| Field | Type | Description |
+|---|---|---|
+| `DocumentId` | `string` | The drained document's id. |
+| `DocumentType` | `string` | The type discriminator it was opened with (e.g. `"text"`). |
+| `Revision` | `long` | The final accepted revision. |
+| `State` | `ReadOnlyMemory<byte>` | The full current state as UTF-8 JSON (`OpStreamJsonOptions.Default`). |
+| `DrainedAt` | `DateTimeOffset` | When it drained (UTC). |
+
+Behavior notes:
+
+- **Resolved per drain in a fresh scope**, so handlers may depend on **scoped** services
+  such as a `DbContext`.
+- **Multiple handlers** run in registration order. If **any** returns `Delete`, the document
+  is deleted.
+- An exception in one handler is logged and never blocks the others or the disconnect path.
+- Fires each time the active-peer count transitions to zero. It does **not** fire on
+  administrative delete/purge.
+
+```csharp
+services.AddOpStream()
+    .AddDocumentDrainHandler<PersistOnDrainHandler>();
+
+public sealed class PersistOnDrainHandler(MyDbContext db) : IDocumentDrainHandler
+{
+    public async ValueTask<DocumentDrainDecision> OnDocumentDrainedAsync(
+        DocumentDrainContext ctx, CancellationToken ct = default)
+    {
+        await db.UpsertDocumentAsync(ctx.DocumentId, ctx.Revision, ctx.State.ToArray(), ct);
+        return DocumentDrainDecision.Delete; // hand-off done — OpStream may drop its copy
+    }
+}
+```
+
+See [Session → Draining](../concepts/session.md#draining-the-last-peer-leaves).
+
+---
+
 ## Awareness tunables — `AwarenessOptions`
 
 Presence/cursor behavior. Currently consumed internally by `AwarenessEngine` /
