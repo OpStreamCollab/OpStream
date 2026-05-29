@@ -93,6 +93,8 @@ public static class OpStreamServiceCollectionExtensions
         var options = new OpStreamOptions();
         configure?.Invoke(options);
 
+        services.TryAddSingleton<MigrationApplicator>();
+
         services.TryAddSingleton(options);
         services.TryAddSingleton(options.History);
 
