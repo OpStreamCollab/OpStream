@@ -170,6 +170,7 @@ export function attachCollab(editor, opts) {
 
   // ── Presence / remote cursors ───────────────────────────────────────────────
   const remoteDecorations = new Map();
+  const remoteWidgets = new Map();     // peerId → content widget instance
   const peerColors = new Map();
   const peerNames = new Map();
   const peerTypingTimers = new Map();
@@ -204,13 +205,79 @@ export function attachCollab(editor, opts) {
       })
     : { dispose() {} };
 
+  // ── Content Widget for peer name label ──────────────────────────────────────
+  // Monaco Content Widgets render in an overlay layer that is NOT clipped by
+  // the line's overflow:hidden, so the label is always visible above the cursor.
+  function createOrUpdatePeerWidget(peerId, position, color, peerName) {
+    const widgetId = `peer-label-${cssId(peerId)}`;
+    let existing = remoteWidgets.get(peerId);
+
+    if (existing) {
+      // Update position and content
+      existing._position = position;
+      existing._domNode.textContent = peerName;
+      existing._domNode.style.background = color;
+      editor.layoutContentWidget(existing);
+    } else {
+      // Create new widget
+      const domNode = document.createElement("div");
+      domNode.textContent = peerName;
+      domNode.style.cssText = `
+        font-size: 0.7rem;
+        font-family: 'Inter', system-ui, sans-serif;
+        font-weight: 600;
+        padding: 1px 6px;
+        border-radius: 3px 3px 3px 0;
+        white-space: nowrap;
+        line-height: 1.4;
+        background: ${color};
+        color: #fff;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+        pointer-events: none;
+        transition: opacity 0.3s;
+        opacity: 1;
+      `;
+
+      const widget = {
+        _domNode: domNode,
+        _position: position,
+        getId: () => widgetId,
+        getDomNode: () => domNode,
+        getPosition: () => ({
+          position: widget._position,
+          preference: [
+            monaco.editor.ContentWidgetPositionPreference.ABOVE,
+          ],
+        }),
+      };
+
+      remoteWidgets.set(peerId, widget);
+      editor.addContentWidget(widget);
+    }
+  }
+
+  function removePeerWidget(peerId) {
+    const widget = remoteWidgets.get(peerId);
+    if (widget) {
+      editor.removeContentWidget(widget);
+      remoteWidgets.delete(peerId);
+    }
+  }
+
+  function showPeerWidget(peerId, visible) {
+    const widget = remoteWidgets.get(peerId);
+    if (widget) {
+      widget._domNode.style.opacity = visible ? "1" : "0";
+    }
+  }
+
   function renderRemote(peerId, data) {
     const m = editor.getModel();
     if (!m || !data) return;
     const color = colorFor(peerId, data.color);
     const peerName = data.name || "Anonymous";
 
-    // Track peer name for typing label
+    // Track peer name
     peerNames.set(peerId, peerName);
 
     // Notify the online users UI in index.html
@@ -222,13 +289,13 @@ export function attachCollab(editor, opts) {
     const h = m.getPositionAt(data.head ?? data.anchor ?? 0);
     const id = cssId(peerId);
 
-    ensurePeerStyle(peerId, color, peerName);
+    ensurePeerStyle(peerId, color);
 
     const hasSelection = !a.equals(h);
     const decos = [];
 
     if (hasSelection) {
-      // Selection range with colored background + name label
+      // Selection range with colored background
       decos.push({
         range: monaco.Range.fromPositions(a, h),
         options: {
@@ -238,7 +305,7 @@ export function attachCollab(editor, opts) {
         },
       });
     } else {
-      // Just a caret with name label
+      // Just a caret
       decos.push({
         range: monaco.Range.fromPositions(a, h),
         options: {
@@ -248,83 +315,43 @@ export function attachCollab(editor, opts) {
       });
     }
 
-    // Always show the name label at the caret position
-    decos.push({
-      range: monaco.Range.fromPositions(h, h),
-      options: {
-        beforeContentClassName: `collab-remote-label-widget collab-peer-label-${id}`,
-        stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-      },
-    });
-
     const prev = remoteDecorations.get(peerId) || [];
     remoteDecorations.set(peerId, editor.deltaDecorations(prev, decos));
 
-    // Typing indicator: flash the label on each awareness update
-    // Auto-hide the label after 3 seconds of inactivity
-    clearTimeout(peerTypingTimers.get(peerId));
-    showPeerLabel(id, true);
-    peerTypingTimers.set(peerId, setTimeout(() => {
-      showPeerLabel(id, false);
-    }, 3000));
-  }
+    // Name label via Content Widget (renders in unclipped overlay layer)
+    createOrUpdatePeerWidget(peerId, h, color, peerName);
 
-  function showPeerLabel(id, visible) {
-    const els = document.querySelectorAll(`.collab-peer-label-${id}`);
-    els.forEach(el => {
-      el.style.opacity = visible ? "1" : "0";
-    });
+    // Auto-hide the label after 4 seconds of inactivity
+    clearTimeout(peerTypingTimers.get(peerId));
+    showPeerWidget(peerId, true);
+    peerTypingTimers.set(peerId, setTimeout(() => {
+      showPeerWidget(peerId, false);
+    }, 4000));
   }
 
   function cssId(peerId) { return peerId.replace(/[^a-zA-Z0-9_-]/g, ""); }
 
   const injectedStyles = new Set();
-  function ensurePeerStyle(peerId, color, name) {
+  function ensurePeerStyle(peerId, color) {
     const id = cssId(peerId);
-    // Always update (re-create) the style to keep name in sync
-    const existingStyle = document.getElementById(`collab-style-${id}`);
-    if (existingStyle) existingStyle.remove();
-
+    if (injectedStyles.has(id)) return;
     injectedStyles.add(id);
+
     const style = document.createElement("style");
     style.id = `collab-style-${id}`;
 
-    const escapedName = (name || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
-
     style.textContent =
-      // Selection background
+      // Selection background — use outline instead of border (doesn't affect layout)
       `.collab-peer-${id}.collab-remote-selection {
-        background: ${hexToRgba(color, 0.18)};
-        border: 1px solid ${hexToRgba(color, 0.4)};
+        background: ${hexToRgba(color, 0.22)};
+        outline: 1.5px solid ${hexToRgba(color, 0.55)};
+        outline-offset: -1px;
         border-radius: 2px;
       }` +
       // Caret line
       `.collab-peer-${id}.collab-remote-caret {
         border-left: 2px solid ${color};
         margin-left: -1px;
-      }` +
-      // Name label widget
-      `.collab-peer-label-${id} {
-        position: relative;
-        pointer-events: none;
-        transition: opacity 0.3s;
-      }` +
-      `.collab-peer-label-${id}::before {
-        content: '${escapedName}';
-        position: absolute;
-        top: -1.4em;
-        left: 0;
-        font-size: 0.65rem;
-        font-family: 'Inter', system-ui, sans-serif;
-        font-weight: 600;
-        padding: 0.05rem 0.4rem;
-        border-radius: 3px 3px 3px 0;
-        white-space: nowrap;
-        line-height: 1.4;
-        z-index: 100;
-        background: ${color};
-        color: #fff;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
       }`;
     document.head.appendChild(style);
   }
@@ -342,8 +369,13 @@ export function attachCollab(editor, opts) {
     }
   };
   client.onPeerDisconnected = (peerId) => {
+    // Remove decorations
     const prev = remoteDecorations.get(peerId);
     if (prev) { editor.deltaDecorations(prev, []); remoteDecorations.delete(peerId); }
+
+    // Remove content widget
+    removePeerWidget(peerId);
+
     peerNames.delete(peerId);
     clearTimeout(peerTypingTimers.get(peerId));
     peerTypingTimers.delete(peerId);
@@ -399,6 +431,8 @@ export function attachCollab(editor, opts) {
       cursorSub.dispose();
       for (const ids of remoteDecorations.values()) editor.deltaDecorations(ids, []);
       remoteDecorations.clear();
+      for (const widget of remoteWidgets.values()) editor.removeContentWidget(widget);
+      remoteWidgets.clear();
       for (const timer of peerTypingTimers.values()) clearTimeout(timer);
       peerTypingTimers.clear();
       client.disposeAsync();
