@@ -1,0 +1,48 @@
+@* ── MergeReport Detail ───────────────────────────────────────── *@
+
+<div class="ops-detail-card">
+    <div class="ops-detail-card-header">
+        <div class="ops-detail-card-icon ops-icon-pink">🔗</div>
+        <h4>Merge Report</h4>
+    </div>
+    <div class="ops-detail-card-body">
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Source Branch</span>
+            <span class="ops-detail-value ops-mono">@Item.SourceBranchId</span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Target Branch</span>
+            <span class="ops-detail-value ops-mono">@Item.TargetBranchId</span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Rebased Ops</span>
+            <span class="ops-detail-value">
+                <span class="ops-badge ops-badge-green">@Item.RebasedOpCount</span>
+            </span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Nullified Ops</span>
+            <span class="ops-detail-value">
+                <span class="ops-badge ops-badge-red">@Item.NullifiedOpCount</span>
+            </span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Mode</span>
+            <span class="ops-detail-value">
+                @if (Item.IsDryRun)
+                {
+                    <span class="ops-badge ops-badge-orange">Dry Run</span>
+                }
+                else
+                {
+                    <span class="ops-badge ops-badge-green">Committed</span>
+                }
+            </span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public MergeReport Item { get; set; } = default!;
+}

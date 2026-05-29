@@ -1,0 +1,65 @@
+@* ── DocumentInfo DataGrid (QuickGrid) ────────────────────────── *@
+
+<div class="ops-datagrid-wrapper">
+    <div class="ops-datagrid-header">
+        <h3>📄 Documents</h3>
+        <span class="ops-datagrid-count">@FilteredItems.Count() items</span>
+    </div>
+
+    <div class="ops-datagrid-filter-bar">
+        <input type="search"
+               class="ops-filter-input"
+               placeholder="Filter by Document ID…"
+               @bind="filterText"
+               @bind:event="oninput" />
+    </div>
+
+    <div class="ops-datagrid-body">
+        <QuickGrid Items="FilteredItems"
+                   Pagination="pagination"
+                   Theme="ops-quickgrid"
+                   Class="ops-quickgrid-table">
+
+            <PropertyColumn Property="@(x => x.DocumentId)"
+                            Title="Document ID"
+                            Sortable="true" />
+
+            <PropertyColumn Property="@(x => x.Revision)"
+                            Title="Revision"
+                            Sortable="true"
+                            IsDefaultSortColumn="true"
+                            InitialSortDirection="SortDirection.Descending" />
+
+            <PropertyColumn Property="@(x => x.LastModified)"
+                            Title="Last Modified"
+                            Format="yyyy-MM-dd HH:mm:ss"
+                            Sortable="true" />
+
+            <PropertyColumn Property="@(x => x.OpCount)"
+                            Title="Op Count"
+                            Sortable="true" />
+        </QuickGrid>
+    </div>
+
+    <Paginator State="pagination" />
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IEnumerable<DocumentInfo> Items { get; set; } = [];
+
+    [Parameter]
+    public int PageSize { get; set; } = 10;
+
+    private string filterText = string.Empty;
+    private PaginationState pagination = default!;
+
+    protected override void OnInitialized()
+        => pagination = new PaginationState { ItemsPerPage = PageSize };
+
+    private IQueryable<DocumentInfo> FilteredItems =>
+        string.IsNullOrWhiteSpace(filterText)
+            ? Items.AsQueryable()
+            : Items.Where(x => x.DocumentId.Contains(filterText, StringComparison.OrdinalIgnoreCase))
+                   .AsQueryable();
+}

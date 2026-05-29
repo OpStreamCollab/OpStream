@@ -1,0 +1,76 @@
+@* ── MergeReport DataGrid (QuickGrid) ─────────────────────────── *@
+
+<div class="ops-datagrid-wrapper">
+    <div class="ops-datagrid-header">
+        <h3>🔗 Merge Reports</h3>
+        <span class="ops-datagrid-count">@FilteredItems.Count() items</span>
+    </div>
+
+    <div class="ops-datagrid-filter-bar">
+        <input type="search"
+               class="ops-filter-input"
+               placeholder="Filter by branch ID…"
+               @bind="filterText"
+               @bind:event="oninput" />
+    </div>
+
+    <div class="ops-datagrid-body">
+        <QuickGrid Items="FilteredItems"
+                   Pagination="pagination"
+                   Theme="ops-quickgrid"
+                   Class="ops-quickgrid-table">
+
+            <PropertyColumn Property="@(x => x.SourceBranchId)"
+                            Title="Source Branch"
+                            Sortable="true" />
+
+            <PropertyColumn Property="@(x => x.TargetBranchId)"
+                            Title="Target Branch"
+                            Sortable="true" />
+
+            <PropertyColumn Property="@(x => x.RebasedOpCount)"
+                            Title="Rebased Ops"
+                            Sortable="true" />
+
+            <PropertyColumn Property="@(x => x.NullifiedOpCount)"
+                            Title="Nullified Ops"
+                            Sortable="true" />
+
+            <TemplateColumn Title="Mode"
+                            SortBy="GridSort<MergeReport>.ByAscending(x => x.IsDryRun)">
+                @if (context.IsDryRun)
+                {
+                    <span class="ops-badge ops-badge-orange">Dry Run</span>
+                }
+                else
+                {
+                    <span class="ops-badge ops-badge-green">Committed</span>
+                }
+            </TemplateColumn>
+        </QuickGrid>
+    </div>
+
+    <Paginator State="pagination" />
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IEnumerable<MergeReport> Items { get; set; } = [];
+
+    [Parameter]
+    public int PageSize { get; set; } = 10;
+
+    private string filterText = string.Empty;
+    private PaginationState pagination = default!;
+
+    protected override void OnInitialized()
+        => pagination = new PaginationState { ItemsPerPage = PageSize };
+
+    private IQueryable<MergeReport> FilteredItems =>
+        string.IsNullOrWhiteSpace(filterText)
+            ? Items.AsQueryable()
+            : Items.Where(x =>
+                  x.SourceBranchId.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
+                  x.TargetBranchId.Contains(filterText, StringComparison.OrdinalIgnoreCase))
+                   .AsQueryable();
+}

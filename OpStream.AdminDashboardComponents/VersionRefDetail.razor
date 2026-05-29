@@ -1,0 +1,43 @@
+@* ── VersionRef Detail ────────────────────────────────────────── *@
+
+<div class="ops-detail-card">
+    <div class="ops-detail-card-header">
+        <div class="ops-detail-card-icon ops-icon-orange">🏷️</div>
+        <h4>Version Reference</h4>
+    </div>
+    <div class="ops-detail-card-body">
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Name</span>
+            <span class="ops-detail-value ops-mono">@Item.Name</span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Tag</span>
+            <span class="ops-detail-value">
+                <span class="ops-badge ops-badge-orange">@Item.Tag</span>
+            </span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Branch ID</span>
+            <span class="ops-detail-value ops-mono">@Item.BranchId</span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Revision</span>
+            <span class="ops-detail-value">
+                <span class="ops-badge ops-badge-blue">@Item.Revision</span>
+            </span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Snapshot Name</span>
+            <span class="ops-detail-value ops-mono">@Item.HistorySnapshotName</span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Created At</span>
+            <span class="ops-detail-value">@Item.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss zzz")</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public VersionRef Item { get; set; } = default!;
+}

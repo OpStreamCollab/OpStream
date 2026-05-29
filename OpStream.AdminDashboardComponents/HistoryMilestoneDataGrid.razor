@@ -1,0 +1,70 @@
+@* ── HistoryMilestone DataGrid (QuickGrid) ────────────────────── *@
+
+<div class="ops-datagrid-wrapper">
+    <div class="ops-datagrid-header">
+        <h3>🏁 History Milestones</h3>
+        <span class="ops-datagrid-count">@FilteredItems.Count() items</span>
+    </div>
+
+    <div class="ops-datagrid-filter-bar">
+        <input type="search"
+               class="ops-filter-input"
+               placeholder="Filter by name…"
+               @bind="filterText"
+               @bind:event="oninput" />
+    </div>
+
+    <div class="ops-datagrid-body">
+        <QuickGrid Items="FilteredItems"
+                   Pagination="pagination"
+                   Theme="ops-quickgrid"
+                   Class="ops-quickgrid-table">
+
+            <PropertyColumn Property="@(x => x.Revision)"
+                            Title="Revision"
+                            Sortable="true"
+                            IsDefaultSortColumn="true"
+                            InitialSortDirection="SortDirection.Descending" />
+
+            <PropertyColumn Property="@(x => x.Timestamp)"
+                            Title="Timestamp"
+                            Format="yyyy-MM-dd HH:mm:ss"
+                            Sortable="true" />
+
+            <TemplateColumn Title="Name"
+                            SortBy="GridSort<HistoryMilestone>.ByAscending(x => x.Name ?? string.Empty)">
+                @if (context.Name is not null)
+                {
+                    <span class="ops-mono">@context.Name</span>
+                }
+                else
+                {
+                    <span class="ops-null-value">— unnamed —</span>
+                }
+            </TemplateColumn>
+        </QuickGrid>
+    </div>
+
+    <Paginator State="pagination" />
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IEnumerable<HistoryMilestone> Items { get; set; } = [];
+
+    [Parameter]
+    public int PageSize { get; set; } = 10;
+
+    private string filterText = string.Empty;
+    private PaginationState pagination = default!;
+
+    protected override void OnInitialized()
+        => pagination = new PaginationState { ItemsPerPage = PageSize };
+
+    private IQueryable<HistoryMilestone> FilteredItems =>
+        string.IsNullOrWhiteSpace(filterText)
+            ? Items.AsQueryable()
+            : Items.Where(x => x.Name is not null &&
+                               x.Name.Contains(filterText, StringComparison.OrdinalIgnoreCase))
+                   .AsQueryable();
+}

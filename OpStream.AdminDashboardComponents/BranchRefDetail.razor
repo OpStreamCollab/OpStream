@@ -1,0 +1,63 @@
+@* ── BranchRef Detail ─────────────────────────────────────────── *@
+
+<div class="ops-detail-card">
+    <div class="ops-detail-card-header">
+        <div class="ops-detail-card-icon ops-icon-purple">🔀</div>
+        <h4>Branch Reference</h4>
+    </div>
+    <div class="ops-detail-card-body">
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Name</span>
+            <span class="ops-detail-value ops-mono">@Item.Name</span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Branch ID</span>
+            <span class="ops-detail-value ops-mono">@Item.BranchId</span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Physical Doc ID</span>
+            <span class="ops-detail-value ops-mono">@Item.PhysicalDocumentId</span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Fork Parent</span>
+            <span class="ops-detail-value">
+                @if (Item.ForkParentBranchId is not null)
+                {
+                    <span class="ops-mono">@Item.ForkParentBranchId</span>
+                }
+                else
+                {
+                    <span class="ops-null-value">— root branch —</span>
+                }
+            </span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Fork Revision</span>
+            <span class="ops-detail-value">
+                <span class="ops-badge ops-badge-purple">@Item.ForkRevision</span>
+            </span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Created At</span>
+            <span class="ops-detail-value">@Item.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss zzz")</span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Read-Only</span>
+            <span class="ops-detail-value">
+                @if (Item.IsReadOnly)
+                {
+                    <span class="ops-boolean-true">Yes</span>
+                }
+                else
+                {
+                    <span class="ops-boolean-false">No</span>
+                }
+            </span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public BranchRef Item { get; set; } = default!;
+}

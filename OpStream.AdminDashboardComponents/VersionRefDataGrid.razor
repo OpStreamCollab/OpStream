@@ -1,0 +1,74 @@
+@* ── VersionRef DataGrid (QuickGrid) ──────────────────────────── *@
+
+<div class="ops-datagrid-wrapper">
+    <div class="ops-datagrid-header">
+        <h3>🏷️ Versions</h3>
+        <span class="ops-datagrid-count">@FilteredItems.Count() items</span>
+    </div>
+
+    <div class="ops-datagrid-filter-bar">
+        <input type="search"
+               class="ops-filter-input"
+               placeholder="Filter by name or tag…"
+               @bind="filterText"
+               @bind:event="oninput" />
+    </div>
+
+    <div class="ops-datagrid-body">
+        <QuickGrid Items="FilteredItems"
+                   Pagination="pagination"
+                   Theme="ops-quickgrid"
+                   Class="ops-quickgrid-table">
+
+            <PropertyColumn Property="@(x => x.Name)"
+                            Title="Name"
+                            Sortable="true"
+                            IsDefaultSortColumn="true" />
+
+            <PropertyColumn Property="@(x => x.Tag)"
+                            Title="Tag"
+                            Sortable="true" />
+
+            <PropertyColumn Property="@(x => x.BranchId)"
+                            Title="Branch ID"
+                            Sortable="true" />
+
+            <PropertyColumn Property="@(x => x.Revision)"
+                            Title="Revision"
+                            Sortable="true" />
+
+            <PropertyColumn Property="@(x => x.HistorySnapshotName)"
+                            Title="Snapshot Name"
+                            Sortable="true" />
+
+            <PropertyColumn Property="@(x => x.CreatedAt)"
+                            Title="Created At"
+                            Format="yyyy-MM-dd HH:mm:ss"
+                            Sortable="true" />
+        </QuickGrid>
+    </div>
+
+    <Paginator State="pagination" />
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IEnumerable<VersionRef> Items { get; set; } = [];
+
+    [Parameter]
+    public int PageSize { get; set; } = 10;
+
+    private string filterText = string.Empty;
+    private PaginationState pagination = default!;
+
+    protected override void OnInitialized()
+        => pagination = new PaginationState { ItemsPerPage = PageSize };
+
+    private IQueryable<VersionRef> FilteredItems =>
+        string.IsNullOrWhiteSpace(filterText)
+            ? Items.AsQueryable()
+            : Items.Where(x =>
+                  x.Name.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
+                  x.Tag.Contains(filterText, StringComparison.OrdinalIgnoreCase))
+                   .AsQueryable();
+}

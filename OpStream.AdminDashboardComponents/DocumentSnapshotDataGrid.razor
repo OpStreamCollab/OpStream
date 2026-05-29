@@ -1,0 +1,56 @@
+@* ── DocumentSnapshot DataGrid (QuickGrid) ────────────────────── *@
+
+<div class="ops-datagrid-wrapper">
+    <div class="ops-datagrid-header">
+        <h3>📸 Snapshots</h3>
+        <span class="ops-datagrid-count">@Items.Count() items</span>
+    </div>
+
+    <div class="ops-datagrid-body">
+        <QuickGrid Items="ItemsQueryable"
+                   Pagination="pagination"
+                   Theme="ops-quickgrid"
+                   Class="ops-quickgrid-table">
+
+            <PropertyColumn Property="@(x => x.Revision)"
+                            Title="Revision"
+                            Sortable="true"
+                            IsDefaultSortColumn="true"
+                            InitialSortDirection="SortDirection.Descending" />
+
+            <PropertyColumn Property="@(x => x.Timestamp)"
+                            Title="Timestamp"
+                            Format="yyyy-MM-dd HH:mm:ss"
+                            Sortable="true" />
+
+            <TemplateColumn Title="State Size"
+                            SortBy="GridSort<DocumentSnapshot>.ByAscending(x => x.State.Length)">
+                <span class="ops-mono">@FormatBytes(context.State.Length)</span>
+            </TemplateColumn>
+        </QuickGrid>
+    </div>
+
+    <Paginator State="pagination" />
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IEnumerable<DocumentSnapshot> Items { get; set; } = [];
+
+    [Parameter]
+    public int PageSize { get; set; } = 10;
+
+    private PaginationState pagination = default!;
+
+    protected override void OnInitialized()
+        => pagination = new PaginationState { ItemsPerPage = PageSize };
+
+    private IQueryable<DocumentSnapshot> ItemsQueryable => Items.AsQueryable();
+
+    private static string FormatBytes(int length)
+    {
+        if (length < 1024) return $"{length} B";
+        if (length < 1024 * 1024) return $"{length / 1024.0:F1} KB";
+        return $"{length / (1024.0 * 1024.0):F2} MB";
+    }
+}

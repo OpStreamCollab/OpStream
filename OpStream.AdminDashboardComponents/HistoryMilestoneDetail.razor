@@ -1,0 +1,38 @@
+@* ── HistoryMilestone Detail ──────────────────────────────────── *@
+
+<div class="ops-detail-card">
+    <div class="ops-detail-card-header">
+        <div class="ops-detail-card-icon ops-icon-green">🏁</div>
+        <h4>History Milestone</h4>
+    </div>
+    <div class="ops-detail-card-body">
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Revision</span>
+            <span class="ops-detail-value">
+                <span class="ops-badge ops-badge-green">@Item.Revision</span>
+            </span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Timestamp</span>
+            <span class="ops-detail-value">@Item.Timestamp.ToString("yyyy-MM-dd HH:mm:ss zzz")</span>
+        </div>
+        <div class="ops-detail-row">
+            <span class="ops-detail-label">Name</span>
+            <span class="ops-detail-value">
+                @if (Item.Name is not null)
+                {
+                    <span class="ops-mono">@Item.Name</span>
+                }
+                else
+                {
+                    <span class="ops-null-value">— unnamed —</span>
+                }
+            </span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public HistoryMilestone Item { get; set; } = default!;
+}

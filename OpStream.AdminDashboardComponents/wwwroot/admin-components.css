@@ -1,0 +1,452 @@
+/* ─────────────────────────────────────────────────────────────────
+   OpStream Admin Dashboard Components – Shared Styles
+   ───────────────────────────────────────────────────────────────── */
+
+:root {
+    --ops-font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+    --ops-mono-font: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+
+    /* Surface & background */
+    --ops-bg-primary: #0d1117;
+    --ops-bg-card: #161b22;
+    --ops-bg-card-hover: #1c2333;
+    --ops-bg-surface: #21262d;
+    --ops-bg-input: #0d1117;
+
+    /* Borders */
+    --ops-border-default: #30363d;
+    --ops-border-muted: #21262d;
+    --ops-border-accent: #388bfd40;
+
+    /* Text */
+    --ops-text-primary: #e6edf3;
+    --ops-text-secondary: #8b949e;
+    --ops-text-muted: #6e7681;
+    --ops-text-link: #58a6ff;
+
+    /* Accent palette */
+    --ops-accent-blue: #58a6ff;
+    --ops-accent-green: #3fb950;
+    --ops-accent-purple: #bc8cff;
+    --ops-accent-orange: #d29922;
+    --ops-accent-red: #f85149;
+    --ops-accent-cyan: #39d2c0;
+    --ops-accent-pink: #f778ba;
+
+    /* Functional */
+    --ops-badge-bg: #388bfd26;
+    --ops-badge-text: #58a6ff;
+    --ops-tag-bg: #3fb95026;
+    --ops-tag-text: #3fb950;
+
+    /* Radius & spacing */
+    --ops-radius-sm: 4px;
+    --ops-radius-md: 6px;
+    --ops-radius-lg: 8px;
+    --ops-radius-xl: 12px;
+
+    /* Shadows */
+    --ops-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --ops-shadow-md: 0 3px 8px rgba(0, 0, 0, 0.4);
+    --ops-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* ── DataGrid wrapper ─────────────────────────────────────────── */
+
+.ops-datagrid-wrapper {
+    font-family: var(--ops-font-family);
+    color: var(--ops-text-primary);
+    background: var(--ops-bg-primary);
+    border: 1px solid var(--ops-border-default);
+    border-radius: var(--ops-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--ops-shadow-md);
+}
+
+.ops-datagrid-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--ops-bg-card);
+    border-bottom: 1px solid var(--ops-border-default);
+}
+
+.ops-datagrid-header h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    color: var(--ops-text-primary);
+}
+
+.ops-datagrid-count {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ops-text-muted);
+    background: var(--ops-bg-surface);
+    padding: 2px 10px;
+    border-radius: 999px;
+}
+
+/* ── Filter bar ───────────────────────────────────────────────── */
+
+.ops-datagrid-filter-bar {
+    padding: 10px 20px;
+    background: var(--ops-bg-card);
+    border-bottom: 1px solid var(--ops-border-default);
+}
+
+.ops-filter-input {
+    width: 100%;
+    max-width: 360px;
+    padding: 7px 12px;
+    font-family: var(--ops-font-family);
+    font-size: 0.8rem;
+    color: var(--ops-text-primary);
+    background: var(--ops-bg-input);
+    border: 1px solid var(--ops-border-default);
+    border-radius: var(--ops-radius-md);
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ops-filter-input::placeholder {
+    color: var(--ops-text-muted);
+}
+
+.ops-filter-input:focus {
+    border-color: var(--ops-accent-blue);
+    box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.15);
+}
+
+/* ── QuickGrid body ───────────────────────────────────────────── */
+
+.ops-datagrid-body {
+    overflow-x: auto;
+}
+
+/* ── QuickGrid theme: ops-quickgrid ───────────────────────────── */
+
+.ops-quickgrid-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+}
+
+.ops-quickgrid-table thead th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ops-text-muted);
+    background: var(--ops-bg-card);
+    border-bottom: 1px solid var(--ops-border-default);
+    white-space: nowrap;
+    user-select: none;
+    cursor: default;
+    position: relative;
+}
+
+.ops-quickgrid-table thead th.col-sort-asc,
+.ops-quickgrid-table thead th.col-sort-desc {
+    color: var(--ops-accent-blue);
+}
+
+.ops-quickgrid-table thead th[aria-sort] {
+    cursor: pointer;
+}
+
+.ops-quickgrid-table thead th[aria-sort]:hover {
+    color: var(--ops-text-primary);
+    background: var(--ops-bg-surface);
+}
+
+/* Sort direction arrows */
+.ops-quickgrid-table thead th .col-sort-indicator {
+    margin-left: 4px;
+    font-size: 0.7rem;
+}
+
+.ops-quickgrid-table tbody tr {
+    transition: background 0.15s ease;
+    border-bottom: 1px solid var(--ops-border-muted);
+}
+
+.ops-quickgrid-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.ops-quickgrid-table tbody tr:hover {
+    background: var(--ops-bg-card-hover);
+}
+
+.ops-quickgrid-table tbody td {
+    padding: 10px 16px;
+    color: var(--ops-text-primary);
+    white-space: nowrap;
+}
+
+/* Empty rows generated by QuickGrid pagination */
+.ops-quickgrid-table tbody tr:has(> td:empty) {
+    height: 40px;
+}
+
+.ops-quickgrid-table tbody td:empty {
+    border: none;
+}
+
+/* ── QuickGrid column options panel ───────────────────────────── */
+
+.ops-quickgrid-table .col-options-button {
+    color: var(--ops-text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: var(--ops-radius-sm);
+    font-size: 0.72rem;
+    transition: color 0.15s, background 0.15s;
+}
+
+.ops-quickgrid-table .col-options-button:hover {
+    color: var(--ops-text-primary);
+    background: var(--ops-bg-surface);
+}
+
+.ops-quickgrid-table .col-options {
+    background: var(--ops-bg-card);
+    border: 1px solid var(--ops-border-default);
+    border-radius: var(--ops-radius-md);
+    box-shadow: var(--ops-shadow-lg);
+    padding: 10px;
+    min-width: 200px;
+    z-index: 100;
+}
+
+.ops-quickgrid-table .col-options input {
+    width: 100%;
+    padding: 6px 10px;
+    font-family: var(--ops-font-family);
+    font-size: 0.8rem;
+    color: var(--ops-text-primary);
+    background: var(--ops-bg-input);
+    border: 1px solid var(--ops-border-default);
+    border-radius: var(--ops-radius-sm);
+    outline: none;
+}
+
+.ops-quickgrid-table .col-options input:focus {
+    border-color: var(--ops-accent-blue);
+}
+
+/* ── Paginator ────────────────────────────────────────────────── */
+
+.ops-datagrid-wrapper nav[role="navigation"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px 20px;
+    background: var(--ops-bg-card);
+    border-top: 1px solid var(--ops-border-default);
+}
+
+.ops-datagrid-wrapper nav[role="navigation"] .pagination-text {
+    font-size: 0.78rem;
+    color: var(--ops-text-secondary);
+    margin: 0 8px;
+}
+
+.ops-datagrid-wrapper nav[role="navigation"] button,
+.ops-datagrid-wrapper nav[role="navigation"] a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    font-family: var(--ops-font-family);
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--ops-text-secondary);
+    background: var(--ops-bg-surface);
+    border: 1px solid var(--ops-border-default);
+    border-radius: var(--ops-radius-md);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.ops-datagrid-wrapper nav[role="navigation"] button:hover:not(:disabled),
+.ops-datagrid-wrapper nav[role="navigation"] a:hover {
+    color: var(--ops-text-primary);
+    background: var(--ops-bg-card-hover);
+    border-color: var(--ops-accent-blue);
+}
+
+.ops-datagrid-wrapper nav[role="navigation"] button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.ops-datagrid-wrapper nav[role="navigation"] button[aria-current="page"],
+.ops-datagrid-wrapper nav[role="navigation"] .current {
+    color: #fff;
+    background: var(--ops-accent-blue);
+    border-color: var(--ops-accent-blue);
+}
+
+/* ── Detail Card ──────────────────────────────────────────────── */
+
+.ops-detail-card {
+    font-family: var(--ops-font-family);
+    color: var(--ops-text-primary);
+    background: var(--ops-bg-card);
+    border: 1px solid var(--ops-border-default);
+    border-radius: var(--ops-radius-lg);
+    box-shadow: var(--ops-shadow-md);
+    overflow: hidden;
+}
+
+.ops-detail-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--ops-bg-card) 0%, var(--ops-bg-surface) 100%);
+    border-bottom: 1px solid var(--ops-border-default);
+}
+
+.ops-detail-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--ops-radius-md);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.ops-detail-card-header h4 {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.ops-detail-card-body {
+    padding: 0;
+}
+
+.ops-detail-row {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--ops-border-muted);
+    gap: 16px;
+}
+
+.ops-detail-row:last-child {
+    border-bottom: none;
+}
+
+.ops-detail-label {
+    flex: 0 0 160px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ops-text-muted);
+    padding-top: 2px;
+}
+
+.ops-detail-value {
+    flex: 1;
+    font-size: 0.84rem;
+    color: var(--ops-text-primary);
+    word-break: break-all;
+}
+
+/* ── Inline helpers ───────────────────────────────────────────── */
+
+.ops-mono {
+    font-family: var(--ops-mono-font);
+    font-size: 0.8rem;
+}
+
+.ops-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.ops-badge-blue {
+    background: #388bfd26;
+    color: var(--ops-accent-blue);
+}
+
+.ops-badge-green {
+    background: #3fb95026;
+    color: var(--ops-accent-green);
+}
+
+.ops-badge-purple {
+    background: #bc8cff26;
+    color: var(--ops-accent-purple);
+}
+
+.ops-badge-orange {
+    background: #d2992226;
+    color: var(--ops-accent-orange);
+}
+
+.ops-badge-red {
+    background: #f8514926;
+    color: var(--ops-accent-red);
+}
+
+.ops-badge-cyan {
+    background: #39d2c026;
+    color: var(--ops-accent-cyan);
+}
+
+.ops-badge-pink {
+    background: #f778ba26;
+    color: var(--ops-accent-pink);
+}
+
+.ops-badge-muted {
+    background: var(--ops-bg-surface);
+    color: var(--ops-text-muted);
+}
+
+.ops-boolean-true {
+    color: var(--ops-accent-green);
+    font-weight: 600;
+}
+
+.ops-boolean-false {
+    color: var(--ops-text-muted);
+    font-weight: 600;
+}
+
+.ops-icon-blue { background: #388bfd20; color: var(--ops-accent-blue); }
+.ops-icon-green { background: #3fb95020; color: var(--ops-accent-green); }
+.ops-icon-purple { background: #bc8cff20; color: var(--ops-accent-purple); }
+.ops-icon-orange { background: #d2992220; color: var(--ops-accent-orange); }
+.ops-icon-cyan { background: #39d2c020; color: var(--ops-accent-cyan); }
+.ops-icon-pink { background: #f778ba20; color: var(--ops-accent-pink); }
+
+.ops-null-value {
+    color: var(--ops-text-muted);
+    font-style: italic;
+    font-size: 0.78rem;
+}
