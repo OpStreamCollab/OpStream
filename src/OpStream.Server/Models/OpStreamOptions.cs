@@ -11,6 +11,12 @@ public class OpStreamOptions
     /// Gets or sets the history configuration.
     /// </summary>
     public HistoryOptions History { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets a value indicating whether database migrations should be applied automatically on startup.
+    /// Default is true.
+    /// </summary>
+    public bool AutomaticMigrationsEnabled { get; set; } = true;
 }
 
 /// <summary>

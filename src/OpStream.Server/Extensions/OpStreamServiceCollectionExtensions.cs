@@ -94,6 +94,7 @@ public static class OpStreamServiceCollectionExtensions
         configure?.Invoke(options);
 
         services.TryAddSingleton<MigrationApplicator>();
+        services.AddHostedService<MigrationHostedService>();
 
         services.TryAddSingleton(options);
         services.TryAddSingleton(options.History);

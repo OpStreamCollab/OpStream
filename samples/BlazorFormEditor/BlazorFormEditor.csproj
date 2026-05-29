@@ -7,8 +7,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\OpStream.Client.Transports.SignalR\OpStream.Client.Transports.SignalR.csproj" />
-		<ProjectReference Include="..\..\src\OpStream.Client.Transports.SignalR\OpStream.Client.Transports.csproj" />
+		<ProjectReference Include="..\..\src\OpStream.Client.Transports.SignalR\OpStream.Client.Transports.SignalR.csproj" />	
 	</ItemGroup>
 
 </Project>
