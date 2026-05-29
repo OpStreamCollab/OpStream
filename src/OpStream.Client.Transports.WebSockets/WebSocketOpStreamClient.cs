@@ -34,6 +34,33 @@ public class WebSocketOpStreamClient : IOpStreamClient
     /// <inheritdoc/>
     public event Action<string>? OnPeerDisconnected;
 
+    // ─── Comment events ───────────────────────────────────────────────────────
+
+    private event Func<CommentDto, Task>? _onCommentCreated;
+    private event Func<CommentDto, Task>? _onCommentUpdated;
+    private event Func<CommentDeletedDto, Task>? _onCommentDeleted;
+
+    /// <inheritdoc/>
+    public event Func<CommentDto, Task>? OnCommentCreated
+    {
+        add    => _onCommentCreated += value;
+        remove => _onCommentCreated -= value;
+    }
+
+    /// <inheritdoc/>
+    public event Func<CommentDto, Task>? OnCommentUpdated
+    {
+        add    => _onCommentUpdated += value;
+        remove => _onCommentUpdated -= value;
+    }
+
+    /// <inheritdoc/>
+    public event Func<CommentDeletedDto, Task>? OnCommentDeleted
+    {
+        add    => _onCommentDeleted += value;
+        remove => _onCommentDeleted -= value;
+    }
+
     /// <summary>
     /// Initializes a new instance of the WebSocketOpStreamClient.
     /// </summary>
@@ -82,6 +109,26 @@ public class WebSocketOpStreamClient : IOpStreamClient
                         if (message.PeerDisconnectedEvent != null)
                         {
                             OnPeerDisconnected?.Invoke(message.PeerDisconnectedEvent.PeerId);
+                        }
+                        break;
+                    case WebSocketOpMessageType.ReceiveCommentCreated:
+                        if (_onCommentCreated != null && message.ReceiveCommentCreated is JsonElement createdEl)
+                        {
+                            var dto = createdEl.Deserialize<CommentDto>(JsonOptions);
+                            if (dto != null) await _onCommentCreated.Invoke(dto);
+                        }
+                        break;
+                    case WebSocketOpMessageType.ReceiveCommentUpdated:
+                        if (_onCommentUpdated != null && message.ReceiveCommentUpdated is JsonElement updatedEl)
+                        {
+                            var dto = updatedEl.Deserialize<CommentDto>(JsonOptions);
+                            if (dto != null) await _onCommentUpdated.Invoke(dto);
+                        }
+                        break;
+                    case WebSocketOpMessageType.ReceiveCommentDeleted:
+                        if (_onCommentDeleted != null && message.ReceiveCommentDeleted != null)
+                        {
+                            await _onCommentDeleted.Invoke(new CommentDeletedDto(message.ReceiveCommentDeleted.CommentId));
                         }
                         break;
                 }
@@ -206,6 +253,103 @@ public class WebSocketOpStreamClient : IOpStreamClient
         };
 
         await SendMessageAsync(request, ct);
+    }
+
+    // ─── Comments ────────────────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public async Task<List<CommentDto>> ListOpenCommentsAsync(string documentId, CancellationToken ct = default)
+    {
+        var response = await SendCommentRequestAsync(
+            WebSocketOpMessageType.ListOpenComments,
+            new CommentCommandData { DocumentId = documentId },
+            ct);
+
+        if (response.CommentResponse is not JsonElement el)
+            throw new Exception("Unexpected response for ListOpenComments.");
+        return el.Deserialize<List<CommentDto>>(JsonOptions) ?? new List<CommentDto>();
+    }
+
+    /// <inheritdoc/>
+    public async Task<CommentDto> CreateCommentAsync(string documentId, NewCommentCmd cmd, CancellationToken ct = default)
+    {
+        JsonElement? anchorEl = cmd.Anchor is null
+            ? null
+            : JsonSerializer.SerializeToElement(cmd.Anchor, JsonOptions);
+
+        var response = await SendCommentRequestAsync(
+            WebSocketOpMessageType.CreateComment,
+            new CommentCommandData
+            {
+                DocumentId = documentId,
+                Body = cmd.Body,
+                ParentCommentId = cmd.ParentCommentId,
+                Anchor = anchorEl
+            }, ct);
+
+        return DeserializeCommentResponse(response);
+    }
+
+    /// <inheritdoc/>
+    public async Task<CommentDto> EditCommentAsync(string documentId, string commentId, string newBody, CancellationToken ct = default)
+    {
+        var response = await SendCommentRequestAsync(
+            WebSocketOpMessageType.EditComment,
+            new CommentCommandData { DocumentId = documentId, CommentId = commentId, Body = newBody },
+            ct);
+
+        return DeserializeCommentResponse(response);
+    }
+
+    /// <inheritdoc/>
+    public async Task<CommentDto> ResolveCommentAsync(string documentId, string commentId, CancellationToken ct = default)
+    {
+        var response = await SendCommentRequestAsync(
+            WebSocketOpMessageType.ResolveComment,
+            new CommentCommandData { DocumentId = documentId, CommentId = commentId },
+            ct);
+
+        return DeserializeCommentResponse(response);
+    }
+
+    /// <inheritdoc/>
+    public async Task DeleteCommentAsync(string documentId, string commentId, CancellationToken ct = default)
+    {
+        await SendCommentRequestAsync(
+            WebSocketOpMessageType.DeleteComment,
+            new CommentCommandData { DocumentId = documentId, CommentId = commentId },
+            ct);
+    }
+
+    private async Task<WebSocketMessage> SendCommentRequestAsync(
+        WebSocketOpMessageType messageType, CommentCommandData cmd, CancellationToken ct)
+    {
+        var correlationId = Guid.NewGuid().ToString();
+        var tcs = new TaskCompletionSource<WebSocketMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _pendingRequests[correlationId] = tcs;
+
+        await SendMessageAsync(new WebSocketMessage
+        {
+            CorrelationId = correlationId,
+            MessageType = messageType,
+            CommentCommand = cmd
+        }, ct);
+
+        using var registration = ct.Register(() => tcs.TrySetCanceled());
+        var response = await tcs.Task;
+
+        if (response.MessageType == WebSocketOpMessageType.ErrorResponse)
+            throw new Exception(response.ErrorMessage ?? "Comment operation failed.");
+
+        return response;
+    }
+
+    private static CommentDto DeserializeCommentResponse(WebSocketMessage response)
+    {
+        if (response.CommentResponse is not JsonElement el)
+            throw new Exception("Unexpected response format for comment operation.");
+        return el.Deserialize<CommentDto>(JsonOptions)
+            ?? throw new Exception("Null comment in server response.");
     }
 
     private async Task SendMessageAsync(WebSocketMessage message, CancellationToken ct)

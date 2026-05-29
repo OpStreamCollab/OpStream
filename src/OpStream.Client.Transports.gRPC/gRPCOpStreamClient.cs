@@ -15,24 +15,60 @@ namespace OpStream.Client.Transports.gRPC;
 /// </summary>
 public class gRPCOpStreamClient : IOpStreamClient
 {
+    private readonly string _peerId = Guid.NewGuid().ToString();
     private readonly GrpcChannel _channel;
     private readonly OpStreamService.OpStreamServiceClient _client;
+    private readonly OpStreamCommentsService.OpStreamCommentsServiceClient _commentsClient;
     private readonly AsyncDuplexStreamingCall<ClientMessage, ServerMessage> _call;
     private readonly ConcurrentDictionary<string, TaskCompletionSource<ServerMessage>> _pendingRequests = new();
     private readonly Task _listenTask;
     private readonly CancellationTokenSource _cts = new();
+    private Task? _commentListenTask;
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
 
     /// <inheritdoc/>
     public event Func<ReadOnlyMemory<byte>, long, Task>? OnReceiveOp;
-    
+
     /// <inheritdoc/>
     public event Action<Exception?>? OnDisconnected;
-    
+
     /// <inheritdoc/>
     public event Func<IEnumerable<AwarenessState>, Task>? OnReceiveAwareness;
 
     /// <inheritdoc/>
     public event Action<string>? OnPeerDisconnected;
+
+    // ─── Comment events ───────────────────────────────────────────────────────
+
+    private event Func<CommentDto, Task>? _onCommentCreated;
+    private event Func<CommentDto, Task>? _onCommentUpdated;
+    private event Func<CommentDeletedDto, Task>? _onCommentDeleted;
+
+    /// <inheritdoc/>
+    public event Func<CommentDto, Task>? OnCommentCreated
+    {
+        add    => _onCommentCreated += value;
+        remove => _onCommentCreated -= value;
+    }
+
+    /// <inheritdoc/>
+    public event Func<CommentDto, Task>? OnCommentUpdated
+    {
+        add    => _onCommentUpdated += value;
+        remove => _onCommentUpdated -= value;
+    }
+
+    /// <inheritdoc/>
+    public event Func<CommentDeletedDto, Task>? OnCommentDeleted
+    {
+        add    => _onCommentDeleted += value;
+        remove => _onCommentDeleted -= value;
+    }
 
     /// <summary>
     /// Initializes a new instance of the gRPCOpStreamClient.
@@ -42,6 +78,7 @@ public class gRPCOpStreamClient : IOpStreamClient
     {
         _channel = GrpcChannel.ForAddress(options.Value.ServerAddress);
         _client = new OpStreamService.OpStreamServiceClient(_channel);
+        _commentsClient = new OpStreamCommentsService.OpStreamCommentsServiceClient(_channel);
         _call = _client.Connect();
         _listenTask = ListenLoop();
     }
@@ -116,6 +153,7 @@ public class gRPCOpStreamClient : IOpStreamClient
         }
 
         var jr = response.JoinResponse;
+        _commentListenTask = ListenCommentsLoop(documentId, _cts.Token);
         return new ClientJoinResult(jr.Revision, jr.Snapshot.ToByteArray(), jr.Awareness.Select(FromProto));
     }
 
@@ -163,6 +201,127 @@ public class gRPCOpStreamClient : IOpStreamClient
         });
     }
 
+    // ─── Comment subscription ─────────────────────────────────────────────────
+
+    private async Task ListenCommentsLoop(string documentId, CancellationToken ct)
+    {
+        try
+        {
+            using var call = _commentsClient.SubscribeComments(
+                new SubscribeCommentsRequest { DocumentId = documentId },
+                cancellationToken: ct);
+
+            await foreach (var evt in call.ResponseStream.ReadAllAsync(ct))
+            {
+                switch (evt.EventTypeCase)
+                {
+                    case CommentEvent.EventTypeOneofCase.Created:
+                        if (_onCommentCreated != null)
+                            await _onCommentCreated.Invoke(ProtoToDto(evt.Created));
+                        break;
+                    case CommentEvent.EventTypeOneofCase.Updated:
+                        if (_onCommentUpdated != null)
+                            await _onCommentUpdated.Invoke(ProtoToDto(evt.Updated));
+                        break;
+                    case CommentEvent.EventTypeOneofCase.DeletedCommentId:
+                        if (_onCommentDeleted != null)
+                            await _onCommentDeleted.Invoke(new CommentDeletedDto(evt.DeletedCommentId));
+                        break;
+                }
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled) { }
+    }
+
+    // ─── Comment methods ──────────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public async Task<List<CommentDto>> ListOpenCommentsAsync(string documentId, CancellationToken ct = default)
+    {
+        var response = await _commentsClient.ListOpenCommentsAsync(
+            new ListCommentsRequest { DocumentId = documentId }, cancellationToken: ct);
+        return response.Comments.Select(ProtoToDto).ToList();
+    }
+
+    /// <inheritdoc/>
+    public async Task<CommentDto> CreateCommentAsync(string documentId, NewCommentCmd cmd, CancellationToken ct = default)
+    {
+        var request = new CreateCommentRequest
+        {
+            PeerId = _peerId,
+            DocumentId = documentId,
+            Body = cmd.Body,
+            AnchorJson = cmd.Anchor is null
+                ? string.Empty
+                : JsonSerializer.Serialize(cmd.Anchor, JsonOptions),
+            ParentCommentId = cmd.ParentCommentId ?? string.Empty
+        };
+        var response = await _commentsClient.CreateCommentAsync(request, cancellationToken: ct);
+        if (!response.Success) throw new InvalidOperationException(response.ErrorMessage);
+        return ProtoToDto(response.Comment);
+    }
+
+    /// <inheritdoc/>
+    public async Task<CommentDto> EditCommentAsync(string documentId, string commentId, string newBody, CancellationToken ct = default)
+    {
+        var request = new EditCommentRequest
+        {
+            PeerId = _peerId,
+            DocumentId = documentId,
+            CommentId = commentId,
+            NewBody = newBody
+        };
+        var response = await _commentsClient.EditCommentAsync(request, cancellationToken: ct);
+        if (!response.Success) throw new InvalidOperationException(response.ErrorMessage);
+        return ProtoToDto(response.Comment);
+    }
+
+    /// <inheritdoc/>
+    public async Task<CommentDto> ResolveCommentAsync(string documentId, string commentId, CancellationToken ct = default)
+    {
+        var request = new CommentActionRequest
+        {
+            PeerId = _peerId,
+            DocumentId = documentId,
+            CommentId = commentId
+        };
+        var response = await _commentsClient.ResolveCommentAsync(request, cancellationToken: ct);
+        if (!response.Success) throw new InvalidOperationException(response.ErrorMessage);
+        return ProtoToDto(response.Comment);
+    }
+
+    /// <inheritdoc/>
+    public async Task DeleteCommentAsync(string documentId, string commentId, CancellationToken ct = default)
+    {
+        var request = new CommentActionRequest
+        {
+            PeerId = _peerId,
+            DocumentId = documentId,
+            CommentId = commentId
+        };
+        var response = await _commentsClient.DeleteCommentAsync(request, cancellationToken: ct);
+        if (!response.Success) throw new InvalidOperationException(response.ErrorMessage);
+    }
+
+    // ─── Mapping ──────────────────────────────────────────────────────────────
+
+    private static CommentDto ProtoToDto(CommentProto p) => new(
+        p.Id,
+        p.DocumentId,
+        string.IsNullOrEmpty(p.ParentCommentId) ? null : p.ParentCommentId,
+        p.AuthorPeerId,
+        p.Body,
+        string.IsNullOrEmpty(p.AnchorJson)
+            ? null
+            : JsonSerializer.Deserialize<AnchorDto>(p.AnchorJson, JsonOptions),
+        p.AnchoredAtRevision,
+        p.CreatedAt.ToDateTimeOffset(),
+        p.ResolvedAt?.ToDateTimeOffset(),
+        string.IsNullOrEmpty(p.ResolvedByPeerId) ? null : p.ResolvedByPeerId,
+        p.IsOrphaned
+    );
+
     /// <inheritdoc/>
     public async ValueTask DisposeAsync()
     {
@@ -174,11 +333,9 @@ public class gRPCOpStreamClient : IOpStreamClient
         catch { }
         _call.Dispose();
         _channel.Dispose();
-        try
-        {
-            await _listenTask;
-        }
-        catch { }
+        try { await _listenTask; } catch { }
+        if (_commentListenTask != null)
+            try { await _commentListenTask; } catch { }
         _cts.Dispose();
     }
 
