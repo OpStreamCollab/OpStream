@@ -66,7 +66,8 @@ namespace OpStream.Server.Session
 
 
                 var stateBytes = JsonSerializer.SerializeToUtf8Bytes(currentState, OpStreamJsonOptions.Default);
-                await store.WriteSnapshotAsync(documentId, new DocumentSnapshot(0, DateTimeOffset.UtcNow, stateBytes), ct);
+                await store.WriteSnapshotAsync(documentId, new DocumentSnapshot(1, DateTimeOffset.UtcNow, stateBytes), ct);
+                initialRevision = 1;
             }
             var backplane = _serviceProvider.GetRequiredService<IBackplane>();
             var snapshotter = _serviceProvider.GetRequiredService<IOpSnapshotter>();

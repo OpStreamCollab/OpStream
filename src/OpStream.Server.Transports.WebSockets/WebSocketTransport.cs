@@ -116,7 +116,7 @@ public class WebSocketTransport(DocumentRouter router, WebSocketConnectionManage
                         if (result.Success)
                         {
                             var joinResult = result.Value!;
-                            connectionManager.AddConnection(peerId, message.JoinRequest.DocumentId, webSocket);
+                            connectionManager.AddConnection(peerId, globalDocId, webSocket);
 
                             var response = new WebSocketMessage
                             {

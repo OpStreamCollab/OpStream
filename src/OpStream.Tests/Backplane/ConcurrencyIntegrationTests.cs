@@ -134,6 +134,13 @@ public class ConcurrencyIntegrationTests : IAsyncLifetime
 
         // Wait for all operations to be processed by the CRDT/OT engine across nodes
         var results = await Task.WhenAll(opTasks);
+
+        if (results.Any(r => !r.Success))
+        {
+            var firstError = results.First(r => !r.Success);
+            _output.WriteLine($"❌ Some operations failed! First error: {firstError.ErrorMessage}");
+        }
+
         results.All(r => r.Success).Should().BeTrue("all operations should be accepted successfully");
 
         _output.WriteLine("⏳ Allowing 2 seconds for backplane fanout...");

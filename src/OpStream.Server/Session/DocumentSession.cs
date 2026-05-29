@@ -198,7 +198,7 @@ public class DocumentSession<TDoc, TOp> : IDocumentSession
 
                 if (expectedRevision <= CurrentRevision)
                 {
-                    var reason = "Cannot reconstruct transformation path: op log gap.";
+                    var reason = $"Cannot reconstruct transformation path: op log gap (expected={expectedRevision}, current={CurrentRevision}, base={baseRevision}, streamed={transformCount}).";
                     _logger.LogWarning("Op rejected: {Reason}", reason);
                     activity?.SetStatus(ActivityStatusCode.Error, reason);
                     OpStreamTelemetry.OperationsRejected.Add(1);
@@ -207,18 +207,19 @@ public class DocumentSession<TDoc, TOp> : IDocumentSession
                 }
             }
 
-            // 5. Apply to in-memory state
+            // 5. Apply to temporary state and calculate new revision
+            TDoc nextState;
+            long nextRevision = CurrentRevision + 1;
             using (var applyActivity = OpStreamTelemetry.ActivitySource.StartActivity("opstream.engine.apply"))
             {
                 applyActivity?.SetTag("doc.id", DocumentId);
-                _currentState = _engine.Apply(_currentState, incomingOp);
-                CurrentRevision++;
+                nextState = _engine.Apply(_currentState, incomingOp);
             }
 
             // 6. Persist (we always store the TRANSFORMED op)
             var transformedPayload = JsonSerializer.SerializeToUtf8Bytes(incomingOp, OpStreamJsonOptions.Default);
             var newStoredOp = new StoredOp(
-                Revision: CurrentRevision,
+                Revision: nextRevision,
                 AuthorId: peerId,
                 Timestamp: DateTimeOffset.UtcNow,
                 Payload: transformedPayload,
@@ -227,12 +228,16 @@ public class DocumentSession<TDoc, TOp> : IDocumentSession
             using (var storeActivity = OpStreamTelemetry.ActivitySource.StartActivity("opstream.store.append"))
             {
                 storeActivity?.SetTag("doc.id", DocumentId);
-                storeActivity?.SetTag("revision", CurrentRevision);
+                storeActivity?.SetTag("revision", nextRevision);
 
                 long appendStart = Stopwatch.GetTimestamp();
                 await _store.AppendOpAsync(DocumentId, newStoredOp, ct);
                 OpStreamTelemetry.StoreAppendLatency.RecordElapsedMs(appendStart);
             }
+
+            // Successfully persisted. Update current session state.
+            _currentState = nextState;
+            CurrentRevision = nextRevision;
 
             await _historySnapshotter.AppendOpAsync(DocumentId, newStoredOp, ct);
             await _opSnapshotter.OpAddedAsync(_currentState, DocumentId, CurrentRevision, OpStreamJsonOptions.Default, ct);

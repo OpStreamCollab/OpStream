@@ -49,13 +49,11 @@ _hostImage = new ImageFromDockerfileBuilder()
     .Build();
 await _hostImage.CreateAsync();
 
-_hostA = new ContainerBuilder(_hostImage)
-    .WithNetwork(_network)
-    .Build();
+_hostA = BuildHostContainer("host-a");
 await _hostA.StartAsync();
 _hostAPort = _hostA.GetMappedPublicPort(ContainerPort);
 
-        _hostB = BuildHostContainer("host-b");
+_hostB = BuildHostContainer("host-b");
         await _hostB.StartAsync();
         _hostBPort = _hostB.GetMappedPublicPort(ContainerPort);
     }
