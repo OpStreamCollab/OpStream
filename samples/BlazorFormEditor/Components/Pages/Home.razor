@@ -1,50 +1,85 @@
 @page "/"
 @using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Json
+@using System.Text.Json.Nodes
+@using OpStream.Client.Transports
+@using OpStream.Shared.Messages
+@implements IAsyncDisposable
+@inject IOpStreamClient Client
+@inject IJSRuntime JS
 
 <PageTitle>Customer Profile</PageTitle>
 
 <div class="customer-form-container">
     <h1>Customer Profile</h1>
 
+    <div class="collab-bar">
+        <span class="collab-status @(_joined ? "ok" : "wait")">@_statusMessage</span>
+        <span class="collab-rev">doc: <code>@DocumentId</code> · rev: <code>@_currentRevision</code></span>
+        <span class="collab-peers">
+            @foreach (var p in _peers.Values)
+            {
+                <span class="peer-dot" style="background:@p.Color" title="@p.Name"></span>
+            }
+            @if (_joined)
+            {
+                <span class="peer-dot me" style="background:@_myColor" title="@_myName (you)"></span>
+            }
+        </span>
+        @if (!string.IsNullOrEmpty(_lastActivity))
+        {
+            <span class="collab-activity">@_lastActivity</span>
+        }
+    </div>
+
     <EditForm Model="@customer" OnValidSubmit="HandleValidSubmit" FormName="CustomerProfileForm">
         <DataAnnotationsValidator />
-        
-        <div class="form-group">
-            <label for="firstName">First Name</label>
-            <InputText id="firstName" @bind-Value="customer.FirstName" class="form-control" />
+
+        <fieldset disabled="@(!_joined)" class="collab-fieldset">
+        <CollabField FieldName="@Fields.FirstName" Label="First Name"
+                     EditorName="@EditorName(Fields.FirstName)" EditorColor="@EditorColor(Fields.FirstName)"
+                     OnFocus="OnFieldFocus" OnBlur="OnFieldBlur">
+            <InputText id="firstName" @bind-Value="customer.FirstName" @bind-Value:after="() => SendFieldAsync(Fields.FirstName)" class="form-control" />
             <ValidationMessage For="@(() => customer.FirstName)" class="text-danger" />
-        </div>
+        </CollabField>
 
-        <div class="form-group">
-            <label for="lastName">Last Name</label>
-            <InputText id="lastName" @bind-Value="customer.LastName" class="form-control" />
+        <CollabField FieldName="@Fields.LastName" Label="Last Name"
+                     EditorName="@EditorName(Fields.LastName)" EditorColor="@EditorColor(Fields.LastName)"
+                     OnFocus="OnFieldFocus" OnBlur="OnFieldBlur">
+            <InputText id="lastName" @bind-Value="customer.LastName" @bind-Value:after="() => SendFieldAsync(Fields.LastName)" class="form-control" />
             <ValidationMessage For="@(() => customer.LastName)" class="text-danger" />
-        </div>
+        </CollabField>
 
-        <div class="form-group">
-            <label for="email">Email Address</label>
-            <InputText id="email" @bind-Value="customer.Email" class="form-control" type="email" />
+        <CollabField FieldName="@Fields.Email" Label="Email Address"
+                     EditorName="@EditorName(Fields.Email)" EditorColor="@EditorColor(Fields.Email)"
+                     OnFocus="OnFieldFocus" OnBlur="OnFieldBlur">
+            <InputText id="email" @bind-Value="customer.Email" @bind-Value:after="() => SendFieldAsync(Fields.Email)" class="form-control" type="email" />
             <ValidationMessage For="@(() => customer.Email)" class="text-danger" />
-        </div>
+        </CollabField>
 
-        <div class="form-group">
-            <label for="phone">Phone Number</label>
-            <InputText id="phone" @bind-Value="customer.PhoneNumber" class="form-control" />
-        </div>
+        <CollabField FieldName="@Fields.PhoneNumber" Label="Phone Number"
+                     EditorName="@EditorName(Fields.PhoneNumber)" EditorColor="@EditorColor(Fields.PhoneNumber)"
+                     OnFocus="OnFieldFocus" OnBlur="OnFieldBlur">
+            <InputText id="phone" @bind-Value="customer.PhoneNumber" @bind-Value:after="() => SendFieldAsync(Fields.PhoneNumber)" class="form-control" />
+        </CollabField>
 
-        <div class="form-group">
-            <label for="address">Street Address</label>
-            <InputText id="address" @bind-Value="customer.Address" class="form-control" />
-        </div>
+        <CollabField FieldName="@Fields.Address" Label="Street Address"
+                     EditorName="@EditorName(Fields.Address)" EditorColor="@EditorColor(Fields.Address)"
+                     OnFocus="OnFieldFocus" OnBlur="OnFieldBlur">
+            <InputText id="address" @bind-Value="customer.Address" @bind-Value:after="() => SendFieldAsync(Fields.Address)" class="form-control" />
+        </CollabField>
 
         <div class="row">
-            <div class="col">
-                <label for="city">City</label>
-                <InputText id="city" @bind-Value="customer.City" class="form-control" />
-            </div>
-            <div class="col">
-                <label for="state">State</label>
-                <InputSelect id="state" @bind-Value="customer.State" class="form-control">
+            <CollabField FieldName="@Fields.City" Label="City" Class="col"
+                         EditorName="@EditorName(Fields.City)" EditorColor="@EditorColor(Fields.City)"
+                         OnFocus="OnFieldFocus" OnBlur="OnFieldBlur">
+                <InputText id="city" @bind-Value="customer.City" @bind-Value:after="() => SendFieldAsync(Fields.City)" class="form-control" />
+            </CollabField>
+            <CollabField FieldName="@Fields.State" Label="State" Class="col"
+                         EditorName="@EditorName(Fields.State)" EditorColor="@EditorColor(Fields.State)"
+                         OnFocus="OnFieldFocus" OnBlur="OnFieldBlur">
+                <InputSelect id="state" @bind-Value="customer.State" @bind-Value:after="() => SendFieldAsync(Fields.State)" class="form-control">
                     <option value="">Select a state...</option>
                     <option value="AL">Alabama</option>
                     <option value="AK">Alaska</option>
@@ -57,21 +92,24 @@
                     <option value="TX">Texas</option>
                     <option value="WA">Washington</option>
                 </InputSelect>
-            </div>
-            <div class="col">
-                <label for="zip">Zip Code</label>
-                <InputText id="zip" @bind-Value="customer.ZipCode" class="form-control" />
-            </div>
+            </CollabField>
+            <CollabField FieldName="@Fields.ZipCode" Label="Zip Code" Class="col"
+                         EditorName="@EditorName(Fields.ZipCode)" EditorColor="@EditorColor(Fields.ZipCode)"
+                         OnFocus="OnFieldFocus" OnBlur="OnFieldBlur">
+                <InputText id="zip" @bind-Value="customer.ZipCode" @bind-Value:after="() => SendFieldAsync(Fields.ZipCode)" class="form-control" />
+            </CollabField>
         </div>
 
-        <div class="form-group">
-            <label for="dob">Date of Birth</label>
-            <InputDate id="dob" @bind-Value="customer.DateOfBirth" class="form-control" />
-        </div>
+        <CollabField FieldName="@Fields.DateOfBirth" Label="Date of Birth"
+                     EditorName="@EditorName(Fields.DateOfBirth)" EditorColor="@EditorColor(Fields.DateOfBirth)"
+                     OnFocus="OnFieldFocus" OnBlur="OnFieldBlur">
+            <InputDate id="dob" @bind-Value="customer.DateOfBirth" @bind-Value:after="() => SendFieldAsync(Fields.DateOfBirth)" class="form-control" />
+        </CollabField>
 
-        <div class="form-group">
-            <label>Gender</label>
-            <InputRadioGroup @bind-Value="customer.Gender">
+        <CollabField FieldName="@Fields.Gender" Label="Gender"
+                     EditorName="@EditorName(Fields.Gender)" EditorColor="@EditorColor(Fields.Gender)"
+                     OnFocus="OnFieldFocus" OnBlur="OnFieldBlur">
+            <InputRadioGroup @bind-Value="customer.Gender" @bind-Value:after="() => SendFieldAsync(Fields.Gender)">
                 <div class="radio-options">
                     <div class="radio-option">
                         <InputRadio Value="@("Male")" id="genderMale" />
@@ -87,19 +125,25 @@
                     </div>
                 </div>
             </InputRadioGroup>
-        </div>
+        </CollabField>
 
-        <div class="form-group checkbox-container">
-            <InputCheckbox id="isSubscribed" @bind-Value="customer.IsSubscribed" class="form-check-input" />
-            <label for="isSubscribed" class="form-check-label">Subscribe to newsletter</label>
-        </div>
+        <CollabField FieldName="@Fields.IsSubscribed" Label="Newsletter"
+                     EditorName="@EditorName(Fields.IsSubscribed)" EditorColor="@EditorColor(Fields.IsSubscribed)"
+                     OnFocus="OnFieldFocus" OnBlur="OnFieldBlur">
+            <div class="checkbox-container">
+                <InputCheckbox id="isSubscribed" @bind-Value="customer.IsSubscribed" @bind-Value:after="() => SendFieldAsync(Fields.IsSubscribed)" class="form-check-input" />
+                <label for="isSubscribed" class="form-check-label">Subscribe to newsletter</label>
+            </div>
+        </CollabField>
 
-        <div class="form-group">
-            <label for="notes">Notes</label>
-            <InputTextArea id="notes" @bind-Value="customer.Notes" class="form-control" rows="3" />
-        </div>
+        <CollabField FieldName="@Fields.Notes" Label="Notes"
+                     EditorName="@EditorName(Fields.Notes)" EditorColor="@EditorColor(Fields.Notes)"
+                     OnFocus="OnFieldFocus" OnBlur="OnFieldBlur">
+            <InputTextArea id="notes" @bind-Value="customer.Notes" @bind-Value:after="() => SendFieldAsync(Fields.Notes)" class="form-control" rows="3" />
+        </CollabField>
+        </fieldset>
 
-        <button type="submit" class="btn btn-primary">Save Profile</button>
+        <button type="submit" class="btn btn-primary" disabled="@(!_joined)">Save Profile</button>
     </EditForm>
 
     @if (submitted)
@@ -128,6 +172,88 @@
         text-align: center;
         font-weight: 600;
     }
+
+    .collab-bar {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 1.5rem;
+        background: #f6f8fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        color: #555;
+    }
+
+    .collab-status {
+        font-weight: 600;
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+    }
+    .collab-status.ok { background: #d4edda; color: #155724; }
+    .collab-status.wait { background: #fff3cd; color: #856404; }
+
+    .collab-rev code { color: #007bff; }
+
+    .collab-peers { display: flex; align-items: center; gap: 0.3rem; }
+    .peer-dot {
+        width: 12px; height: 12px; border-radius: 50%;
+        display: inline-block; border: 1px solid rgba(0,0,0,0.15);
+    }
+    .peer-dot.me { box-shadow: 0 0 0 2px #fff, 0 0 0 3px currentColor; }
+
+    .collab-activity { margin-left: auto; font-style: italic; color: #888; }
+
+    .collab-fieldset { border: none; padding: 0; margin: 0; min-inline-size: auto; }
+
+    .collab-field {
+        border: 2px solid transparent;
+        border-radius: 8px;
+        padding: 0.4rem 0.6rem;
+        margin-bottom: 0.85rem;
+        transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+    }
+
+    .collab-field.locked {
+        border-color: var(--lock-color, #888);
+        background-color: color-mix(in srgb, var(--lock-color, #888) 8%, transparent);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--lock-color, #888) 25%, transparent);
+    }
+
+    .collab-field-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .collab-field-head label {
+        margin-bottom: 0;
+        font-weight: 500;
+        color: #555;
+    }
+
+    .lock-badge {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #fff;
+        padding: 0.1rem 0.5rem;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+
+    .collab-field-inner {
+        border: none;
+        padding: 0;
+        margin: 0;
+        min-inline-size: auto;
+    }
+
+    .collab-field-inner:disabled .form-control,
+    .collab-field-inner:disabled { opacity: 0.85; }
 
     .form-group {
         margin-bottom: 1.25rem;
@@ -213,6 +339,11 @@
         background-color: #0056b3;
     }
 
+    .btn-primary:disabled {
+        background-color: #9bc4ee;
+        cursor: not-allowed;
+    }
+
     .text-danger {
         color: #dc3545;
         font-size: 0.875rem;
@@ -235,13 +366,349 @@
 </style>
 
 @code {
+    private const string DocumentId = "customer-profile";
+    private const string DocumentType = "form";
+
+    private static readonly string[] Palette =
+    {
+        "#e57373","#64b5f6","#81c784","#ffb74d","#ba68c8","#4db6ac",
+        "#f06292","#9575cd","#7986cb","#a1887f","#90a4ae","#dce775",
+    };
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     private Customer customer = new();
     private bool submitted = false;
 
+    private bool _joined;
+    private bool _started;
+    private long _currentRevision;
+    private string _statusMessage = "Connecting…";
+
+    private string _peerId = $"peer-{Guid.NewGuid():N}";
+    private string _myName = "Anonymous";
+    private string _myColor = Palette[0];
+    private string _lastActivity = "";
+    private string _editingField = "";
+
+    private readonly Dictionary<string, PeerInfo> _peers = new(StringComparer.Ordinal);
+
+    // Field-name discriminators — must match the camelCased property names the
+    // FormOtEngine stores in its LWW register map.
+    private static class Fields
+    {
+        public const string FirstName = "firstName";
+        public const string LastName = "lastName";
+        public const string Email = "email";
+        public const string PhoneNumber = "phoneNumber";
+        public const string Address = "address";
+        public const string City = "city";
+        public const string State = "state";
+        public const string ZipCode = "zipCode";
+        public const string DateOfBirth = "dateOfBirth";
+        public const string Gender = "gender";
+        public const string IsSubscribed = "isSubscribed";
+        public const string Notes = "notes";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _started) return;
+        _started = true;
+
+        var name = await JS.InvokeAsync<string?>("prompt", "What name should others see?", "");
+        _myName = string.IsNullOrWhiteSpace(name) ? "Anonymous" : name.Trim();
+        _myColor = PickColor(_myName);
+
+        await ConnectAsync();
+    }
+
+    private async Task ConnectAsync()
+    {
+        Client.OnReceiveOp += HandleRemoteOpAsync;
+        Client.OnReceiveAwareness += HandleAwarenessAsync;
+        Client.OnPeerDisconnected += HandlePeerDisconnected;
+        Client.OnDisconnected += HandleTransportClosed;
+
+        try
+        {
+            var join = await Client.ConnectAndJoinAsync(DocumentId, DocumentType);
+            _currentRevision = join.Revision;
+
+            LoadSnapshot(join.Snapshot);
+            foreach (var state in join.Awareness) ApplyAwareness(state);
+
+            _joined = true;
+            _statusMessage = "Connected";
+
+            await PublishAwarenessAsync("joined");
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Error: {ex.Message}";
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // ── Per-field editing presence (soft lock) ─────────────────────────────────
+
+    private async Task OnFieldFocus(string fieldName)
+    {
+        _editingField = fieldName;
+        await PublishAwarenessAsync($"is editing {Label(fieldName)}");
+    }
+
+    private async Task OnFieldBlur(string fieldName)
+    {
+        if (_editingField == fieldName) _editingField = "";
+        await PublishAwarenessAsync("");
+    }
+
+    /// <summary>Name of the remote peer currently editing <paramref name="fieldName"/>, or null.</summary>
+    private string? EditorName(string fieldName) => FieldEditor(fieldName)?.Name;
+    private string? EditorColor(string fieldName) => FieldEditor(fieldName)?.Color;
+
+    private PeerInfo? FieldEditor(string fieldName)
+    {
+        foreach (var p in _peers.Values)
+        {
+            if (string.Equals(p.EditingField, fieldName, StringComparison.Ordinal))
+                return p;
+        }
+        return null;
+    }
+
+    // ── Local → server ─────────────────────────────────────────────────────────
+
+    private async Task SendFieldAsync(string fieldName)
+    {
+        if (!_joined) return;
+
+        var valueNode = ReadFieldNode(fieldName);
+        var op = new JsonObject
+        {
+            ["$type"] = valueNode is null ? "clr" : "set",
+            ["fieldName"] = fieldName,
+        };
+        if (valueNode is not null) op["value"] = valueNode;
+        op["timestamp"] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        op["peerId"] = _peerId;
+
+        var batch = new JsonObject { ["operations"] = new JsonArray(op) };
+        var payload = Encoding.UTF8.GetBytes(batch.ToJsonString());
+
+        try
+        {
+            var result = await Client.SendOpAsync(DocumentId, payload, _currentRevision);
+            if (result.Success)
+            {
+                _currentRevision = result.NewRevision;
+                await PublishAwarenessAsync($"edited {Label(fieldName)}");
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                Console.Error.WriteLine($"SendOp rejected: {result.ErrorMessage}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"SendOp failed: {ex.Message}");
+        }
+    }
+
+    // ── Server → local ─────────────────────────────────────────────────────────
+
+    private async Task HandleRemoteOpAsync(ReadOnlyMemory<byte> payload, long newRevision)
+    {
+        _currentRevision = newRevision;
+
+        using var doc = JsonDocument.Parse(payload);
+        if (doc.RootElement.TryGetProperty("operations", out var ops))
+        {
+            foreach (var op in ops.EnumerateArray())
+            {
+                if (!op.TryGetProperty("fieldName", out var fn)) continue;
+                var fieldName = fn.GetString();
+                if (fieldName is null) continue;
+
+                if (op.TryGetProperty("value", out var value))
+                    ApplyFieldToModel(fieldName, value);
+                else
+                    ApplyFieldToModel(fieldName, null); // clear op carries no value
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private Task HandleAwarenessAsync(IEnumerable<AwarenessState> states)
+    {
+        foreach (var state in states) ApplyAwareness(state);
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private void HandlePeerDisconnected(string peerId)
+    {
+        _peers.Remove(peerId);
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleTransportClosed(Exception? ex)
+    {
+        _joined = false;
+        _statusMessage = ex is null ? "Disconnected" : $"Disconnected: {ex.Message}";
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    // ── Awareness ──────────────────────────────────────────────────────────────
+
+    private async Task PublishAwarenessAsync(string action)
+    {
+        var payload = new AwarenessPayload(_myName, _myColor, action, _editingField, DateTimeOffset.UtcNow);
+        var element = JsonSerializer.SerializeToElement(payload, JsonOptions);
+        try { await Client.SendAwarenessAsync(DocumentId, element); }
+        catch (Exception ex) { Console.Error.WriteLine($"SendAwareness failed: {ex.Message}"); }
+    }
+
+    private void ApplyAwareness(AwarenessState state)
+    {
+        if (state.PeerId == _peerId) return;
+
+        string name = "anonymous", color = "#888", action = "", editingField = "";
+        try
+        {
+            var payload = state.Data.Deserialize<AwarenessPayload>(JsonOptions);
+            if (payload is not null)
+            {
+                name = payload.Name;
+                color = payload.Color;
+                action = payload.LastAction;
+                editingField = payload.EditingField ?? "";
+            }
+        }
+        catch { /* tolerate older / different shapes */ }
+
+        if (!_peers.TryGetValue(state.PeerId, out var info))
+        {
+            info = new PeerInfo { PeerId = state.PeerId };
+            _peers[state.PeerId] = info;
+        }
+        info.Name = name;
+        info.Color = color;
+        info.LastAction = action;
+        info.EditingField = editingField;
+
+        if (!string.IsNullOrEmpty(action))
+            _lastActivity = $"{name} {action}";
+    }
+
+    // ── Field mapping ──────────────────────────────────────────────────────────
+
+    private JsonNode? ReadFieldNode(string fieldName) => fieldName switch
+    {
+        Fields.FirstName => Str(customer.FirstName),
+        Fields.LastName => Str(customer.LastName),
+        Fields.Email => Str(customer.Email),
+        Fields.PhoneNumber => Str(customer.PhoneNumber),
+        Fields.Address => Str(customer.Address),
+        Fields.City => Str(customer.City),
+        Fields.State => Str(customer.State),
+        Fields.ZipCode => Str(customer.ZipCode),
+        Fields.DateOfBirth => customer.DateOfBirth is { } d ? JsonValue.Create(d.ToString("yyyy-MM-dd")) : null,
+        Fields.Gender => Str(customer.Gender),
+        Fields.IsSubscribed => JsonValue.Create(customer.IsSubscribed),
+        Fields.Notes => Str(customer.Notes),
+        _ => null,
+    };
+
+    private void ApplyFieldToModel(string fieldName, JsonElement? valueOrNull)
+    {
+        bool isNull = valueOrNull is null || valueOrNull.Value.ValueKind == JsonValueKind.Null;
+        var v = valueOrNull ?? default;
+
+        switch (fieldName)
+        {
+            case Fields.FirstName: customer.FirstName = isNull ? "" : v.GetString() ?? ""; break;
+            case Fields.LastName: customer.LastName = isNull ? "" : v.GetString() ?? ""; break;
+            case Fields.Email: customer.Email = isNull ? "" : v.GetString() ?? ""; break;
+            case Fields.PhoneNumber: customer.PhoneNumber = isNull ? null : v.GetString(); break;
+            case Fields.Address: customer.Address = isNull ? null : v.GetString(); break;
+            case Fields.City: customer.City = isNull ? null : v.GetString(); break;
+            case Fields.State: customer.State = isNull ? null : v.GetString(); break;
+            case Fields.ZipCode: customer.ZipCode = isNull ? null : v.GetString(); break;
+            case Fields.DateOfBirth:
+                customer.DateOfBirth = !isNull && DateTime.TryParse(v.GetString(), out var d) ? d : null;
+                break;
+            case Fields.Gender: customer.Gender = isNull ? "Male" : v.GetString() ?? "Male"; break;
+            case Fields.IsSubscribed: customer.IsSubscribed = !isNull && v.GetBoolean(); break;
+            case Fields.Notes: customer.Notes = isNull ? null : v.GetString(); break;
+        }
+    }
+
+    private void LoadSnapshot(ReadOnlyMemory<byte> snapshot)
+    {
+        if (snapshot.IsEmpty) return;
+        using var doc = JsonDocument.Parse(snapshot);
+        if (!doc.RootElement.TryGetProperty("fields", out var fields)) return;
+
+        foreach (var field in fields.EnumerateObject())
+        {
+            if (field.Value.TryGetProperty("value", out var value))
+                ApplyFieldToModel(field.Name, value);
+        }
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    private static JsonNode? Str(string? s) => string.IsNullOrEmpty(s) ? null : JsonValue.Create(s);
+
+    private static string Label(string fieldName) => fieldName switch
+    {
+        Fields.FirstName => "First Name",
+        Fields.LastName => "Last Name",
+        Fields.Email => "Email",
+        Fields.PhoneNumber => "Phone Number",
+        Fields.Address => "Address",
+        Fields.City => "City",
+        Fields.State => "State",
+        Fields.ZipCode => "Zip Code",
+        Fields.DateOfBirth => "Date of Birth",
+        Fields.Gender => "Gender",
+        Fields.IsSubscribed => "Newsletter",
+        Fields.Notes => "Notes",
+        _ => fieldName,
+    };
+
+    private static string PickColor(string seed)
+    {
+        unchecked
+        {
+            int hash = 17;
+            foreach (var ch in seed) hash = hash * 31 + ch;
+            return Palette[Math.Abs(hash) % Palette.Length];
+        }
+    }
+
     private void HandleValidSubmit()
     {
-        submitted = true;       
+        submitted = true;
         StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Client.OnReceiveOp -= HandleRemoteOpAsync;
+        Client.OnReceiveAwareness -= HandleAwarenessAsync;
+        Client.OnPeerDisconnected -= HandlePeerDisconnected;
+        Client.OnDisconnected -= HandleTransportClosed;
+
+        try { await Client.DisposeAsync(); } catch { /* ignore */ }
     }
 
     public class Customer
@@ -261,12 +728,23 @@
         public string? City { get; set; }
         public string? State { get; set; }
         public string? ZipCode { get; set; }
-        
+
         [DataType(DataType.Date)]
         public DateTime? DateOfBirth { get; set; }
-        
+
         public string Gender { get; set; } = "Male";
         public bool IsSubscribed { get; set; } = true;
         public string? Notes { get; set; }
     }
+
+    private sealed class PeerInfo
+    {
+        public required string PeerId { get; init; }
+        public string Name { get; set; } = "anonymous";
+        public string Color { get; set; } = "#888";
+        public string LastAction { get; set; } = "";
+        public string EditingField { get; set; } = "";
+    }
+
+    private sealed record AwarenessPayload(string Name, string Color, string LastAction, string? EditingField, DateTimeOffset LastActionAt);
 }

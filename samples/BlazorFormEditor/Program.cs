@@ -15,7 +15,7 @@ namespace BlazorFormEditor
             builder.Services.AddOpStreamClient()
                    .UseSignalRTransport(options =>
                    {
-                       options.HubUrl = "http://localhost:50109";
+                       options.HubUrl = "http://localhost:50109/collab";
                    });
 
             var app = builder.Build();

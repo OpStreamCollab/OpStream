@@ -1,0 +1,38 @@
+@* Wraps a single form control with collaborative-awareness chrome: a colored
+   border + "<name> is editing" badge when a remote peer holds the field, and a
+   disabled fieldset so two users cannot edit the same field at once. Focus
+   in/out (which bubble, unlike focus/blur) drive the soft lock. *@
+
+<div class="collab-field @(Class) @(IsLocked ? "locked" : "")"
+     style="@(IsLocked ? $"--lock-color:{EditorColor};" : null)"
+     @onfocusin="() => OnFocus.InvokeAsync(FieldName)"
+     @onfocusout="() => OnBlur.InvokeAsync(FieldName)">
+
+    <div class="collab-field-head">
+        <label>@Label</label>
+        @if (IsLocked)
+        {
+            <span class="lock-badge" style="background:@EditorColor">@EditorName is editing…</span>
+        }
+    </div>
+
+    <fieldset class="collab-field-inner" disabled="@IsLocked">
+        @ChildContent
+    </fieldset>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string FieldName { get; set; } = "";
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>Display name of the remote peer currently editing this field, or null.</summary>
+    [Parameter] public string? EditorName { get; set; }
+    [Parameter] public string? EditorColor { get; set; }
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback<string> OnFocus { get; set; }
+    [Parameter] public EventCallback<string> OnBlur { get; set; }
+
+    private bool IsLocked => EditorName is not null;
+}
