@@ -4,6 +4,7 @@
     <PackageReference Include="Moq" />
     <PackageReference Include="Testcontainers" />
     <PackageReference Include="Testcontainers.Redis" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="Testcontainers.Xunit" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
@@ -23,6 +24,8 @@
     <ProjectReference Include="..\OpStream.Server.Backplane.Redis\OpStream.Server.Backplane.Redis.csproj" />
     <ProjectReference Include="..\OpStream.Client.Transports\OpStream.Client.Transports.csproj" />
     <ProjectReference Include="..\OpStream.Client.Transports.SignalR\OpStream.Client.Transports.SignalR.csproj" />
+    <ProjectReference Include="..\OpStream.Client.Transports.WebSockets\OpStream.Client.Transports.WebSockets.csproj" />
+    <ProjectReference Include="..\OpStream.Client.Transports.gRPC\OpStream.Client.Transports.gRPC.csproj" />
     <ProjectReference Include="..\OpStream.Constants\OpStream.Constants.csproj" />
   </ItemGroup>
 </Project>
