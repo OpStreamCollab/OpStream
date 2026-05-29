@@ -35,5 +35,6 @@
   <Folder Name="/Host/">
     <Project Path="src/OpStream.Host/OpStream.Host.csproj" />
   </Folder>
+  <Project Path="OpStream.AdminDashboardComponents/OpStream.AdminDashboardComponents.csproj" Id="392ddb0e-813c-42c7-b0e8-22c60bd5d315" />
   <Project Path="src/OpStream.Tests/OpStream.Tests.csproj" />
 </Solution>
