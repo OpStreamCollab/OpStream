@@ -508,8 +508,12 @@ public class DocumentRouter(
     /// <param name="peerId">The ID of the peer to remove.</param>
     public async Task RemovePeerFromAllSessionsAsync(string peerId)
     {
-        var documentIds = GetDocumentsId(peerId);
-        foreach (var documentId in documentIds)
+        if (!_peerDocuments.TryRemove(peerId, out var documentIds))
+        {
+            return;
+        }
+
+        foreach (var documentId in documentIds.Keys)
         {
             if (_activeSessions.TryGetValue(documentId, out var session))
             {
@@ -525,6 +529,15 @@ public class DocumentRouter(
             {
                 await awarenessSession.LeaveAsync(peerId);
             }
+
+            // Notify the backplane so other nodes know this peer has left
+            var backplaneMsg = new BackplaneMessage(
+                backplane.NodeId,
+                OpStreamConstants.BackplaneMessages.PeerDisconnected,
+                ReadOnlyMemory<byte>.Empty,
+                peerId);
+
+            await backplane.PublishAsync(documentId, backplaneMsg);
         }
     }
 

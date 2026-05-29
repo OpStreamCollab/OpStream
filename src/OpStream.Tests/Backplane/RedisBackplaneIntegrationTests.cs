@@ -65,7 +65,7 @@ public class RedisBackplaneIntegrationTests : IAsyncLifetime
         _output.WriteLine($"✔ Network created: {_network.Name}");
 
         // ─── 2. Start Redis container ───────────────────────────────────────
-        _redis = new RedisBuilder()
+        _redis = new RedisBuilder("redis:7.4")
             .WithNetwork(_network)
             .WithNetworkAliases("redis")
             .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("redis-cli", "ping"))
@@ -91,8 +91,7 @@ public class RedisBackplaneIntegrationTests : IAsyncLifetime
         _output.WriteLine($"✔ Host image built: {_hostImage.FullName}");
 
         // ─── 4. Start Host A ────────────────────────────────────────────────
-        _hostA = new ContainerBuilder()
-            .WithImage(_hostImage)
+        _hostA = new ContainerBuilder(_hostImage)
             .WithNetwork(_network)
             .WithNetworkAliases("host-a")
             .WithPortBinding(ContainerPort, assignRandomHostPort: true)
@@ -114,8 +113,7 @@ public class RedisBackplaneIntegrationTests : IAsyncLifetime
         _output.WriteLine($"✔ Host A started on port {_hostAPort}");
 
         // ─── 5. Start Host B ────────────────────────────────────────────────
-        _hostB = new ContainerBuilder()
-            .WithImage(_hostImage)
+        _hostB = new ContainerBuilder(_hostImage)
             .WithNetwork(_network)
             .WithNetworkAliases("host-b")
             .WithPortBinding(ContainerPort, assignRandomHostPort: true)

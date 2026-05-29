@@ -127,15 +127,9 @@ public class SignalRTransport(DocumentRouter router, IDocumentIdGlobalizer globa
         var peerId = Context.ConnectionId;
 
         // Disconnect the peer from all sessions they were part of
+        // This now notifies the backplane, which will trigger the broadcast on all nodes (including this one)
         await router.RemovePeerFromAllSessionsAsync(peerId);
 
-        var globalDocIds = router.GetDocumentsId(peerId);
-        foreach (var globalDocId in globalDocIds)
-        {
-            await Groups.RemoveFromGroupAsync(peerId, globalDocId);
-
-            await Clients.Group(globalDocId).SendAsync(OpStreamConstants.ClientEvents.PeerDisconnected, peerId);
-        }
         await base.OnDisconnectedAsync(exception);
     }
 }

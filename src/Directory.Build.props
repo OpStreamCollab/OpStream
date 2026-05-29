@@ -15,5 +15,10 @@
     <Authors>jvera71</Authors>
     <RepositoryUrl>https://github.com/jvera71/OpStream</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-  </PropertyGroup>
+
+    <!-- Fix for Grpc.Tools path resolution issue -->
+    <Protobuf_ProtocFullPath Condition="'$(OS)' == 'Windows_NT'">$(USERPROFILE)\.nuget\packages\grpc.tools\2.67.0\tools\windows_x64\protoc.exe</Protobuf_ProtocFullPath>
+    <gRPC_PluginFullPath Condition="'$(OS)' == 'Windows_NT'">$(USERPROFILE)\.nuget\packages\grpc.tools\2.67.0\tools\windows_x64\grpc_csharp_plugin.exe</gRPC_PluginFullPath>
+    <Protobuf_StandardImportsPath Condition="'$(OS)' == 'Windows_NT'">$(USERPROFILE)\.nuget\packages\grpc.tools\2.67.0\build\native\include</Protobuf_StandardImportsPath>
+    </PropertyGroup>
 </Project>
