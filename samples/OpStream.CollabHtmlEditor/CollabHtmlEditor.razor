@@ -12,6 +12,7 @@
 @using System.Text
 @using System.Text.Json
 @using OpStream.Client.Transports
+@using OpStream.Shared.Messages
 @inject IOpStreamClient OpStreamClient
 @inject IJSRuntime JS
 @implements IAsyncDisposable
@@ -51,6 +52,12 @@
     /// <summary>Outward-only: current HTML, raised on every local or remote change (for saving).</summary>
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
 
+    /// <summary>Display name broadcast to other peers for the presence cursor. Auto-generated if empty.</summary>
+    [Parameter] public string? UserName { get; set; }
+
+    /// <summary>Cursor/label color (any CSS color). Derived from the name if empty.</summary>
+    [Parameter] public string? UserColor { get; set; }
+
     private readonly string _instanceId = Guid.NewGuid().ToString("N");
     private string _containerId => $"collab-editor-{_instanceId}";
 
@@ -65,6 +72,17 @@
     private bool _isConnected = false;
     private bool _isRemoteUpdate = false;
     private DotNetObjectReference<CollabHtmlEditor>? _objRef;
+
+    // ── Presence ─────────────────────────────────────────────
+    private static readonly string[] Palette =
+    {
+        "#e57373","#64b5f6","#81c784","#ffb74d","#ba68c8","#4db6ac",
+        "#f06292","#9575cd","#7986cb","#a1887f","#90a4ae","#dce775",
+    };
+
+    private string _myName = "";
+    private string _myColor = "#888";
+    private int _myCursor = 0;
 
     // ── Lifecycle ────────────────────────────────────────────
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -83,7 +101,12 @@
     {
         try
         {
+            _myName = string.IsNullOrWhiteSpace(UserName) ? $"User-{Guid.NewGuid().ToString("N")[..4]}" : UserName!;
+            _myColor = string.IsNullOrWhiteSpace(UserColor) ? PickColor(_myName) : UserColor!;
+
             OpStreamClient.OnReceiveOp += HandleRemoteOp;
+            OpStreamClient.OnReceiveAwareness += HandleAwareness;
+            OpStreamClient.OnPeerDisconnected += HandlePeerDisconnected;
             OpStreamClient.OnDisconnected += HandleDisconnected;
 
             var result = await OpStreamClient.ConnectAndJoinAsync(DocumentId, DocumentType);
@@ -98,6 +121,10 @@
             // Seed the editor DOM with the server snapshot (the inner editor is opaque).
             await JS.InvokeVoidAsync("RadzenCollabAdapter.setInitialHtml", _instanceId, _htmlContent ?? "");
             await RaiseValueChangedAsync(_htmlContent ?? "");
+
+            // Render peers already present, then announce ourselves.
+            foreach (var state in result.Awareness) await ApplyRemotePresenceAsync(state);
+            await PublishAwarenessAsync();
         }
         catch (Exception ex)
         {
@@ -218,6 +245,82 @@
         InvokeAsync(StateHasChanged);
     }
 
+    // ── Presence ─────────────────────────────────────────────
+
+    /// <summary>Called by the JS adapter whenever the local caret moves.</summary>
+    [JSInvokable]
+    public async Task OnLocalCursorChange(int offset)
+    {
+        if (!_isConnected) return;
+        _myCursor = offset;
+        await PublishAwarenessAsync();
+    }
+
+    private async Task PublishAwarenessAsync()
+    {
+        if (!_isConnected) return;
+        var data = JsonSerializer.SerializeToElement(new
+        {
+            name = _myName,
+            color = _myColor,
+            cursor = _myCursor,
+        });
+        try { await OpStreamClient.SendAwarenessAsync(DocumentId, data); }
+        catch (Exception ex) { Console.Error.WriteLine($"[OpStream] SendAwareness failed: {ex.Message}"); }
+    }
+
+    private Task HandleAwareness(IEnumerable<AwarenessState> states)
+        => InvokeAsync(async () =>
+        {
+            foreach (var state in states) await ApplyRemotePresenceAsync(state);
+        });
+
+    private async Task ApplyRemotePresenceAsync(AwarenessState state)
+    {
+        string name = "Anonymous";
+        string color = "#888";
+        int cursor = 0;
+        try
+        {
+            if (state.Data.ValueKind == JsonValueKind.Object)
+            {
+                if (state.Data.TryGetProperty("name", out var n) && n.ValueKind == JsonValueKind.String)
+                    name = n.GetString() ?? name;
+                if (state.Data.TryGetProperty("color", out var c) && c.ValueKind == JsonValueKind.String)
+                    color = c.GetString() ?? color;
+                if (state.Data.TryGetProperty("cursor", out var cu) && cu.ValueKind == JsonValueKind.Number)
+                    cursor = cu.GetInt32();
+            }
+        }
+        catch { /* tolerate other presence shapes */ }
+
+        try
+        {
+            await JS.InvokeVoidAsync("RadzenCollabAdapter.renderRemoteCursor",
+                _instanceId, state.PeerId, name, color, cursor);
+        }
+        catch (Exception ex) { Console.Error.WriteLine($"[OpStream] renderRemoteCursor failed: {ex.Message}"); }
+    }
+
+    private void HandlePeerDisconnected(string peerId)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            try { await JS.InvokeVoidAsync("RadzenCollabAdapter.removeRemoteCursor", _instanceId, peerId); }
+            catch (Exception ex) { Console.Error.WriteLine($"[OpStream] removeRemoteCursor failed: {ex.Message}"); }
+        });
+    }
+
+    private static string PickColor(string seed)
+    {
+        unchecked
+        {
+            int hash = 17;
+            foreach (var ch in seed) hash = hash * 31 + ch;
+            return Palette[Math.Abs(hash) % Palette.Length];
+        }
+    }
+
     private async Task RaiseValueChangedAsync(string html)
     {
         if (ValueChanged.HasDelegate) await ValueChanged.InvokeAsync(html);
@@ -289,6 +392,8 @@
         if (OpStreamClient != null)
         {
             OpStreamClient.OnReceiveOp -= HandleRemoteOp;
+            OpStreamClient.OnReceiveAwareness -= HandleAwareness;
+            OpStreamClient.OnPeerDisconnected -= HandlePeerDisconnected;
             OpStreamClient.OnDisconnected -= HandleDisconnected;
         }
         if (_objRef != null)

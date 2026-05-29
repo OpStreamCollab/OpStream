@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
     <PackageReference Include="Testcontainers" />
@@ -21,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\OpStream.Server\OpStream.Server.csproj" />
     <ProjectReference Include="..\OpStream.Server.Transports.SignalR\OpStream.Server.Transports.SignalR.csproj" />
+    <ProjectReference Include="..\OpStream.Server.Transports.WebSockets\OpStream.Server.Transports.WebSockets.csproj" />
     <ProjectReference Include="..\OpStream.Server.Backplane.Redis\OpStream.Server.Backplane.Redis.csproj" />
     <ProjectReference Include="..\OpStream.Client.Transports\OpStream.Client.Transports.csproj" />
     <ProjectReference Include="..\OpStream.Client.Transports.SignalR\OpStream.Client.Transports.SignalR.csproj" />

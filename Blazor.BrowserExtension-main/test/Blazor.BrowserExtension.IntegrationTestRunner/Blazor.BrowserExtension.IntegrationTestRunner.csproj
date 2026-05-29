@@ -1,0 +1,8 @@
+<Project Sdk="MSTest.Sdk">
+
+  <PropertyGroup>
+    <EnablePlaywright>true</EnablePlaywright>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

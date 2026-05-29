@@ -1,0 +1,110 @@
+﻿using System.Reflection;
+using Blazor.BrowserExtension.Build.Test.Helpers;
+
+namespace Blazor.BrowserExtension.Build.Test
+{
+    public class BuildIntegrationTestFixture : IDisposable
+    {
+        private const string DotNetCommand = "dotnet";
+        private readonly string rootTestDirectory;
+        private readonly string rootSolutionDirectory;
+        private bool disposedValue;
+
+        public BuildIntegrationTestFixture()
+        {
+            var currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            rootTestDirectory = currentDirectory[..currentDirectory.LastIndexOf(Path.DirectorySeparatorChar + "bin")];
+            rootSolutionDirectory = rootTestDirectory[..rootTestDirectory.LastIndexOf(Path.DirectorySeparatorChar + "test")];
+
+            var packagesCacheDirectory = Path.Combine(rootSolutionDirectory, "PackagesCache");
+            if (Directory.Exists(packagesCacheDirectory))
+            {
+                Directory.Delete(packagesCacheDirectory, true);
+            }
+
+            var assembly = Assembly.GetExecutingAssembly();
+            var configuration = assembly.GetCustomAttribute<AssemblyConfigurationAttribute>().Configuration;
+            CommandHelper.ExecuteCommandVoid(DotNetCommand, $"pack --no-build --no-restore --configuration {configuration}", rootSolutionDirectory);
+            try
+            {
+                CommandHelper.ExecuteCommandVoid(DotNetCommand, $"new install PackageOutput/Blazor.BrowserExtension.Template.1.0.0.nupkg", rootSolutionDirectory);
+            }
+            catch (Exception exception) when (exception.Message.Contains("already exists"))
+            {
+                // Ignore exception when template is already installed
+            }
+        }
+
+        public void ExecuteDotnetCommand(string command)
+            => CommandHelper.ExecuteCommandVoid(DotNetCommand, command, Path.Combine(rootTestDirectory, "TestProjects"));
+
+        public void ExecuteDotnetCommand(string command, string testProjectName)
+            => CommandHelper.ExecuteCommandVoid(DotNetCommand, command, GetTestProjectDirectory(testProjectName));
+
+        public void ExecuteDotnetRestoreCommand(string testProjectName)
+            => ExecuteDotnetCommand("restore --no-cache", testProjectName);
+
+        public void ExecuteDotnetBuildCommand(string testProjectName)
+            => ExecuteDotnetCommand("build --no-restore", testProjectName);
+
+        public void ExecuteDotnetPublishCommand(string testProjectName)
+            => ExecuteDotnetCommand("publish --no-restore", testProjectName);
+
+        public string GetTestProjectDirectory(string testProjectName)
+            => Path.Combine(rootTestDirectory, "TestProjects", testProjectName);
+
+        public Task<WebDriverExtensionHelper> LoadExtensionBuildOutput(string testProjectName)
+        {
+            var copyToBinExtensionPath = Path.Combine(rootTestDirectory, "bin", "Debug", CommonTestHelper.TargetFramework, testProjectName);
+            var extensionPath = Path.Combine(GetTestProjectDirectory(testProjectName), "bin", "Debug", CommonTestHelper.TargetFramework, "browserextension");
+            return LoadExtension(extensionPath, copyToBinExtensionPath);
+        }
+
+        public Task<WebDriverExtensionHelper> LoadExtensionPublishOutput(string testProjectName)
+        {
+            var copyToBinExtensionPath = Path.Combine(rootTestDirectory, "bin", "Release", CommonTestHelper.TargetFramework, testProjectName);
+            var extensionPath = Path.Combine(GetTestProjectDirectory(testProjectName), "bin", "Release", CommonTestHelper.TargetFramework, "publish", "browserextension");
+            return LoadExtension(extensionPath, copyToBinExtensionPath);
+        }
+
+        private static async Task<WebDriverExtensionHelper> LoadExtension(string extensionPath, string copyToBinExtensionPath)
+        {
+            if (Directory.Exists(copyToBinExtensionPath))
+            {
+                Directory.Delete(copyToBinExtensionPath, true);
+            }
+            Directory.CreateDirectory(copyToBinExtensionPath);
+
+            foreach (var file in Directory.GetFiles(extensionPath, "*", SearchOption.AllDirectories))
+            {
+                var relativePath = Path.GetRelativePath(extensionPath, file);
+                var destFileName = Path.Combine(copyToBinExtensionPath, relativePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(destFileName));
+                File.Copy(file, destFileName, true);
+            }
+
+            var extension = new WebDriverExtensionHelper();
+            await extension.Load(copyToBinExtensionPath);
+            return extension;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    CommandHelper.ExecuteCommandVoid(DotNetCommand, $"new uninstall Blazor.BrowserExtension.Template", rootSolutionDirectory);
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+    }
+}

@@ -1,0 +1,29 @@
+﻿<Project Sdk="MSTest.Sdk">
+
+  <PropertyGroup>
+    <ImplicitUsings>true</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Shouldly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Shouldly" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <EnablePlaywright>true</EnablePlaywright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Blazor.BrowserExtension.Build\Blazor.BrowserExtension.Build.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="TestProjects\**\*" CopyToOutputDirectory="Never" />
+    <None Remove="TestProjects\**\*" />
+    <Compile Remove="TestProjects\**\*" />
+  </ItemGroup>
+
+</Project>

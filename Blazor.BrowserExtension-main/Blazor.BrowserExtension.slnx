@@ -1,0 +1,52 @@
+<Solution>
+  <Folder Name="/docs/">
+    <Project Path="docs/Docs.csproj">
+      <Build Project="false" />
+    </Project>
+  </Folder>
+  <Folder Name="/Icon/">
+    <File Path="Icon/Icon.png" />
+    <File Path="Icon/Icon.svg" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="GitVersion.yml" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/">
+    <File Path=".github/dependabot.yml" />
+    <File Path=".github/FUNDING.yml" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/workflows/">
+    <File Path=".github/workflows/Blazor.BrowserExtension-Build.yml" />
+    <File Path=".github/workflows/Blazor.BrowserExtension-Docs.yml" />
+    <File Path=".github/workflows/Blazor.BrowserExtension-PR-Build.yml" />
+    <File Path=".github/workflows/Blazor.BrowserExtension-Release.yml" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Blazor.BrowserExtension.Analyzer/Blazor.BrowserExtension.Analyzer.csproj" />
+    <Project Path="src/Blazor.BrowserExtension.Build/Blazor.BrowserExtension.Build.csproj" />
+    <Project Path="src/Blazor.BrowserExtension/Blazor.BrowserExtension.csproj" />
+  </Folder>
+  <Folder Name="/template/">
+    <Project Path="template/Blazor.BrowserExtension.Template/Blazor.BrowserExtension.Template.csproj" />
+    <Project Path="template/Blazor.BrowserExtension.Template/HelloBlazorExtension/HelloBlazorExtension.csproj">
+      <Build Project="false" />
+    </Project>
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Blazor.BrowserExtension.Analyzer.Test/Blazor.BrowserExtension.Analyzer.Test.csproj" />
+    <Project Path="test/Blazor.BrowserExtension.Build.Test/Blazor.BrowserExtension.Build.Test.csproj" />
+    <Project Path="test/Blazor.BrowserExtension.IntegrationTest/Blazor.BrowserExtension.IntegrationTest.csproj" />
+    <Project Path="test/Blazor.BrowserExtension.IntegrationTestRunner/Blazor.BrowserExtension.IntegrationTestRunner.csproj" />
+  </Folder>
+  <Folder Name="/tool/">
+    <File Path="tool/DependenciesUpdater.ps1" />
+  </Folder>
+</Solution>

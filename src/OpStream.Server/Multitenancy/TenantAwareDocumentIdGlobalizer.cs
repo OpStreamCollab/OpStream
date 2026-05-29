@@ -19,12 +19,16 @@ namespace OpStream.Server.Multitenancy
         public string ToGlobalId(string localDocumentId)
         {
             var tenantId = tenantProvider.GetCurrentTenantId();
-            return $"{tenantId}{Separator}{localDocumentId}";
+            return string.IsNullOrEmpty(tenantId) ? localDocumentId : $"{tenantId}{Separator}{localDocumentId}";
         }
 
         /// <inheritdoc/>
         public string ToLocalId(string globalDocumentId)
         {
+            if (!globalDocumentId.Contains(Separator))
+            {
+                return globalDocumentId;
+            }
             var parts = globalDocumentId.Split(Separator, 2);
             return parts.Length == 2 ? parts[1] : globalDocumentId;
         }
@@ -33,7 +37,7 @@ namespace OpStream.Server.Multitenancy
         public string GetCurrentTenantPrefix()
         {
             var tenantId = tenantProvider.GetCurrentTenantId();
-            return $"{tenantId}{Separator}";
+            return string.IsNullOrEmpty(tenantId) ? string.Empty : $"{tenantId}{Separator}";
         }
     }
 }

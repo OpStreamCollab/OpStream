@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OpStream + Fabric.js — collaborative canvas</title>
+    <title>OpStream + Fabric.js — collaborative canvas (comments + presence)</title>
     <link rel="stylesheet" href="./src/style.css" />
     <!-- Fabric.js v5 (MIT), unmodified, from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
@@ -14,10 +14,34 @@
         <button id="addRect">+ Rectangle</button>
         <button id="addCircle">+ Circle</button>
         <button id="addText">+ Text</button>
-        <button id="del">Delete selected</button>
+        <button id="del">Delete</button>
+        <span id="me">…</span>
         <span id="badge">OpStream · <span id="status">starting…</span></span>
     </div>
-    <canvas id="c"></canvas>
+
+    <div id="stage">
+        <canvas id="c"></canvas>
+    </div>
+
+    <aside id="sidebar">
+        <div class="sec">
+            <h3>Who's here</h3>
+            <div id="peers" class="peers"></div>
+        </div>
+        <div class="sec grow">
+            <h3 id="cmHead">Comments</h3>
+            <div id="panel" class="panel"></div>
+        </div>
+        <div class="sec">
+            <div id="addbox">
+                <textarea id="cmBody" rows="2" placeholder="Select an object, then comment…"></textarea>
+                <button id="cmAdd" disabled>Comment on selected</button>
+            </div>
+        </div>
+    </aside>
+
+    <div id="overlay"></div>
+
     <script type="module" src="./src/main.js"></script>
 </body>
 </html>

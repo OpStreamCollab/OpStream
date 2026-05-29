@@ -1,0 +1,11 @@
+﻿<!-- build/Blazor.BrowserExtension.props -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <BrowserExtensionEnvironment Condition="'$(BrowserExtensionEnvironment)' == ''"></BrowserExtensionEnvironment>
+    <IncludeBrowserExtensionAssets Condition="'$(IncludeBrowserExtensionAssets)' == ''">true</IncludeBrowserExtensionAssets>
+    <BrowserExtensionAssetsPath Condition="'$(BrowserExtensionAssetsPath)' == ''">wwwroot</BrowserExtensionAssetsPath>
+    <GenerateBrowserExtensionBackgroundWorker Condition="'$(GenerateBrowserExtensionBackgroundWorker)' == ''">true</GenerateBrowserExtensionBackgroundWorker>
+  </PropertyGroup>
+
+</Project>
