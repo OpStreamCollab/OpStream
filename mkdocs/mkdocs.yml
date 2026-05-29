@@ -136,6 +136,7 @@ nav:
       - Docker image: operations/docker.md
   - Internals:
       - First user join flow: internals/first-join-flow.md
+      - Document lifecycle: internals/document-lifecycle.md
   - Reference:
       - Builder API: reference/builder-api.md
       - Configuration (DI): reference/configuration.md
