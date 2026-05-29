@@ -21,7 +21,7 @@ services:
       OPSTREAM__WEBSOCKETS__PATH: "/collab-ws"
 
       # ── Engines (CSV: text, json, rich-text, table, form, tree) ─────────
-      OPSTREAM__ENGINES: "text,json,rich-text"
+      OPSTREAM__ENGINES: "text,json,rich-text,form"
 
       # ── Storage ─────────────────────────────────────────────────────────
       # Providers: memory | postgres | mysql | sqlserver | sqlite | mongo | redis
@@ -32,27 +32,15 @@ services:
 
       # ── Backplane ───────────────────────────────────────────────────────
       # Providers: local | redis
-      OPSTREAM__BACKPLANE__PROVIDER: "redis"
-      OPSTREAM__BACKPLANE__CONNECTIONSTRING: "redis:6379"
+      OPSTREAM__BACKPLANE__PROVIDER: "local"
+      #OPSTREAM__BACKPLANE__CONNECTIONSTRING: "redis:6379"
     depends_on:
       #postgres:
       #  condition: service_healthy
       redis:
         condition: service_healthy
 
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: opstream
-      POSTGRES_USER: opstream
-      POSTGRES_PASSWORD: opstream
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U opstream -d opstream"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+
 
   redis:
     image: redis:7-alpine
@@ -62,5 +50,4 @@ services:
       timeout: 3s
       retries: 10
 
-volumes:
-  pgdata:
+

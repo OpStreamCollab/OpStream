@@ -1,0 +1,88 @@
+@* Side panel that lists every connected peer plus a rolling activity log. *@
+
+<Card Margin="Margin.Is3.OnY">
+    <CardHeader>
+        <CardTitle Size="HeadingSize.Is5" Margin="Margin.Is0">
+            <Icon Name="IconName.Users" /> Online (@(Peers.Count + (Joined ? 1 : 0)))
+        </CardTitle>
+    </CardHeader>
+    <CardBody Padding="Padding.Is2">
+        <ListGroup Flush>
+            @if ( Joined )
+            {
+                <ListGroupItem Padding="Padding.Is2">
+                    <Div Display="Display.Flex" Flex="Flex.AlignItems.Center">
+                        <Span Class="awareness-dot" Style="@($"background:{MyColor}")"></Span>
+                        <Span Margin="Margin.Is2.FromStart">
+                            <Strong>@MyName</Strong>
+                            <Small TextColor="TextColor.Muted"> (you)</Small>
+                        </Span>
+                    </Div>
+                </ListGroupItem>
+            }
+            @foreach ( var peer in Peers.Values )
+            {
+                <ListGroupItem Padding="Padding.Is2">
+                    <Div Display="Display.Flex" Flex="Flex.AlignItems.Center">
+                        <Span Class="awareness-dot" Style="@($"background:{peer.Color}")"></Span>
+                        <Div Margin="Margin.Is2.FromStart" Flex="Flex.Grow.Is1">
+                            <Div><Strong>@peer.Name</Strong></Div>
+                            @if ( !string.IsNullOrEmpty( peer.LastAction ) )
+                            {
+                                <Small TextColor="TextColor.Muted">@peer.LastAction</Small>
+                            }
+                        </Div>
+                    </Div>
+                </ListGroupItem>
+            }
+            @if ( !Peers.Any() )
+            {
+                <ListGroupItem Padding="Padding.Is2">
+                    <Small TextColor="TextColor.Muted">No other users connected.</Small>
+                </ListGroupItem>
+            }
+        </ListGroup>
+    </CardBody>
+</Card>
+
+<Card Margin="Margin.Is3.OnY">
+    <CardHeader>
+        <CardTitle Size="HeadingSize.Is5" Margin="Margin.Is0">
+            <Icon Name="IconName.History" /> Activity
+        </CardTitle>
+    </CardHeader>
+    <CardBody Padding="Padding.Is2" Style="max-height:280px; overflow:auto;">
+        @if ( !Activity.Any() )
+        {
+            <Small TextColor="TextColor.Muted">No activity yet — start typing or invite someone else.</Small>
+        }
+        else
+        {
+            <ListGroup Flush>
+                @foreach ( var entry in Activity )
+                {
+                    <ListGroupItem Padding="Padding.Is2">
+                        <Div Display="Display.Flex" Flex="Flex.AlignItems.Start">
+                            <Span Class="awareness-dot" Style="@($"background:{entry.Color}")"></Span>
+                            <Div Margin="Margin.Is2.FromStart" Flex="Flex.Grow.Is1">
+                                <Div><Strong>@entry.Name</Strong> <Small TextColor="TextColor.Muted">@entry.Action</Small></Div>
+                                <Small TextColor="TextColor.Muted">@FormatTime( entry.At )</Small>
+                            </Div>
+                        </Div>
+                    </ListGroupItem>
+                }
+            </ListGroup>
+        }
+    </CardBody>
+</Card>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyDictionary<string, PeerInfo> Peers { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyList<ActivityEntry> Activity { get; set; } = default!;
+    [Parameter] public bool Joined { get; set; }
+    [Parameter] public string MyName { get; set; } = "";
+    [Parameter] public string MyColor { get; set; } = "#888";
+
+    private static string FormatTime( DateTimeOffset at ) =>
+        at.ToLocalTime().ToString( "HH:mm:ss" );
+}

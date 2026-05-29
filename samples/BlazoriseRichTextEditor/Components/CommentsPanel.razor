@@ -1,0 +1,163 @@
+@* Lists comments for the document and lets the user add / reply / resolve / delete. *@
+
+<Card Margin="Margin.Is3.OnY">
+    <CardHeader>
+        <CardTitle Size="HeadingSize.Is5" Margin="Margin.Is0">
+            <Icon Name="IconName.Comments" /> Comments (@RootCount)
+        </CardTitle>
+    </CardHeader>
+    <CardBody Padding="Padding.Is3">
+        <Field>
+            <FieldLabel>New thread</FieldLabel>
+            <MemoInput @bind-Value="draftBody" Rows="3" Placeholder="Leave a comment for the team…" />
+            <FieldHelp>
+                Anchored to the current Quill selection — the server rebases the
+                anchor automatically as the document changes.
+            </FieldHelp>
+        </Field>
+        <Button Color="Color.Primary" Clicked="AddRootAsync" Disabled="@string.IsNullOrWhiteSpace(draftBody)">
+            <Icon Name="IconName.PaperPlane" /> Post comment
+        </Button>
+
+        <Divider Margin="Margin.Is3.OnY" />
+
+        @if ( !Roots.Any() )
+        {
+            <Small TextColor="TextColor.Muted">No comments yet.</Small>
+        }
+        else
+        {
+            @foreach ( var root in Roots )
+            {
+                var threadReplies = Replies( root.Id );
+                <Card Margin="Margin.Is2.OnY">
+                    <CardBody Padding="Padding.Is3">
+                        <Div Display="Display.Flex" Flex="Flex.AlignItems.Center">
+                            <Span Class="awareness-dot" Style="@($"background:{ColorForPeer(root.AuthorPeerId)}")"></Span>
+                            <Strong Margin="Margin.Is2.FromStart">@NameForPeer( root.AuthorPeerId )</Strong>
+                            @if ( root.ResolvedAt is not null )
+                            {
+                                <Badge Color="Color.Success" Margin="Margin.Is2.FromStart">resolved</Badge>
+                            }
+                            @if ( root.IsOrphaned )
+                            {
+                                <Badge Color="Color.Warning" Margin="Margin.Is2.FromStart">orphaned</Badge>
+                            }
+                            <Small TextColor="TextColor.Muted" Margin="Margin.Is2.FromStart">@FormatAt( root.CreatedAt )</Small>
+                        </Div>
+
+                        <Paragraph Margin="Margin.Is2.OnY">@root.Body</Paragraph>
+
+                        @foreach ( var reply in threadReplies )
+                        {
+                            <Div Margin="Margin.Is3.FromStart.Is2.OnY"
+                                 Padding="Padding.Is3.FromStart"
+                                 Style="border-left:3px solid #dee2e6;">
+                                <Div Display="Display.Flex" Flex="Flex.AlignItems.Center">
+                                    <Span Class="awareness-dot" Style="@($"background:{ColorForPeer(reply.AuthorPeerId)}")"></Span>
+                                    <Strong Margin="Margin.Is2.FromStart">@NameForPeer( reply.AuthorPeerId )</Strong>
+                                    <Small TextColor="TextColor.Muted" Margin="Margin.Is2.FromStart">@FormatAt( reply.CreatedAt )</Small>
+                                </Div>
+                                <Paragraph Margin="Margin.Is1.OnY">@reply.Body</Paragraph>
+                                <Button Size="Size.ExtraSmall" Color="Color.Light" Clicked="@(() => OnDelete.InvokeAsync(reply.Id))">
+                                    <Icon Name="IconName.Delete" /> delete
+                                </Button>
+                            </Div>
+                        }
+
+                        <Div Margin="Margin.Is3.OnY">
+                            @* Plain textarea on purpose: Blazorise's MemoInput requires
+                               ValueExpression to be a member-access lambda, and we need a
+                               per-thread draft keyed by root.Id which would force a method
+                               call inside the lambda (Blazorise ExpressionFormatter throws on
+                               method calls). The textarea below avoids that whole machinery. *@
+                            <textarea class="form-control"
+                                      rows="2"
+                                      placeholder="Reply…"
+                                      value="@GetReplyDraft( root.Id )"
+                                      @oninput="@(e => SetReplyDraft(root.Id, e.Value?.ToString() ?? string.Empty))"></textarea>
+                            <Buttons Margin="Margin.Is2.OnY">
+                                <Button Color="Color.Primary" Size="Size.Small"
+                                        Clicked="@(() => ReplyAsync(root.Id))"
+                                        Disabled="@string.IsNullOrWhiteSpace(GetReplyDraft(root.Id))">
+                                    <Icon Name="IconName.Reply" /> Reply
+                                </Button>
+                                @if ( root.ResolvedAt is null )
+                                {
+                                    <Button Color="Color.Success" Size="Size.Small" Clicked="@(() => OnResolve.InvokeAsync(root.Id))">
+                                        <Icon Name="IconName.Check" /> Resolve
+                                    </Button>
+                                }
+                                <Button Color="Color.Danger" Size="Size.Small" Clicked="@(() => OnDelete.InvokeAsync(root.Id))">
+                                    <Icon Name="IconName.Delete" /> Delete thread
+                                </Button>
+                            </Buttons>
+                        </Div>
+                    </CardBody>
+                </Card>
+            }
+        }
+    </CardBody>
+</Card>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<CommentDto> Comments { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyDictionary<string, PeerInfo> Peers { get; set; } = default!;
+    [Parameter] public string MyPeerId { get; set; } = "";
+    [Parameter] public string MyName { get; set; } = "";
+    [Parameter] public string MyColor { get; set; } = "#888";
+
+    [Parameter] public EventCallback<string> OnCreateRoot { get; set; }
+    [Parameter] public EventCallback<(string ParentId, string Body)> OnReply { get; set; }
+    [Parameter] public EventCallback<string> OnResolve { get; set; }
+    [Parameter] public EventCallback<string> OnDelete { get; set; }
+
+    private string draftBody = "";
+    private readonly Dictionary<string, string> replyDrafts = new();
+
+    private IReadOnlyList<CommentDto> Roots =>
+        Comments.Where( c => c.ParentCommentId is null )
+            .OrderBy( c => c.CreatedAt )
+            .ToList();
+
+    private int RootCount => Comments.Count( c => c.ParentCommentId is null );
+
+    private IReadOnlyList<CommentDto> Replies( string rootId ) =>
+        Comments.Where( c => c.ParentCommentId == rootId )
+            .OrderBy( c => c.CreatedAt )
+            .ToList();
+
+    private async Task AddRootAsync()
+    {
+        if ( string.IsNullOrWhiteSpace( draftBody ) ) return;
+        await OnCreateRoot.InvokeAsync( draftBody );
+        draftBody = "";
+    }
+
+    private async Task ReplyAsync( string rootId )
+    {
+        if ( !replyDrafts.TryGetValue( rootId, out var body ) || string.IsNullOrWhiteSpace( body ) ) return;
+        await OnReply.InvokeAsync( ( rootId, body ) );
+        replyDrafts[rootId] = "";
+    }
+
+    private string GetReplyDraft( string id ) =>
+        replyDrafts.TryGetValue( id, out var v ) ? v : "";
+
+    private void SetReplyDraft( string id, string value ) => replyDrafts[id] = value;
+
+    private string NameForPeer( string peerId )
+    {
+        if ( peerId == MyPeerId ) return $"{MyName} (you)";
+        return Peers.TryGetValue( peerId, out var p ) ? p.Name : peerId[..Math.Min( 6, peerId.Length )];
+    }
+
+    private string ColorForPeer( string peerId )
+    {
+        if ( peerId == MyPeerId ) return MyColor;
+        return Peers.TryGetValue( peerId, out var p ) ? p.Color : "#888";
+    }
+
+    private static string FormatAt( DateTimeOffset at ) =>
+        at.ToLocalTime().ToString( "HH:mm" );
+}

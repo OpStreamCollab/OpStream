@@ -53,4 +53,49 @@ public interface IOpStreamClient : IAsyncDisposable
     /// Sends awareness data to the server.
     /// </summary>
     Task SendAwarenessAsync(string documentId, JsonElement data, CancellationToken ct = default);
+
+    // ─── Comments ────────────────────────────────────────────────────────────
+    // The default implementations let transports that have not wired the comment
+    // hub methods yet keep compiling. The SignalR transport overrides them all.
+
+    /// <summary>Event triggered when a new comment is broadcast for the document.</summary>
+    event Func<CommentDto, Task>? OnCommentCreated
+    {
+        add { }
+        remove { }
+    }
+
+    /// <summary>Event triggered when an existing comment is edited, resolved or its anchor rebased.</summary>
+    event Func<CommentDto, Task>? OnCommentUpdated
+    {
+        add { }
+        remove { }
+    }
+
+    /// <summary>Event triggered when a comment is deleted.</summary>
+    event Func<CommentDeletedDto, Task>? OnCommentDeleted
+    {
+        add { }
+        remove { }
+    }
+
+    /// <summary>Returns every non-resolved comment (roots + replies) for the document.</summary>
+    Task<List<CommentDto>> ListOpenCommentsAsync(string documentId, CancellationToken ct = default)
+        => throw new NotSupportedException( "This transport does not expose comments." );
+
+    /// <summary>Creates a new root comment (Anchor required) or a reply (ParentCommentId set, Anchor null).</summary>
+    Task<CommentDto> CreateCommentAsync(string documentId, NewCommentCmd cmd, CancellationToken ct = default)
+        => throw new NotSupportedException( "This transport does not expose comments." );
+
+    /// <summary>Edits the body of an existing comment.</summary>
+    Task<CommentDto> EditCommentAsync(string documentId, string commentId, string newBody, CancellationToken ct = default)
+        => throw new NotSupportedException( "This transport does not expose comments." );
+
+    /// <summary>Marks a comment as resolved.</summary>
+    Task<CommentDto> ResolveCommentAsync(string documentId, string commentId, CancellationToken ct = default)
+        => throw new NotSupportedException( "This transport does not expose comments." );
+
+    /// <summary>Deletes a comment (cascades to replies when targeting a root).</summary>
+    Task DeleteCommentAsync(string documentId, string commentId, CancellationToken ct = default)
+        => throw new NotSupportedException( "This transport does not expose comments." );
 }

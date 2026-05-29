@@ -1,0 +1,273 @@
+@page "/"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Customer Profile</PageTitle>
+
+<div class="customer-form-container">
+    <h1>Customer Profile</h1>
+
+    <EditForm Model="@customer" OnValidSubmit="HandleValidSubmit" FormName="CustomerProfileForm">
+        <DataAnnotationsValidator />
+        
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            <InputText id="firstName" @bind-Value="customer.FirstName" class="form-control" />
+            <ValidationMessage For="@(() => customer.FirstName)" class="text-danger" />
+        </div>
+
+        <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <InputText id="lastName" @bind-Value="customer.LastName" class="form-control" />
+            <ValidationMessage For="@(() => customer.LastName)" class="text-danger" />
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <InputText id="email" @bind-Value="customer.Email" class="form-control" type="email" />
+            <ValidationMessage For="@(() => customer.Email)" class="text-danger" />
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <InputText id="phone" @bind-Value="customer.PhoneNumber" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label for="address">Street Address</label>
+            <InputText id="address" @bind-Value="customer.Address" class="form-control" />
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label for="city">City</label>
+                <InputText id="city" @bind-Value="customer.City" class="form-control" />
+            </div>
+            <div class="col">
+                <label for="state">State</label>
+                <InputSelect id="state" @bind-Value="customer.State" class="form-control">
+                    <option value="">Select a state...</option>
+                    <option value="AL">Alabama</option>
+                    <option value="AK">Alaska</option>
+                    <option value="AZ">Arizona</option>
+                    <option value="CA">California</option>
+                    <option value="FL">Florida</option>
+                    <option value="GA">Georgia</option>
+                    <option value="IL">Illinois</option>
+                    <option value="NY">New York</option>
+                    <option value="TX">Texas</option>
+                    <option value="WA">Washington</option>
+                </InputSelect>
+            </div>
+            <div class="col">
+                <label for="zip">Zip Code</label>
+                <InputText id="zip" @bind-Value="customer.ZipCode" class="form-control" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <InputDate id="dob" @bind-Value="customer.DateOfBirth" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Gender</label>
+            <InputRadioGroup @bind-Value="customer.Gender">
+                <div class="radio-options">
+                    <div class="radio-option">
+                        <InputRadio Value="@("Male")" id="genderMale" />
+                        <label for="genderMale">Male</label>
+                    </div>
+                    <div class="radio-option">
+                        <InputRadio Value="@("Female")" id="genderFemale" />
+                        <label for="genderFemale">Female</label>
+                    </div>
+                    <div class="radio-option">
+                        <InputRadio Value="@("Other")" id="genderOther" />
+                        <label for="genderOther">Other</label>
+                    </div>
+                </div>
+            </InputRadioGroup>
+        </div>
+
+        <div class="form-group checkbox-container">
+            <InputCheckbox id="isSubscribed" @bind-Value="customer.IsSubscribed" class="form-check-input" />
+            <label for="isSubscribed" class="form-check-label">Subscribe to newsletter</label>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <InputTextArea id="notes" @bind-Value="customer.Notes" class="form-control" rows="3" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Profile</button>
+    </EditForm>
+
+    @if (submitted)
+    {
+        <div class="alert alert-success">
+            <strong>Success!</strong> Customer profile has been simulated as saved.
+        </div>
+    }
+</div>
+
+<style>
+    .customer-form-container {
+        max-width: 700px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border: 1px solid #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h1 {
+        color: #333;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #555;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.6rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    }
+
+    .row {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .col {
+        flex: 1;
+    }
+
+    .radio-options {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 0.25rem;
+    }
+
+    .radio-option {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .radio-option label {
+        margin-bottom: 0;
+        font-weight: 400;
+        cursor: pointer;
+    }
+
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .checkbox-container label {
+        margin-bottom: 0;
+        font-weight: 400;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        display: block;
+        width: 100%;
+        padding: 0.8rem;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 1rem;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .text-danger {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .alert {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        border-radius: 6px;
+        border: 1px solid transparent;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+</style>
+
+@code {
+    private Customer customer = new();
+    private bool submitted = false;
+
+    private void HandleValidSubmit()
+    {
+        submitted = true;
+        // Simulation: in a real app, you would send this to a service or API
+        StateHasChanged();
+    }
+
+    public class Customer
+    {
+        [Required(ErrorMessage = "First Name is required")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last Name is required")]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email address is required")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address")]
+        public string Email { get; set; } = string.Empty;
+
+        public string? PhoneNumber { get; set; }
+        public string? Address { get; set; }
+        public string? City { get; set; }
+        public string? State { get; set; }
+        public string? ZipCode { get; set; }
+        
+        [DataType(DataType.Date)]
+        public DateTime? DateOfBirth { get; set; }
+        
+        public string Gender { get; set; } = "Male";
+        public bool IsSubscribed { get; set; } = true;
+        public string? Notes { get; set; }
+    }
+}

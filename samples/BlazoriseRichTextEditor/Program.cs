@@ -9,38 +9,35 @@ namespace BlazoriseRichTextEditor
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static void Main( string[] args )
         {
-            var builder = WebApplication.CreateBuilder(args);
+            var builder = WebApplication.CreateBuilder( args );
 
-            // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
             builder.Services
-                .AddBlazorise(options =>
+                .AddBlazorise( options =>
                 {
                     options.Immediate = true;
-                })
+                } )
                 .AddBootstrapProviders()
                 .AddFontAwesomeIcons();
 
             builder.Services.AddBlazoriseRichTextEdit();
 
             builder.Services.AddOpStreamClient()
-                   .UseSignalRTransport(options =>
-                   {
-                       options.HubUrl = "http://localhost:8080/collab";
-                   });
-
-
+                .UseSignalRTransport( options =>
+                {
+                    options.HubUrl = builder.Configuration["OpStream:HubUrl"]
+                        ?? "http://localhost:50109/collab";
+                } );
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            if (!app.Environment.IsDevelopment())
+            if ( !app.Environment.IsDevelopment() )
             {
-                app.UseExceptionHandler("/Error");
+                app.UseExceptionHandler( "/Error" );
             }
 
             app.UseAntiforgery();

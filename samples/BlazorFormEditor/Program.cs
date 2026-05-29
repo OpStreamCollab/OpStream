@@ -1,6 +1,6 @@
-using BlazorTextEditor.Components;
+using BlazorFormEditor.Components;
 
-namespace BlazorTextEditor
+namespace BlazorFormEditor
 {
     public class Program
     {
@@ -12,13 +12,11 @@ namespace BlazorTextEditor
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
-
             builder.Services.AddOpStreamClient()
-                    .UseSignalRTransport(options =>
-                    {
-                        options.HubUrl = "http://localhost:8080/collab";
-                    });
-
+                   .UseSignalRTransport(options =>
+                   {
+                       options.HubUrl = "http://localhost:8080/collab";
+                   });
 
             var app = builder.Build();
 
@@ -33,7 +31,6 @@ namespace BlazorTextEditor
             app.MapStaticAssets();
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
-
 
             app.Run();
         }
