@@ -1,8 +1,8 @@
 using StackExchange.Redis;
-using OpStream.Server.Models;
 using OpStream.Server.Storage;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using OpStream.Shared.Messages;
 
 namespace OpStream.Server.Storage.Redis;
 

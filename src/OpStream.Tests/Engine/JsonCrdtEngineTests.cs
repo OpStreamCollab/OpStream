@@ -1,7 +1,7 @@
 using FluentAssertions;
 using OpStream.Server.Engine;
 using OpStream.Server.Engine.Json;
-using OpStream.Server.Models;
+using OpStream.Shared.Messages;
 using System.Text.Json;
 using Xunit;
 

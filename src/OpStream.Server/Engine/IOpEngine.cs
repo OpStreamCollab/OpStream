@@ -1,4 +1,4 @@
-﻿using OpStream.Server.Models;
+﻿using OpStream.Shared.Messages;
 
 namespace OpStream.Server.Engine;
 

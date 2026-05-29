@@ -1,5 +1,5 @@
 using OpStream.Server.Engine.Ephemeral;
-using OpStream.Server.Models;
+using OpStream.Shared.Messages;
 
 namespace OpStream.Server.Engine.UndoRedo;
 

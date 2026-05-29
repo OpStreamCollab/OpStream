@@ -1,5 +1,4 @@
-﻿using OpStream.Server.Models;
-using OpStream.Shared.Abstractions;
+﻿using OpStream.Shared.Abstractions;
 using OpStream.Shared.Messages;
 using System.Text.Json;
 

@@ -15,4 +15,12 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.16" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\src\OpStream.Shared.Messages\OpStream.Shared.Messages.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 </Project>

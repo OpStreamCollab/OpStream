@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using OpStream.Constants;
-using OpStream.Server.Models;
 using OpStream.Server.Session;
+using OpStream.Shared.Messages;
 
 namespace OpStream.Server.Transports.SignalR;
 

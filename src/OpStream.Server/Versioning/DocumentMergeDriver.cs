@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using OpStream.Server.Engine;
-using OpStream.Server.Models;
 using OpStream.Server.Storage;
+using OpStream.Shared.Messages;
 using System.Text.Json;
 
 namespace OpStream.Server.Versioning;

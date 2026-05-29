@@ -1,3 +1,5 @@
+using OpStream.Shared.Messages;
+
 namespace OpStream.Server.Versioning;
 
 /// <summary>

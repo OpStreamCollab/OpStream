@@ -1,3 +1,4 @@
+using OpStream.Shared.Messages;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 

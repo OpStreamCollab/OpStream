@@ -1,7 +1,7 @@
 using FluentAssertions;
 using OpStream.Server.Engine;
 using OpStream.Server.Engine.UndoRedo;
-using OpStream.Server.Models;
+using OpStream.Shared.Messages;
 using Xunit;
 
 namespace OpStream.Tests.Engine;

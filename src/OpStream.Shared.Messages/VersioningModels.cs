@@ -1,4 +1,4 @@
-namespace OpStream.Server.Versioning;
+namespace OpStream.Shared.Messages;
 
 /// <summary>
 /// Registers a stable human-readable name for a document and its default branch.

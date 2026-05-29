@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OpStream.Server.Versioning;
+using OpStream.Shared.Messages;
 using System.Runtime.CompilerServices;
 
 namespace OpStream.Server.Storage.EntityFrameworkCore;

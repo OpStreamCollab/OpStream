@@ -1,7 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
-using OpStream.Server.Models;
 using OpStream.Server.Storage;
+using OpStream.Shared.Messages;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 

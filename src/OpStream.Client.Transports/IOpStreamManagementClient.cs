@@ -1,7 +1,4 @@
-
-
-using OpStream.Server.Models;
-using OpStream.Server.Versioning;
+using OpStream.Shared.Messages;
 
 namespace OpStream.Client.Transports;
 

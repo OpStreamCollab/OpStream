@@ -2,8 +2,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using OpStream.Client.Transports;
 using OpStream.Constants;
-using OpStream.Server.Models;
-using OpStream.Server.Versioning;
+using OpStream.Shared.Messages;
 
 namespace OpStream.Client.Transports.SignalR;
 

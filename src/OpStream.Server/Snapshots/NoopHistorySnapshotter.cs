@@ -1,4 +1,4 @@
-using OpStream.Server.Models;
+using OpStream.Shared.Messages;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;

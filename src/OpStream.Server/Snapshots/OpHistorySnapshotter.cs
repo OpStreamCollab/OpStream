@@ -1,5 +1,6 @@
 using OpStream.Server.Models;
 using OpStream.Server.Storage;
+using OpStream.Shared.Messages;
 using System;
 using System.Collections.Concurrent;
 using System.Text.Json;

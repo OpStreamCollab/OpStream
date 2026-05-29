@@ -1,6 +1,6 @@
 using FluentAssertions;
 using OpStream.Server.Engine.RichText;
-using OpStream.Server.Models;
+using OpStream.Shared.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;

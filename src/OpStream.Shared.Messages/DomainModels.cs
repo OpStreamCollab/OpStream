@@ -1,4 +1,4 @@
-﻿namespace OpStream.Server.Models;
+﻿namespace OpStream.Shared.Messages;
 
 /// <summary>
 /// Represents a persisted operation in the log. The payload is kept as raw UTF-8 bytes 

@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using FluentAssertions;
 using OpStream.Server.Engine.Text;
-using OpStream.Server.Models;
+using OpStream.Shared.Messages;
 using Xunit;
 
 namespace OpStream.Tests.Engine;

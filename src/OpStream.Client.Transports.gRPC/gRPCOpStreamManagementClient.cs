@@ -1,7 +1,6 @@
 using Grpc.Net.Client;
 using OpStream.Client.Transports;
-using OpStream.Server.Models;
-using OpStream.Server.Versioning;
+using OpStream.Shared.Messages;
 using OpStream.Shared.Messages.gRPC;
 
 namespace OpStream.Client.Transports.gRPC;

@@ -1,7 +1,7 @@
 using OpStream.Server.Engine;
-using OpStream.Server.Models;
 using OpStream.Server.Storage;
 using OpStream.Shared.Abstractions;
+using OpStream.Shared.Messages;
 using System.Text.Json;
 
 namespace OpStream.Server.History;

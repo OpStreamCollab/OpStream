@@ -2,7 +2,6 @@ using OpStream.Constants;
 using OpStream.Server.Comments;
 using OpStream.Server.Diagnostics;
 using OpStream.Server.Engine;
-using OpStream.Server.Models;
 using OpStream.Server.Storage;
 using OpStream.Shared.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -10,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.Json;
 using OpStream.Server.Snapshots;
+using OpStream.Shared.Messages;
 
 namespace OpStream.Server.Session;
 

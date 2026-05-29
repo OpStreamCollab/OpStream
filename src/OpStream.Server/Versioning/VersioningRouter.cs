@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OpStream.Server.Models;
 using OpStream.Server.Multitenancy;
 using OpStream.Server.Storage;
 using OpStream.Shared.Abstractions;
+using OpStream.Shared.Messages;
 
 namespace OpStream.Server.Versioning;
 

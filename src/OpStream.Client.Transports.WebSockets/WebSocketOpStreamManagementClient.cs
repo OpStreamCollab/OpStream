@@ -1,7 +1,6 @@
 using OpStream.Client.Transports;
 using OpStream.Constants;
-using OpStream.Server.Models;
-using OpStream.Server.Versioning;
+using OpStream.Shared.Messages;
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpStream.Server.Models;
 using OpStream.Server.Storage;
+using OpStream.Shared.Messages;
 
 namespace OpStream.Server.Storage.EntityFrameworkCore;
 

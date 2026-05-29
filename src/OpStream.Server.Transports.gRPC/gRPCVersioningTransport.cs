@@ -3,6 +3,7 @@ using Grpc.Core;
 using OpStream.Server.Models;
 using OpStream.Server.Versioning;
 using OpStream.Shared.Abstractions;
+using OpStream.Shared.Messages;
 using OpStream.Shared.Messages.gRPC;
 
 namespace OpStream.Server.Transports.gRPC;
