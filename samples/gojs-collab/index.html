@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpStream + GoJS — collaborative flowchart</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    <!-- GoJS evaluation build (watermarked). Commercial license: https://gojs.net -->
+    <script src="https://cdn.jsdelivr.net/npm/gojs/release/go.js"></script>
+</head>
+<body>
+    <div id="toolbar">
+        <strong>Collaborative flowchart</strong>
+        <button id="addNode">+ Node</button>
+        <span class="hint">drag a node's edge to another node to link · double-click text to edit · Del to remove</span>
+        <span id="badge">OpStream · <span id="status">starting…</span></span>
+    </div>
+    <div id="diagram"></div>
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>

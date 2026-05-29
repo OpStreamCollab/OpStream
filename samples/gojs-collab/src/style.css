@@ -1,0 +1,17 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+
+#toolbar {
+    height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 12px;
+    background: #0d1b2a; color: #fff; font: 13px system-ui, sans-serif;
+}
+#toolbar button {
+    cursor: pointer; border: none; border-radius: 6px; padding: 6px 10px;
+    font-weight: 600; font-size: 12px; background: #2d6cdf; color: #fff;
+}
+#toolbar button:hover { background: #245bc0; }
+#toolbar .hint { color: #aeb8c6; }
+#badge { margin-left: auto; font-weight: 600; }
+#status { color: #2ecc71; font-weight: 700; }
+
+#diagram { position: absolute; top: 48px; left: 0; right: 0; bottom: 0; background: #f4f6f8; }

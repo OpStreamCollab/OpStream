@@ -1,0 +1,56 @@
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    padding: 24px;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #f4f6f8;
+    color: #1a2230;
+}
+h1 { font-size: 20px; margin: 0 0 16px; }
+
+#badge {
+    position: fixed; top: 10px; right: 14px;
+    font: 600 12px system-ui, sans-serif;
+    background: #0d1b2a; color: #fff;
+    padding: 5px 10px; border-radius: 6px;
+}
+#status { color: #2ecc71; font-weight: 700; }
+
+#board { display: flex; gap: 16px; align-items: flex-start; }
+
+.column {
+    flex: 1;
+    background: #e9edf2;
+    border-radius: 10px;
+    padding: 10px;
+    min-height: 120px;
+}
+.column header {
+    display: flex; align-items: center; justify-content: space-between;
+    font-weight: 700; font-size: 13px; text-transform: uppercase;
+    letter-spacing: .04em; color: #5a6678; margin-bottom: 10px;
+}
+.column header .add {
+    cursor: pointer; border: none; border-radius: 6px;
+    width: 24px; height: 24px; font-size: 16px; line-height: 1;
+    background: #2d6cdf; color: #fff;
+}
+.list { min-height: 40px; display: flex; flex-direction: column; gap: 8px; }
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px 28px 10px 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.12);
+    position: relative;
+    cursor: grab;
+}
+.card .text { outline: none; font-size: 14px; min-height: 18px; }
+.card .text:focus { background: #f0f5ff; border-radius: 4px; }
+.card .del {
+    position: absolute; top: 6px; right: 6px;
+    border: none; background: transparent; cursor: pointer;
+    color: #b3bdca; font-size: 16px; line-height: 1;
+}
+.card .del:hover { color: #e74c3c; }
+.sortable-ghost { opacity: .4; }

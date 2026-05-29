@@ -1,0 +1,38 @@
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #2a2a2a; }
+#mycanvas { display: block; }
+
+#badge {
+    position: fixed;
+    top: 8px;
+    right: 12px;
+    z-index: 100;
+    font: 600 12px system-ui, sans-serif;
+    background: #0d1b2a;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+#status { color: #2ecc71; font-weight: 700; }
+
+#toolbar {
+    position: fixed;
+    top: 8px;
+    left: 12px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 12px system-ui, sans-serif;
+}
+#toolbar button {
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-weight: 600;
+    background: #2d6cdf;
+    color: #fff;
+}
+#toolbar button:hover { background: #245bc0; }
+#toolbar .hint { color: #cdd5df; }
