@@ -1,6 +1,7 @@
 ﻿using OpStream.Server.Engine;
 using OpStream.Server.Models;
 using OpStream.Server.Storage;
+using OpStream.Shared.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;

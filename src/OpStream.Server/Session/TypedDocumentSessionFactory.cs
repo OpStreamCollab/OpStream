@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using OpStream.Server.Snapshots;
+using OpStream.Shared.Messages;
 
 namespace OpStream.Server.Session
 {

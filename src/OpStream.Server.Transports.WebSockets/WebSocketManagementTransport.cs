@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using OpStream.Constants;
 using OpStream.Server.Models;
 using OpStream.Server.Session;
+using OpStream.Shared.Messages;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;

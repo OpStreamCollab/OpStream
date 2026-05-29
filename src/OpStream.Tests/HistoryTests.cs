@@ -2,6 +2,7 @@ using OpStream.Server.Engine.Text;
 using OpStream.Server.History;
 using OpStream.Server.Models;
 using OpStream.Server.Storage;
+using OpStream.Shared.Messages;
 using System.Text.Json;
 using Xunit;
 
