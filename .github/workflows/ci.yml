@@ -151,6 +151,18 @@ jobs:
           name: nuget-packages
           path: artifacts/*.nupkg
 
+      # Avisa al repo OpStream.DemoHost para que reconstruya su imagen Docker
+      # con la versión recién publicada. Requiere un PAT (secret DISPATCH_TOKEN)
+      # con permiso de Actions (write) sobre OpStreamCollab/OpStream.DemoHost,
+      # porque el GITHUB_TOKEN por defecto no puede disparar otros repos.
+      - name: Trigger DemoHost image build
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DISPATCH_TOKEN }}
+          repository: OpStreamCollab/OpStream.DemoHost
+          event-type: opstream-packages-published
+          client-payload: '{"version": "${{ steps.ver.outputs.version }}"}'
+
   # ───────────────────────────────────────────────────────────────────────────
   # 3) Construir y publicar la imagen del Host en Docker Hub — solo en push
   # ───────────────────────────────────────────────────────────────────────────
