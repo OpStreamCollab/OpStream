@@ -90,8 +90,6 @@ export function attachCollab(editor, opts) {
   socket.onReceiveOp = (remoteOp, newRevision) => {
     if (disposed) return;
 
-    // Rebase the remote op past our un-acknowledged local ops, and rebase those
-    // past the remote, so everyone converges.
     let toApply = remoteOp;
     if (inflight !== null) {
       const applied = transform(toApply, inflight, "incomingWins");

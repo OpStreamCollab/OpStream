@@ -1,12 +1,26 @@
 # Technical Design Proposal — Decomposing `DocumentRouter`
 
-- **Status:** Draft / for discussion
+- **Status:** ✅ Implemented (2026-05-29)
 - **Author:** (proposal)
 - **Date:** 2026-05-29
 - **Scope:** Server-side session orchestration. Splits the `DocumentRouter` god-class
   (`src/OpStream.Server/Session/DocumentRouter.cs`, **759 lines**) into a thin facade plus a
   set of single-responsibility collaborators, **without changing the public API** that
   transports and the management/comment routers depend on.
+
+> **Implementation note (2026-05-29).** Done in one pass since the library is pre-production.
+> `DocumentRouter` is now a **257-line facade** delegating to nine collaborators in
+> `src/OpStream.Server/Session/`: `DocumentLockRegistry`, `DocumentSessionRegistry`,
+> `AwarenessSessionRegistry`, `PeerRegistry`, `DocumentExecutionPipeline`,
+> `DocumentDrainCoordinator`, `DocumentDiagnosticsService`, `DocumentBackplaneGateway`, and
+> `OpStreamStartupValidator` (plus `SessionRegistryOptions`, surfaced via
+> `OpStreamOptions.Sessions`). The public API and transports are unchanged; all 114
+> non-container tests pass, including the `DocumentDrainTests` end-to-end suite. The facade
+> retains only the cross-cutting glue (backplane subscriptions + idle-close timers). Minor
+> deviations from the plan below: idle-timer scheduling stayed on the facade (idle → full
+> close spans session + awareness + subscription, which is orchestration), and pub/sub
+> subscriptions + `OnBackplaneMessage` stayed on the facade to avoid touching the transport
+> relays — so `DocumentBackplaneGateway` owns only the inbound request/response path.
 
 ---
 

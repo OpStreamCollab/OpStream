@@ -103,6 +103,16 @@ public static class OpStreamServiceCollectionExtensions
         var builder = new OpStreamBuilder(services);
 
         // Core infrastructure
+        services.TryAddSingleton(options.Sessions);
+        services.TryAddSingleton<IDocumentLockRegistry, DocumentLockRegistry>();
+        services.TryAddSingleton<IDocumentSessionRegistry, DocumentSessionRegistry>();
+        services.TryAddSingleton<IAwarenessSessionRegistry, AwarenessSessionRegistry>();
+        services.TryAddSingleton<IPeerRegistry, PeerRegistry>();
+        services.TryAddSingleton<IDocumentExecutionPipeline, DocumentExecutionPipeline>();
+        services.TryAddSingleton<IDocumentDrainCoordinator, DocumentDrainCoordinator>();
+        services.TryAddSingleton<IDocumentDiagnosticsService, DocumentDiagnosticsService>();
+        services.TryAddSingleton<IDocumentBackplaneGateway, DocumentBackplaneGateway>();
+        services.TryAddSingleton<OpStreamStartupValidator>();
         services.TryAddSingleton<DocumentRouter>();
         services.TryAddSingleton<DatabaseCommandRouter>();
         services.TryAddSingleton<CommentRouter>();

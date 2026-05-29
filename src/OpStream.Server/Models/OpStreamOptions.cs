@@ -1,4 +1,5 @@
 using System;
+using OpStream.Server.Session;
 
 namespace OpStream.Server.Models;
 
@@ -11,6 +12,11 @@ public class OpStreamOptions
     /// Gets or sets the history configuration.
     /// </summary>
     public HistoryOptions History { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the in-memory session registry configuration (e.g. the idle-close timeout).
+    /// </summary>
+    public SessionRegistryOptions Sessions { get; set; } = new();
 
     /// <summary>
     /// Gets or sets a value indicating whether database migrations should be applied automatically on startup.

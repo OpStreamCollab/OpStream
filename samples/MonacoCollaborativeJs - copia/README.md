@@ -15,6 +15,14 @@ dotnet run --project samples/MonacoCollaborativeJs
 Then open the printed URL (default <http://localhost:5179>) in **two browser tabs**
 and type — edits converge live.
 
+> **Note on references.** This sample references the OpStream **projects** directly
+> (`..\..\src\...`) rather than the published NuGet packages, so it always builds against
+> the current server source. (An older published `OpStream.Server.Transports.WebSockets`
+> package stored WebSocket connections under the *local* document id while broadcasting
+> under the *tenant-globalized* id, so peers on the same doc never received each other's
+> ops; the source fix — `AddConnection(peerId, globalDocId, …)` in `WebSocketTransport` —
+> is what this sample compiles against.)
+
 - Choose a document / name with query params: `?doc=my-doc&name=Ada`.
 - Storage is in-memory and single-node by default (see `Program.cs` to switch to
   Postgres/Redis/etc. and a Redis backplane for multi-node).

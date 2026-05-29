@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpStream.Server" Version="*" />
-    <PackageReference Include="OpStream.Server.Transports.WebSockets" Version="*" />
+    <ProjectReference Include="..\..\src\OpStream.Server\OpStream.Server.csproj" />
+    <ProjectReference Include="..\..\src\OpStream.Server.Transports.WebSockets\OpStream.Server.Transports.WebSockets.csproj" />
   </ItemGroup>
 
 </Project>
