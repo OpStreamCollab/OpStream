@@ -125,6 +125,7 @@ nav:
       - First user join flow: internals/first-join-flow.md
   - Reference:
       - Builder API: reference/builder-api.md
+      - Configuration (DI): reference/configuration.md
       - Engine contracts: reference/interfaces.md
       - Wire protocol: reference/wire-protocol.md
 

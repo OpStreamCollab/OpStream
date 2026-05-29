@@ -1,0 +1,3814 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Real-time collaborative editing toolkit for .NET">
+      
+      
+      
+        <link rel="canonical" href="https://opstreamcollab.github.io/OpStream/reference/configuration/">
+      
+      
+        <link rel="prev" href="../builder-api/">
+      
+      
+        <link rel="next" href="../interfaces/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Configuration (DI) - OpStream</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-WSCZ97WGPP"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-WSCZ97WGPP",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-WSCZ97WGPP",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#configuration-reference-dependency-injection" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="OpStream" class="md-header__button md-logo" aria-label="OpStream" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            OpStream
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuration (DI)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/OpStreamCollab/OpStream" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    OpStreamCollab/OpStream
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="OpStream" class="md-nav__button md-logo" aria-label="OpStream" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    OpStream
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/OpStreamCollab/OpStream" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    OpStreamCollab/OpStream
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run with Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recipes
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Recipes
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../recipes/collaborative-text-editor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collaborative text editor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../recipes/notion-blocks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notion-style block tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../recipes/settings-form/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings dialog (form)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../recipes/spreadsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spreadsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../transports/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transports
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Transports
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/signalr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SignalR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/websockets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    WebSockets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/grpc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    gRPC
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../storage/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Storage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../storage/memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    In-memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../storage/ef-core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entity Framework Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../storage/sql-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SQL Server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../storage/postgresql/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PostgreSQL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../storage/mysql/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MySQL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../storage/sqlite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SQLite
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../storage/mongodb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MongoDB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../storage/redis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Redis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../engines/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engines
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Engines
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engines/text-ot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Text OT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engines/rich-text/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rich Text
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engines/json-crdt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JSON CRDT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engines/tree-crdt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tree CRDT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engines/table-crdt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Table CRDT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engines/form-ot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Form OT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engines/awareness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Awareness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engines/undo-redo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Undo / Redo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/backplane/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backplane (scaling out)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/authorization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authorization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/multitenancy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-tenancy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/snapshots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Snapshots
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker image
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../internals/first-join-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First user join flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../builder-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Builder API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration (DI)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration (DI)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#two-builders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two builders
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two builders">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-naming-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method naming convention
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#server-entry-point-addopstream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server entry point — AddOpStream
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Server entry point — AddOpStream">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-it-registers-by-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it registers by default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#opstreamoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpStreamOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#historyoptions-opstreamoptionshistory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HistoryOptions (OpStreamOptions.History)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#engines-document-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engines &amp; document types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Engines &amp; document types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#addenginetdoc-top-tenginedocumenttype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddEngine&lt;TDoc, TOp, TEngine&gt;(documentType)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addanchorenginetopdocumenttype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddAnchorEngine&lt;TOp&gt;(documentType)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addvalidatortop-tvalidator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddValidator&lt;TOp, TValidator&gt;()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useseedertdoc-tseeder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UseSeeder&lt;TDoc, TSeeder&gt;()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useversioningmergetdoc-topenginetype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UseVersioningMerge&lt;TDoc, TOp&gt;(engineType)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storage-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage backends
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Storage backends">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#redisstorageoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RedisStorageOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comment-versioning-stores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comment &amp; versioning stores
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backplane-scaling-out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backplane (scaling out)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backplane (scaling out)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#redisbackplaneoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RedisBackplaneOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authorization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authorization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#useauthorizationtauthorizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UseAuthorization&lt;TAuthorizer&gt;()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usedatabasecommandauthorizationtauthorizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UseDatabaseCommandAuthorization&lt;TAuthorizer&gt;()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snapshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Snapshots
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Snapshots">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usesnapshotpolicyisnapshotpolicy-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UseSnapshotPolicy(ISnapshotPolicy policy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#awareness-tunables-awarenessoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Awareness tunables — AwarenessOptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#server-transports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server transports
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Server transports">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#management-comments-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Management &amp; comments endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#client-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Client configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#collaboration-transports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collaboration transports
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#management-transports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Management transports
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client-options-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client options reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#end-to-end-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-end example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#obsolete-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Obsolete aliases
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engine contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wire-protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wire protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#two-builders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two builders
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two builders">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-naming-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method naming convention
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#server-entry-point-addopstream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server entry point — AddOpStream
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Server entry point — AddOpStream">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-it-registers-by-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it registers by default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#opstreamoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpStreamOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#historyoptions-opstreamoptionshistory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HistoryOptions (OpStreamOptions.History)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#engines-document-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engines &amp; document types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Engines &amp; document types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#addenginetdoc-top-tenginedocumenttype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddEngine&lt;TDoc, TOp, TEngine&gt;(documentType)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addanchorenginetopdocumenttype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddAnchorEngine&lt;TOp&gt;(documentType)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addvalidatortop-tvalidator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddValidator&lt;TOp, TValidator&gt;()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useseedertdoc-tseeder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UseSeeder&lt;TDoc, TSeeder&gt;()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useversioningmergetdoc-topenginetype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UseVersioningMerge&lt;TDoc, TOp&gt;(engineType)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storage-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage backends
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Storage backends">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#redisstorageoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RedisStorageOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comment-versioning-stores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comment &amp; versioning stores
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backplane-scaling-out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backplane (scaling out)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backplane (scaling out)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#redisbackplaneoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RedisBackplaneOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authorization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authorization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#useauthorizationtauthorizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UseAuthorization&lt;TAuthorizer&gt;()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usedatabasecommandauthorizationtauthorizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UseDatabaseCommandAuthorization&lt;TAuthorizer&gt;()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snapshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Snapshots
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Snapshots">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usesnapshotpolicyisnapshotpolicy-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UseSnapshotPolicy(ISnapshotPolicy policy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#awareness-tunables-awarenessoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Awareness tunables — AwarenessOptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#server-transports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server transports
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Server transports">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#management-comments-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Management &amp; comments endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#client-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Client configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#collaboration-transports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collaboration transports
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#management-transports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Management transports
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client-options-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client options reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#end-to-end-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-end example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#obsolete-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Obsolete aliases
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../builder-api/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Reference
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="configuration-reference-dependency-injection">Configuration reference (Dependency Injection)<a class="headerlink" href="#configuration-reference-dependency-injection" title="Permanent link">&para;</a></h1>
+<p>Every knob in OpStream is wired through <code>Microsoft.Extensions.DependencyInjection</code>.
+This page is the exhaustive catalogue of those options: <strong>what each one does, its
+default value, and when you need to change it.</strong></p>
+<p>All server-side extension methods live in the <code>Microsoft.Extensions.DependencyInjection</code>
+namespace, so they light up as soon as you reference the package — no extra <code>using</code>
+is required.</p>
+<h2 id="two-builders">Two builders<a class="headerlink" href="#two-builders" title="Permanent link">&para;</a></h2>
+<p>OpStream exposes two independent builder chains:</p>
+<table>
+<thead>
+<tr>
+<th>Builder</th>
+<th>Created by</th>
+<th>Lives in</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IOpStreamBuilder</code></td>
+<td><code>services.AddOpStream()</code></td>
+<td>server host</td>
+<td>Engines, storage, backplane, authorization, transports</td>
+</tr>
+<tr>
+<td><code>IOpStreamClientBuilder</code></td>
+<td><code>services.AddOpStreamClient()</code></td>
+<td>client app (Blazor, MAUI, console)</td>
+<td>Which transport the client uses to reach a server</td>
+</tr>
+</tbody>
+</table>
+<h3 id="method-naming-convention">Method naming convention<a class="headerlink" href="#method-naming-convention" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Prefix</th>
+<th>Lifetime</th>
+<th>Behavior when called twice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Use*()</code></td>
+<td>Singleton</td>
+<td><strong>Last call wins</strong> — replaces the previous registration.</td>
+</tr>
+<tr>
+<td><code>Add*()</code></td>
+<td>Collection</td>
+<td><strong>Accumulates</strong> — each call registers one more element.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="server-entry-point-addopstream">Server entry point — <code>AddOpStream</code><a class="headerlink" href="#server-entry-point-addopstream" title="Permanent link">&para;</a></h2>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="nf">AddOpStream</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="k">this</span><span class="w"> </span><span class="n">IServiceCollection</span><span class="w"> </span><span class="n">services</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="n">Action</span><span class="o">&lt;</span><span class="n">OpStreamOptions</span><span class="o">&gt;?</span><span class="w"> </span><span class="n">configure</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">);</span>
+</span></code></pre></div>
+<p>Registers the core services plus a set of <strong>development-friendly defaults</strong>. The
+<code>configure</code> delegate is optional; pass it to tune <code>OpStreamOptions</code>.</p>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">builder</span><span class="p">.</span><span class="n">Services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">(</span><span class="n">options</span><span class="w"> </span><span class="o">=&gt;</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="p">{</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="n">options</span><span class="p">.</span><span class="n">History</span><span class="p">.</span><span class="n">Enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="n">options</span><span class="p">.</span><span class="n">History</span><span class="p">.</span><span class="n">SnapshotRevisionInterval</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span><span class="p">;</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="n">options</span><span class="p">.</span><span class="n">AutomaticMigrationsEnabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">});</span>
+</span></code></pre></div>
+<h3 id="what-it-registers-by-default">What it registers by default<a class="headerlink" href="#what-it-registers-by-default" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Subsystem</th>
+<th>Default registration</th>
+<th>Production-ready?</th>
+<th>Replace with</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Document store</td>
+<td><code>MemoryDocumentStore</code></td>
+<td>❌ logs a startup warning</td>
+<td><code>UseRedisStorage()</code>, <code>UseEfCoreStorage()</code>, …</td>
+</tr>
+<tr>
+<td>History store</td>
+<td><code>MemoryDocumentStore</code></td>
+<td>❌</td>
+<td>same as above</td>
+</tr>
+<tr>
+<td>Comment store</td>
+<td><code>MemoryCommentStore</code></td>
+<td>❌</td>
+<td><code>UseEfCoreCommentStorage()</code>, <code>UseRedisCommentStorage()</code>, …</td>
+</tr>
+<tr>
+<td>Versioning ref store</td>
+<td><code>MemoryDocumentRefStore</code></td>
+<td>❌</td>
+<td><code>UseEfCoreVersioningStorage()</code></td>
+</tr>
+<tr>
+<td>Backplane</td>
+<td><code>LocalBackplane</code> (single-node)</td>
+<td>✅ for single node</td>
+<td><code>UseRedisBackplane()</code> for multi-node</td>
+</tr>
+<tr>
+<td>Document authorizer</td>
+<td><code>AllowAllAuthorizer</code></td>
+<td>❌ logs a startup warning</td>
+<td><code>UseAuthorization&lt;T&gt;()</code></td>
+</tr>
+<tr>
+<td>Management authorizer</td>
+<td><code>DenyAllDatabaseCommandAuthorizer</code></td>
+<td>✅ fail-closed</td>
+<td><code>UseDatabaseCommandAuthorization&lt;T&gt;()</code></td>
+</tr>
+<tr>
+<td>Snapshot policy</td>
+<td><code>HybridSnapshotPolicy(100, 5 min)</code></td>
+<td>✅</td>
+<td><code>UseSnapshotPolicy()</code></td>
+</tr>
+<tr>
+<td>Default engine</td>
+<td><code>TextOtEngine</code> for type <code>"text"</code></td>
+<td>✅</td>
+<td><code>AddEngine&lt;…&gt;()</code></td>
+</tr>
+<tr>
+<td>Tenant provider</td>
+<td><code>DefaultTenantProvider</code> (single tenant)</td>
+<td>✅</td>
+<td>custom <code>ITenantProvider</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">The two authorizers behave oppositely by default</p>
+<p>The <strong>collaboration</strong> path defaults to <em>allow-all</em> (so you can start coding
+immediately), while the <strong>management</strong> path defaults to <em>deny-all</em> (so you can
+never accidentally expose delete/purge to the world). Production deployments must
+replace <strong>both</strong>.</p>
+</div>
+<h3 id="opstreamoptions"><code>OpStreamOptions</code><a class="headerlink" href="#opstreamoptions" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>History</code></td>
+<td><code>HistoryOptions</code></td>
+<td>new instance</td>
+<td>Cold-store history configuration (see below).</td>
+</tr>
+<tr>
+<td><code>AutomaticMigrationsEnabled</code></td>
+<td><code>bool</code></td>
+<td><code>true</code></td>
+<td>When <code>true</code>, EF Core / SQL migrations are applied automatically at startup by the <code>MigrationHostedService</code>. Set <code>false</code> if you run migrations out-of-band (CI, DBA-managed).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="historyoptions-opstreamoptionshistory"><code>HistoryOptions</code> (<code>OpStreamOptions.History</code>)<a class="headerlink" href="#historyoptions-opstreamoptionshistory" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Enabled</code></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+<td>Master switch for the cold-store history pipeline. When <code>false</code>, a <code>NoopHistorySnapshotter</code> is registered and no historical snapshots are written. Must be <code>true</code> for time-travel reads, version tags that survive compaction, and milestones.</td>
+</tr>
+<tr>
+<td><code>SnapshotInterval</code></td>
+<td><code>TimeSpan?</code></td>
+<td><code>null</code></td>
+<td>Write a history snapshot at least this often (wall-clock). <code>null</code> disables time-based history snapshots.</td>
+</tr>
+<tr>
+<td><code>SnapshotRevisionInterval</code></td>
+<td><code>int?</code></td>
+<td><code>null</code></td>
+<td>Write a history snapshot every <em>N</em> revisions. <code>null</code> disables revision-count-based history snapshots.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>HistoryOptions</code> controls the <strong>cold store</strong> (durable, append-only history). It is
+distinct from <code>ISnapshotPolicy</code>, which controls the <strong>hot store</strong> snapshot cadence
+used to bound op-log replay. See <a href="../../operations/snapshots/">Snapshots</a>.</p>
+</div>
+<hr />
+<h2 id="engines-document-types">Engines &amp; document types<a class="headerlink" href="#engines-document-types" title="Permanent link">&para;</a></h2>
+<h3 id="addenginetdoc-top-tenginedocumenttype"><code>AddEngine&lt;TDoc, TOp, TEngine&gt;(documentType)</code><a class="headerlink" href="#addenginetdoc-top-tenginedocumenttype" title="Permanent link">&para;</a></h3>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">AddEngine</span><span class="o">&lt;</span><span class="n">TDoc</span><span class="p">,</span><span class="w"> </span><span class="n">TOp</span><span class="p">,</span><span class="w"> </span><span class="n">TEngine</span><span class="o">&gt;</span><span class="p">(</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">documentType</span><span class="p">)</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">TEngine</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IOpEngine</span><span class="o">&lt;</span><span class="n">TDoc</span><span class="p">,</span><span class="w"> </span><span class="n">TOp</span><span class="o">&gt;</span><span class="p">;</span>
+</span></code></pre></div>
+<p>Registers an engine for a document-type discriminator string. Call once per document
+type. The router selects the engine using the discriminator the client sends with its
+<code>JoinDocument</code> call. <code>AddOpStream()</code> pre-registers <code>TextOtEngine</code> for <code>"text"</code>.</p>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">()</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="p">.</span><span class="n">AddEngine</span><span class="o">&lt;</span><span class="n">RichTextDocument</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextOp</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextEngine</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;rich-text&quot;</span><span class="p">)</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="p">.</span><span class="n">AddEngine</span><span class="o">&lt;</span><span class="n">TreeDocument</span><span class="p">,</span><span class="w"> </span><span class="n">TreeOpBatch</span><span class="p">,</span><span class="w"> </span><span class="n">TreeCrdtEngine</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;blocks&quot;</span><span class="p">);</span>
+</span></code></pre></div>
+<h3 id="addanchorenginetopdocumenttype"><code>AddAnchorEngine&lt;TOp&gt;(documentType)</code><a class="headerlink" href="#addanchorenginetopdocumenttype" title="Permanent link">&para;</a></h3>
+<p>Maps a document type to an already-registered <code>IAnchorEngine&lt;TOp&gt;</code> so that
+<code>CompactWithAnchorsService</code> can rebase comment anchors during compaction. Call it
+alongside <code>AddEngine</code> for every engine that supports anchored comments.
+Defaults wired by <code>AddOpStream()</code>: <code>text</code>, <code>richtext</code>, <code>json</code>.</p>
+<h3 id="addvalidatortop-tvalidator"><code>AddValidator&lt;TOp, TValidator&gt;()</code><a class="headerlink" href="#addvalidatortop-tvalidator" title="Permanent link">&para;</a></h3>
+<p>Registers a per-operation validator. Multiple validators run in registration order;
+the first to return <code>false</code> rejects the op. <strong>Collection-style</strong> — add as many as you need.</p>
+<h3 id="useseedertdoc-tseeder"><code>UseSeeder&lt;TDoc, TSeeder&gt;()</code><a class="headerlink" href="#useseedertdoc-tseeder" title="Permanent link">&para;</a></h3>
+<p>Replaces the default <code>EmptyDocumentSeeder&lt;TDoc&gt;</code> used to populate brand-new documents
+on first access. Use it to give new documents non-empty initial content.</p>
+<h3 id="useversioningmergetdoc-topenginetype"><code>UseVersioningMerge&lt;TDoc, TOp&gt;(engineType)</code><a class="headerlink" href="#useversioningmergetdoc-topenginetype" title="Permanent link">&para;</a></h3>
+<p>Registers a 3-way merge driver for an engine type so <code>VersioningRouter.MergeAsync</code> can
+merge branches of that type. Without it, <code>MergeBranch</code> fails with <em>"No merge driver
+registered"</em>. Call alongside <code>AddEngine</code> for every type that should support branch merges.</p>
+<hr />
+<h2 id="storage-backends">Storage backends<a class="headerlink" href="#storage-backends" title="Permanent link">&para;</a></h2>
+<p>All of these <strong>replace</strong> the default <code>MemoryDocumentStore</code> for both <code>IDocumentStore</code>
+and <code>IHistoryStore</code>. Pick exactly one document store.</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Provider</th>
+<th>Required arguments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UseMemoryStorage()</code></td>
+<td>In-memory (default; tests/dev only)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>UseEfCoreStorage&lt;TContext&gt;()</code></td>
+<td>Generic EF Core (any provider)</td>
+<td>a configured <code>DbContext</code></td>
+</tr>
+<tr>
+<td><code>UseSqlServerStorage(connStr)</code></td>
+<td>SQL Server</td>
+<td>connection string</td>
+</tr>
+<tr>
+<td><code>UsePostgreSqlStorage(connStr)</code></td>
+<td>PostgreSQL (Npgsql)</td>
+<td>connection string</td>
+</tr>
+<tr>
+<td><code>UseMySqlStorage(connStr)</code></td>
+<td>MySQL / MariaDB (Pomelo)</td>
+<td>connection string</td>
+</tr>
+<tr>
+<td><code>UseSqliteStorage(connStr)</code></td>
+<td>SQLite</td>
+<td>connection string</td>
+</tr>
+<tr>
+<td><code>UseMongoDbStorage(connStr, dbName)</code></td>
+<td>MongoDB</td>
+<td>connection string + database name</td>
+</tr>
+<tr>
+<td><code>UseRedisStorage(connStr)</code> / <code>UseRedisStorage(opts)</code></td>
+<td>Redis</td>
+<td>connection string</td>
+</tr>
+</tbody>
+</table>
+<p>The SQL providers ship pre-built migrations and register a <code>DbContextFactory</code>
+automatically. See <a href="../../storage/">Storage backends</a>.</p>
+<h3 id="redisstorageoptions"><code>RedisStorageOptions</code><a class="headerlink" href="#redisstorageoptions" title="Permanent link">&para;</a></h3>
+<p>Passed to the <code>UseRedisStorage(Action&lt;RedisStorageOptions&gt;)</code> overload.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ConnectionString</code></td>
+<td><code>string</code></td>
+<td><code>""</code></td>
+<td><strong>Required.</strong> StackExchange.Redis connection string. Throws at startup if empty.</td>
+</tr>
+<tr>
+<td><code>SnapshotEvery</code></td>
+<td><code>TimeSpan?</code></td>
+<td><code>null</code></td>
+<td>How often a snapshot is written to Redis. When <code>null</code>, the global <code>ISnapshotPolicy</code> drives snapshots.</td>
+</tr>
+<tr>
+<td><code>OpLogRetention</code></td>
+<td><code>TimeSpan?</code></td>
+<td><code>null</code></td>
+<td>How long op-log entries are retained in Redis Streams. When <code>null</code>, entries are never auto-pruned.</td>
+</tr>
+</tbody>
+</table>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">()</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="p">.</span><span class="n">UseRedisStorage</span><span class="p">(</span><span class="n">o</span><span class="w"> </span><span class="o">=&gt;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="n">o</span><span class="p">.</span><span class="n">ConnectionString</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;localhost:6379&quot;</span><span class="p">;</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">        </span><span class="n">o</span><span class="p">.</span><span class="n">SnapshotEvery</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">TimeSpan</span><span class="p">.</span><span class="n">FromMinutes</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">        </span><span class="n">o</span><span class="p">.</span><span class="n">OpLogRetention</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">TimeSpan</span><span class="p">.</span><span class="n">FromDays</span><span class="p">(</span><span class="mi">7</span><span class="p">);</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="p">});</span>
+</span></code></pre></div>
+<h3 id="comment-versioning-stores">Comment &amp; versioning stores<a class="headerlink" href="#comment-versioning-stores" title="Permanent link">&para;</a></h3>
+<p>These are <strong>separate</strong> registrations from the document store. Call them <em>after</em> the
+matching document-store method so the shared connection/context already exists.</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Replaces</th>
+<th>Prerequisite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UseEfCoreCommentStorage&lt;TContext&gt;()</code></td>
+<td><code>ICommentStore</code></td>
+<td><code>UseEfCoreStorage&lt;TContext&gt;()</code></td>
+</tr>
+<tr>
+<td><code>UseMongoDbCommentStorage()</code></td>
+<td><code>ICommentStore</code></td>
+<td><code>UseMongoDbStorage()</code></td>
+</tr>
+<tr>
+<td><code>UseRedisCommentStorage()</code></td>
+<td><code>ICommentStore</code></td>
+<td><code>UseRedisStorage()</code></td>
+</tr>
+<tr>
+<td><code>UseEfCoreVersioningStorage&lt;TContext&gt;()</code></td>
+<td><code>IDocumentRefStore</code></td>
+<td><code>UseEfCoreStorage&lt;TContext&gt;()</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="backplane-scaling-out">Backplane (scaling out)<a class="headerlink" href="#backplane-scaling-out" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Behavior</th>
+<th>Default?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UseLocalBackplane()</code></td>
+<td>Single-node, in-process fan-out. Peers on the same instance see each other.</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>UseRedisBackplane(connStr)</code> / <code>UseRedisBackplane(opts)</code></td>
+<td>Multi-node fan-out + distributed document ownership via Redis.</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="redisbackplaneoptions"><code>RedisBackplaneOptions</code><a class="headerlink" href="#redisbackplaneoptions" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ConnectionString</code></td>
+<td><code>string</code></td>
+<td><code>""</code></td>
+<td><strong>Required.</strong> Redis connection string for the backplane and ownership manager. Throws at startup if empty.</td>
+</tr>
+</tbody>
+</table>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">()</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="p">.</span><span class="n">UseRedisStorage</span><span class="p">(</span><span class="s">&quot;localhost:6379&quot;</span><span class="p">)</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="p">.</span><span class="n">UseRedisBackplane</span><span class="p">(</span><span class="s">&quot;localhost:6379&quot;</span><span class="p">);</span>
+</span></code></pre></div>
+<p>Switching to the Redis backplane also swaps the <code>opstream-backplane</code> health check for a
+Redis-aware probe. See <a href="../../operations/backplane/">Backplane</a>.</p>
+<hr />
+<h2 id="authorization">Authorization<a class="headerlink" href="#authorization" title="Permanent link">&para;</a></h2>
+<h3 id="useauthorizationtauthorizer"><code>UseAuthorization&lt;TAuthorizer&gt;()</code><a class="headerlink" href="#useauthorizationtauthorizer" title="Permanent link">&para;</a></h3>
+<p>Replaces the default <code>AllowAllAuthorizer</code> with a <strong>scoped</strong> <code>IDocumentAuthorizer</code> that
+runs once per request, integrating with your host's identity/permission model. Governs
+the <strong>collaboration</strong> path (join / op / awareness). See <a href="../../operations/authorization/">Authorization</a>.</p>
+<h3 id="usedatabasecommandauthorizationtauthorizer"><code>UseDatabaseCommandAuthorization&lt;TAuthorizer&gt;()</code><a class="headerlink" href="#usedatabasecommandauthorizationtauthorizer" title="Permanent link">&para;</a></h3>
+<p>Replaces the default <code>DenyAllDatabaseCommandAuthorizer</code> with a <strong>scoped</strong>
+<code>IDatabaseCommandAuthorizer</code>. One authorizer governs <strong>both</strong> the management plane
+(list / inspect / delete / compact / purge) <strong>and</strong> the versioning plane (names /
+branches / versions / merge). The host switches on <code>DatabaseCommandContext.Command</code>.</p>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">()</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="p">.</span><span class="n">UseAuthorization</span><span class="o">&lt;</span><span class="n">MyDocumentAuthorizer</span><span class="o">&gt;</span><span class="p">()</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="p">.</span><span class="n">UseDatabaseCommandAuthorization</span><span class="o">&lt;</span><span class="n">MyManagementAuthorizer</span><span class="o">&gt;</span><span class="p">();</span>
+</span></code></pre></div>
+<div class="admonition danger">
+<p class="admonition-title">Management is deny-all until you wire this</p>
+<p>Every management and versioning endpoint returns <em>Forbidden</em> until you register a
+real <code>IDatabaseCommandAuthorizer</code>. This is intentional fail-closed behavior.</p>
+</div>
+<hr />
+<h2 id="snapshots">Snapshots<a class="headerlink" href="#snapshots" title="Permanent link">&para;</a></h2>
+<h3 id="usesnapshotpolicyisnapshotpolicy-policy"><code>UseSnapshotPolicy(ISnapshotPolicy policy)</code><a class="headerlink" href="#usesnapshotpolicyisnapshotpolicy-policy" title="Permanent link">&para;</a></h3>
+<p>Replaces the default <code>HybridSnapshotPolicy(100, TimeSpan.FromMinutes(5))</code> — which
+snapshots the hot store after <strong>100 ops or 5 minutes</strong>, whichever comes first.</p>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">()</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="p">.</span><span class="n">UseSnapshotPolicy</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">HybridSnapshotPolicy</span><span class="p">(</span><span class="n">maxOps</span><span class="p">:</span><span class="w"> </span><span class="mi">250</span><span class="p">,</span><span class="w"> </span><span class="n">maxInterval</span><span class="p">:</span><span class="w"> </span><span class="n">TimeSpan</span><span class="p">.</span><span class="n">FromMinutes</span><span class="p">(</span><span class="mi">2</span><span class="p">)));</span>
+</span></code></pre></div>
+<p>See <a href="../../operations/snapshots/">Snapshots</a>.</p>
+<hr />
+<h2 id="awareness-tunables-awarenessoptions">Awareness tunables — <code>AwarenessOptions</code><a class="headerlink" href="#awareness-tunables-awarenessoptions" title="Permanent link">&para;</a></h2>
+<p>Presence/cursor behavior. Currently consumed internally by <code>AwarenessEngine</code> /
+<code>AwarenessSession</code> with the defaults below (constructed directly, not registered through a
+dedicated <code>Use*</code> method).</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Ttl</code></td>
+<td><code>TimeSpan</code></td>
+<td><code>30 s</code></td>
+<td>Inactivity window after which a peer's presence state is considered stale and evicted from snapshot reads.</td>
+</tr>
+<tr>
+<td><code>CoalesceIdenticalUpdates</code></td>
+<td><code>bool</code></td>
+<td><code>true</code></td>
+<td>When <code>true</code>, updates byte-equal to the peer's current stored state are suppressed (not broadcast, not re-stored).</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="server-transports">Server transports<a class="headerlink" href="#server-transports" title="Permanent link">&para;</a></h2>
+<p>Register one or more transports, then map each to an endpoint. <strong>You can run all three
+simultaneously in the same app.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Register</th>
+<th>Maps collaboration</th>
+<th>Default pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AddSignalRTransport()</code></td>
+<td><code>MapOpStreamSignalR(pattern?)</code></td>
+<td><code>/collab</code></td>
+</tr>
+<tr>
+<td><code>AddWebSocketTransport()</code></td>
+<td><code>MapOpStreamWebSockets(pattern?)</code></td>
+<td><code>/collab-ws</code></td>
+</tr>
+<tr>
+<td><code>AddGrpcTransport()</code></td>
+<td><code>MapOpStreamGrpc()</code></td>
+<td>service route</td>
+</tr>
+</tbody>
+</table>
+<h3 id="management-comments-endpoints">Management &amp; comments endpoints<a class="headerlink" href="#management-comments-endpoints" title="Permanent link">&para;</a></h3>
+<p>Each transport also exposes optional management, versioning, and comments endpoints.
+Registration is automatic with the transport; you only choose whether to <strong>map</strong> them.</p>
+<table>
+<thead>
+<tr>
+<th>Endpoint mapping</th>
+<th>Default pattern</th>
+<th>Plane</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MapOpStreamSignalRManagement(pattern?)</code></td>
+<td><code>/manage</code></td>
+<td>Documents / history</td>
+</tr>
+<tr>
+<td><code>MapOpStreamWebSocketsManagement(pattern?)</code></td>
+<td><code>/manage-ws</code></td>
+<td>Documents / history</td>
+</tr>
+<tr>
+<td><code>MapOpStreamGrpcManagement()</code></td>
+<td>service route</td>
+<td>Documents / history</td>
+</tr>
+<tr>
+<td><code>MapOpStreamWebSocketsComments(pattern?)</code></td>
+<td><code>/comments-ws</code></td>
+<td>Comments</td>
+</tr>
+<tr>
+<td><code>MapOpStreamGrpcComments()</code></td>
+<td>service route</td>
+<td>Comments</td>
+</tr>
+</tbody>
+</table>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamSignalR</span><span class="p">();</span><span class="w">                 </span><span class="c1">// /collab</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamSignalRManagement</span><span class="p">();</span><span class="w">       </span><span class="c1">// /manage</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamWebSockets</span><span class="p">();</span><span class="w">              </span><span class="c1">// /collab-ws</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamGrpc</span><span class="p">();</span>
+</span></code></pre></div>
+<p>See the <a href="../../transports/">Transports overview</a>.</p>
+<hr />
+<h2 id="client-configuration">Client configuration<a class="headerlink" href="#client-configuration" title="Permanent link">&para;</a></h2>
+<p>Start with <code>services.AddOpStreamClient()</code>, then chain a transport. The collaboration
+client (<code>IOpStreamClient</code>) and the management client (<code>IOpStreamManagementClient</code>) are
+configured independently — register either, both, or neither.</p>
+<h3 id="collaboration-transports">Collaboration transports<a class="headerlink" href="#collaboration-transports" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Registers <code>IOpStreamClient</code></th>
+<th>Options type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UseSignalRTransport(configure)</code></td>
+<td><code>SignalROpStreamClient</code></td>
+<td><code>OpStreamSignalROptions</code></td>
+</tr>
+<tr>
+<td><code>UseWebSocketTransport(configure)</code></td>
+<td><code>WebSocketOpStreamClient</code></td>
+<td><code>OpStreamWebSocketOptions</code></td>
+</tr>
+<tr>
+<td><code>UsegRPCTransport(configure)</code></td>
+<td><code>gRPCOpStreamClient</code></td>
+<td><code>OpStreamgRPCOptions</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="management-transports">Management transports<a class="headerlink" href="#management-transports" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Registers <code>IOpStreamManagementClient</code></th>
+<th>Options type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UseSignalRManagementTransport(configure)</code></td>
+<td><code>SignalROpStreamManagementClient</code></td>
+<td><code>OpStreamSignalRManagementOptions</code></td>
+</tr>
+<tr>
+<td><code>UseWebSocketManagementTransport(configure)</code></td>
+<td><code>WebSocketOpStreamManagementClient</code></td>
+<td><code>OpStreamWebSocketManagementOptions</code></td>
+</tr>
+<tr>
+<td><code>UsegRPCManagementTransport(configure)</code></td>
+<td><code>gRPCOpStreamManagementClient</code></td>
+<td><code>OpStreamgRPCManagementOptions</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="client-options-reference">Client options reference<a class="headerlink" href="#client-options-reference" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Options type</th>
+<th>Property</th>
+<th>Default</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OpStreamSignalROptions</code></td>
+<td><code>HubUrl</code></td>
+<td><code>/collab</code></td>
+<td>Collaboration hub URL.</td>
+</tr>
+<tr>
+<td><code>OpStreamWebSocketOptions</code></td>
+<td><code>ServerUri</code></td>
+<td><code>ws://localhost:5000/ws-collab</code></td>
+<td>Collaboration WebSocket URI.</td>
+</tr>
+<tr>
+<td><code>OpStreamgRPCOptions</code></td>
+<td><code>ServerAddress</code></td>
+<td><code>https://localhost:5001</code></td>
+<td>gRPC server address.</td>
+</tr>
+<tr>
+<td><code>OpStreamSignalRManagementOptions</code></td>
+<td><code>ManagementHubUrl</code></td>
+<td><code>/mgmt</code></td>
+<td>Management hub URL.</td>
+</tr>
+<tr>
+<td></td>
+<td><code>VersioningHubUrl</code></td>
+<td><code>/versioning</code></td>
+<td>Versioning hub URL.</td>
+</tr>
+<tr>
+<td><code>OpStreamWebSocketManagementOptions</code></td>
+<td><code>ManagementWsUri</code></td>
+<td><code>ws://localhost:5000/ws-mgmt</code></td>
+<td>Management WebSocket URI.</td>
+</tr>
+<tr>
+<td></td>
+<td><code>VersioningWsUri</code></td>
+<td><code>ws://localhost:5000/ws-versioning</code></td>
+<td>Versioning WebSocket URI.</td>
+</tr>
+<tr>
+<td><code>OpStreamgRPCManagementOptions</code></td>
+<td><code>Address</code></td>
+<td><code>https://localhost:5001</code></td>
+<td>gRPC server address (shared by the management and versioning services).</td>
+</tr>
+</tbody>
+</table>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">// Collaboration client over SignalR</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStreamClient</span><span class="p">()</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="p">.</span><span class="n">UseSignalRTransport</span><span class="p">(</span><span class="n">o</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">HubUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://my-host/collab&quot;</span><span class="p">);</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1">// Management client over gRPC</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStreamClient</span><span class="p">()</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="p">.</span><span class="n">UsegRPCManagementTransport</span><span class="p">(</span><span class="n">o</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">Address</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://my-host:5001&quot;</span><span class="p">);</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Error mapping</p>
+<p>Management clients translate server failures into <code>OpStreamManagementException</code>.
+Inspect <code>IsForbidden</code> to distinguish an authorization denial (server returned a
+<code>"Forbidden:"</code> message) from any other error.</p>
+</div>
+<hr />
+<h2 id="end-to-end-example">End-to-end example<a class="headerlink" href="#end-to-end-example" title="Permanent link">&para;</a></h2>
+<p>A production multi-node host using PostgreSQL storage, a Redis backplane, real
+authorization on both planes, and all three transports:</p>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">WebApplication</span><span class="p">.</span><span class="n">CreateBuilder</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">builder</span><span class="p">.</span><span class="n">Services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">(</span><span class="n">options</span><span class="w"> </span><span class="o">=&gt;</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">        </span><span class="n">options</span><span class="p">.</span><span class="n">History</span><span class="p">.</span><span class="n">Enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">        </span><span class="n">options</span><span class="p">.</span><span class="n">History</span><span class="p">.</span><span class="n">SnapshotRevisionInterval</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span><span class="p">;</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span><span class="p">})</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="c1">// Engines</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="p">.</span><span class="n">AddEngine</span><span class="o">&lt;</span><span class="n">RichTextDocument</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextOp</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextEngine</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;rich-text&quot;</span><span class="p">)</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">    </span><span class="p">.</span><span class="n">AddAnchorEngine</span><span class="o">&lt;</span><span class="n">RichTextOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;rich-text&quot;</span><span class="p">)</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">    </span><span class="p">.</span><span class="n">UseVersioningMerge</span><span class="o">&lt;</span><span class="n">RichTextDocument</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;rich-text&quot;</span><span class="p">)</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">    </span><span class="c1">// Storage</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">    </span><span class="p">.</span><span class="n">UsePostgreSqlStorage</span><span class="p">(</span><span class="n">builder</span><span class="p">.</span><span class="n">Configuration</span><span class="p">.</span><span class="n">GetConnectionString</span><span class="p">(</span><span class="s">&quot;Db&quot;</span><span class="p">)</span><span class="o">!</span><span class="p">)</span>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">    </span><span class="p">.</span><span class="n">UseEfCoreCommentStorage</span><span class="o">&lt;</span><span class="n">PostgreSqlOpStreamDbContext</span><span class="o">&gt;</span><span class="p">()</span>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">    </span><span class="p">.</span><span class="n">UseEfCoreVersioningStorage</span><span class="o">&lt;</span><span class="n">PostgreSqlOpStreamDbContext</span><span class="o">&gt;</span><span class="p">()</span>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">    </span><span class="c1">// Scale-out</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">    </span><span class="p">.</span><span class="n">UseRedisBackplane</span><span class="p">(</span><span class="n">builder</span><span class="p">.</span><span class="n">Configuration</span><span class="p">.</span><span class="n">GetConnectionString</span><span class="p">(</span><span class="s">&quot;Redis&quot;</span><span class="p">)</span><span class="o">!</span><span class="p">)</span>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">    </span><span class="c1">// Security (both planes)</span>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="w">    </span><span class="p">.</span><span class="n">UseAuthorization</span><span class="o">&lt;</span><span class="n">MyDocumentAuthorizer</span><span class="o">&gt;</span><span class="p">()</span>
+</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="w">    </span><span class="p">.</span><span class="n">UseDatabaseCommandAuthorization</span><span class="o">&lt;</span><span class="n">MyManagementAuthorizer</span><span class="o">&gt;</span><span class="p">()</span>
+</span><span id="__span-10-21"><a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="w">    </span><span class="c1">// Snapshot cadence</span>
+</span><span id="__span-10-22"><a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="w">    </span><span class="p">.</span><span class="n">UseSnapshotPolicy</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">HybridSnapshotPolicy</span><span class="p">(</span><span class="mi">250</span><span class="p">,</span><span class="w"> </span><span class="n">TimeSpan</span><span class="p">.</span><span class="n">FromMinutes</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
+</span><span id="__span-10-23"><a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a><span class="w">    </span><span class="c1">// Transports</span>
+</span><span id="__span-10-24"><a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="w">    </span><span class="p">.</span><span class="n">AddSignalRTransport</span><span class="p">()</span>
+</span><span id="__span-10-25"><a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a><span class="w">    </span><span class="p">.</span><span class="n">AddWebSocketTransport</span><span class="p">()</span>
+</span><span id="__span-10-26"><a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a><span class="w">    </span><span class="p">.</span><span class="n">AddGrpcTransport</span><span class="p">();</span>
+</span><span id="__span-10-27"><a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a>
+</span><span id="__span-10-28"><a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a><span class="kt">var</span><span class="w"> </span><span class="n">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+</span><span id="__span-10-29"><a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a>
+</span><span id="__span-10-30"><a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamSignalR</span><span class="p">();</span>
+</span><span id="__span-10-31"><a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamSignalRManagement</span><span class="p">();</span>
+</span><span id="__span-10-32"><a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamWebSockets</span><span class="p">();</span>
+</span><span id="__span-10-33"><a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamWebSocketsManagement</span><span class="p">();</span>
+</span><span id="__span-10-34"><a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamGrpc</span><span class="p">();</span>
+</span><span id="__span-10-35"><a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamGrpcManagement</span><span class="p">();</span>
+</span><span id="__span-10-36"><a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a>
+</span><span id="__span-10-37"><a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a><span class="n">app</span><span class="p">.</span><span class="n">Run</span><span class="p">();</span>
+</span></code></pre></div>
+<hr />
+<h2 id="obsolete-aliases">Obsolete aliases<a class="headerlink" href="#obsolete-aliases" title="Permanent link">&para;</a></h2>
+<p>Kept for backwards compatibility; removed in v1.0.</p>
+<table>
+<thead>
+<tr>
+<th>Old</th>
+<th>Use instead</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AddOpStreamServer()</code></td>
+<td><code>AddOpStream()</code></td>
+</tr>
+<tr>
+<td><code>ConfigureDocumentType&lt;…&gt;(type)</code></td>
+<td><code>AddEngine&lt;…&gt;(type)</code></td>
+</tr>
+<tr>
+<td><code>UseNoopBackplane()</code></td>
+<td><code>UseLocalBackplane()</code></td>
+</tr>
+</tbody>
+</table>
+<p>See also the condensed <a href="../builder-api/">Builder API reference</a>.</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 OpStream contributors — MIT License
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/OpStreamCollab/OpStream" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.indexes", "toc.follow", "content.code.copy", "content.code.annotate", "content.tabs.link", "search.highlight", "search.suggest", "search.share"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

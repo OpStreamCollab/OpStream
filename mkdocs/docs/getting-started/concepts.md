@@ -112,7 +112,7 @@ Also known as **Cold Storage**, history is a permanent record of every operation
 and important state checkpoint (milestone) in a document's lifecycle. While the
 active op log may be compacted, the history store allows for features like
 audit logs, "time travel" browsing of past versions, and restoration to 
-specific revisions. See [History](../operations/history.md).
+specific revisions. See [History](../operations/snapshots.md#history).
 
 ## Merging
 

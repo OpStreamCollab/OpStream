@@ -545,6 +545,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#branching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branching
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#comment" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -604,6 +615,17 @@
     <span class="md-ellipsis">
       
         History
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#merging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Merging
       
     </span>
   </a>
@@ -692,6 +714,17 @@
     <span class="md-ellipsis">
       
         Transport
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Versioning
       
     </span>
   </a>
@@ -2114,6 +2147,8 @@
       
         
       
+        
+      
     
     
     
@@ -2176,6 +2211,34 @@
     
   
     Builder API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration (DI)
   
 
     
@@ -2312,6 +2375,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#branching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branching
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#comment" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2371,6 +2445,17 @@
     <span class="md-ellipsis">
       
         History
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#merging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Merging
       
     </span>
   </a>
@@ -2459,6 +2544,17 @@
     <span class="md-ellipsis">
       
         Transport
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Versioning
       
     </span>
   </a>
@@ -2567,6 +2663,11 @@
 <td>Cluster fan-out and ownership coordination</td>
 </tr>
 <tr>
+<td><strong>Branching</strong></td>
+<td>Ref registry</td>
+<td>Named divergent history lines, fork/merge metadata</td>
+</tr>
+<tr>
 <td><strong>Comment</strong></td>
 <td>Shared storage</td>
 <td>Collaborative feedback, threaded replies, anchors</td>
@@ -2595,6 +2696,11 @@
 <td><strong>History</strong></td>
 <td>Cold storage</td>
 <td>Permanent immutable log, state milestones, versioning</td>
+</tr>
+<tr>
+<td><strong>Merging</strong></td>
+<td>Document engine</td>
+<td>Integration of divergent branches via 3-way transformation</td>
 </tr>
 <tr>
 <td><strong>Multitenancy</strong></td>
@@ -2636,6 +2742,11 @@
 <td>Network edge</td>
 <td>Wire protocol between clients and server</td>
 </tr>
+<tr>
+<td><strong>Versioning</strong></td>
+<td>Ref registry</td>
+<td>Immutable named pointers to past revisions (tags)</td>
+</tr>
 </tbody>
 </table>
 <h2 id="awareness">Awareness<a class="headerlink" href="#awareness" title="Permanent link">&para;</a></h2>
@@ -2650,6 +2761,13 @@ in-process <code>LocalBackplane</code>; for production you swap in <code>UseRedi
 Its job is to ensure that an op applied on node A is broadcast to peers
 connected to nodes B, C, …, and that ownership of a document is moved
 between nodes when needed. See <a href="../../operations/backplane/">Backplane</a>.</p>
+<h2 id="branching">Branching<a class="headerlink" href="#branching" title="Permanent link">&para;</a></h2>
+<p>A <strong>branch</strong> is a named, independent line of edits derived from a parent 
+document's state at a specific revision (the fork point). Each branch has 
+its own physical op log and can grow independently. OpStream supports 
+Git-style branching and <strong>merging</strong>, where a branch's edits are transformed 
+against the target's history to integrate changes cleanly across different 
+lines of work.</p>
 <h2 id="comment">Comment<a class="headerlink" href="#comment" title="Permanent link">&para;</a></h2>
 <p>A piece of collaborative feedback attached to a document at a specific point
 in its timeline (revision). Comments support threading (replies) and can be
@@ -2700,7 +2818,15 @@ storage availability) for monitoring and orchestration tools like Kubernetes.</p
 and important state checkpoint (milestone) in a document's lifecycle. While the
 active op log may be compacted, the history store allows for features like
 audit logs, "time travel" browsing of past versions, and restoration to 
-specific revisions. See <a href="../operations/history.md">History</a>.</p>
+specific revisions. See <a href="../../operations/snapshots/#history">History</a>.</p>
+<h2 id="merging">Merging<a class="headerlink" href="#merging" title="Permanent link">&para;</a></h2>
+<p><strong>Merging</strong> is the process of integrating changes from one branch into another. 
+OpStream performs a <strong>3-way merge</strong> using the fork point as the common ancestor. 
+Instead of simple text diffs, the merge is driven by the document's <a href="../../engines/">engine</a>: 
+concurrent operations from the source branch are <strong>transformed</strong> against the 
+target's history. This ensures that the merge is deterministic, preserves 
+intent, and leverages the same conflict-resolution logic used during live 
+collaboration.</p>
 <h2 id="multitenancy">Multitenancy<a class="headerlink" href="#multitenancy" title="Permanent link">&para;</a></h2>
 <p>The ability for a single OpStream cluster to serve multiple independent 
 customers (tenants). It uses <strong>Document ID Globalization</strong> to isolate data, 
@@ -2834,6 +2960,12 @@ layers — it only carries ops and awareness in and fan-out out.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">OPSTREAM__TRANSPORTS</span><span class="o">=</span><span class="s2">&quot;signalr,websockets,grpc&quot;</span>
 </span></code></pre></div>
 <p>See <a href="../../transports/">Transports</a> for per-transport configuration.</p>
+<h2 id="versioning">Versioning<a class="headerlink" href="#versioning" title="Permanent link">&para;</a></h2>
+<p>A <strong>version</strong> (or tag) is an immutable, named pointer to a specific revision 
+in a document's history. It allows you to reliably "time travel" to a past 
+state and read the document exactly as it was when the version was created. 
+Versions are backed by history milestones to ensure they remain accessible 
+even after the active op log is compacted.</p>
 <h2 id="next-transports">Next: <a href="../../transports/">Transports →</a><a class="headerlink" href="#next-transports" title="Permanent link">&para;</a></h2>
 
 
