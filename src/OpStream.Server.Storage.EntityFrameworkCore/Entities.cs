@@ -71,3 +71,45 @@ public class HistorySnapshotEntity
     public byte[] State { get; set; } = null!;
     public string? Name { get; set; }
 }
+
+// ─── Versioning ref registry ──────────────────────────────────────────────────
+
+/// <summary>
+/// Registers a stable human-readable name and its default branch.
+/// </summary>
+public class DocumentNameEntity
+{
+    [Key]
+    public string GlobalName { get; set; } = null!;
+    public string DefaultBranchId { get; set; } = null!;
+    public string EngineType { get; set; } = null!;
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+/// <summary>
+/// Metadata for one branch (line of history). The physical op-log key is <see cref="PhysicalDocumentId"/>.
+/// </summary>
+public class DocumentBranchEntity
+{
+    public string GlobalName { get; set; } = null!;
+    public string BranchId { get; set; } = null!;
+    public string PhysicalDocumentId { get; set; } = null!;
+    public string? ForkParentBranchId { get; set; }
+    public long ForkRevision { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public bool IsReadOnly { get; set; }
+}
+
+/// <summary>
+/// Immutable version tag: a named pointer to a specific revision on a branch.
+/// </summary>
+public class DocumentVersionEntity
+{
+    public string GlobalName { get; set; } = null!;
+    public string BranchId { get; set; } = null!;
+    public string Tag { get; set; } = null!;
+    public long Revision { get; set; }
+    /// <summary>Name of the backing named milestone in <c>HistorySnapshots</c>.</summary>
+    public string HistorySnapshotName { get; set; } = null!;
+    public DateTimeOffset CreatedAt { get; set; }
+}

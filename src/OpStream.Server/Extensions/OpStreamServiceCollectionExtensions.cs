@@ -10,6 +10,7 @@ using OpStream.Server.Models;
 using OpStream.Server.Session;
 using OpStream.Server.Storage;
 using OpStream.Server.Multitenancy;
+using OpStream.Server.Versioning;
 using OpStream.Shared.Abstractions;
 using OpStream.Server.Snapshots;
 using OpStream.Server.Engine.RichText;
@@ -127,6 +128,11 @@ public static class OpStreamServiceCollectionExtensions
         // Default comment store — in-memory. Replace via UseEfCoreCommentStorage(),
         // UseMongoDbCommentStorage(), or UseRedisCommentStorage().
         services.TryAddSingleton<ICommentStore, MemoryCommentStore>();
+
+        // Versioning ref store — in-memory default. Replace via UseEfCoreVersioningStorage() etc.
+        services.TryAddSingleton<IDocumentRefStore, MemoryDocumentRefStore>();
+        services.TryAddSingleton<MergeDriverRegistry>();
+        services.TryAddSingleton<VersioningRouter>();
 
         // Open-generic post-apply hook that rebases comment anchors. Becomes a no-op for
         // op types that have no IAnchorEngine<TOp> registered.
@@ -263,6 +269,23 @@ public static class OpStreamServiceCollectionExtensions
         where TSeeder : class, IDocumentSeeder<TDoc>
     {
         builder.Services.AddScoped<IDocumentSeeder<TDoc>, TSeeder>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers a 3-way merge driver for the given engine type so that
+    /// <see cref="VersioningRouter.MergeAsync"/> can merge branches of that type.
+    /// Call alongside <see cref="AddEngine{TDoc,TOp,TEngine}"/> for every engine that should support merge.
+    /// </summary>
+    public static IOpStreamBuilder UseVersioningMerge<TDoc, TOp>(
+        this IOpStreamBuilder builder,
+        string engineType)
+    {
+        builder.Services.AddSingleton<IDocumentMergeDriver>(sp =>
+            new DocumentMergeDriver<TDoc, TOp>(
+                engineType,
+                sp.GetRequiredService<IOpEngine<TDoc, TOp>>(),
+                sp.GetRequiredService<IServiceScopeFactory>()));
         return builder;
     }
 

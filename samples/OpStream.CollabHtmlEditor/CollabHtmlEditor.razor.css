@@ -1,0 +1,28 @@
+.collab-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    margin-bottom: 0.75rem;
+    background: #f6f8fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.connected { background: #28a745; }
+.status-dot.disconnected { background: #dc3545; }
+
+.revision {
+    margin-left: auto;
+    color: #888;
+    font-variant-numeric: tabular-nums;
+}

@@ -2,30 +2,46 @@ using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using OpStream.Server.Diagnostics;
 using OpStream.Server.Storage;
+using OpStream.Server.Versioning;
 
 namespace OpStream.Server.Comments;
 
 /// <summary>
 /// Runs a full anchor rebase pass before delegating to <see cref="IDocumentStore.CompactAsync"/>.
-/// Without this, open comments whose <c>AnchoredAtRevision</c> falls below the compaction floor
-/// can no longer recover their positions from the op log.
+/// Also enforces the versioning pin guard: refuses to compact below any revision pinned by a
+/// version tag so that historical snapshots remain fully recoverable.
 /// </summary>
 public sealed class CompactWithAnchorsService(
     ICommentStore commentStore,
     IDocumentStore documentStore,
     IAnchorEngineRegistry anchorRegistry,
+    VersioningRouter versioningRouter,
     ILogger<CompactWithAnchorsService> logger)
 {
     /// <summary>
     /// Rebases all open comment anchors for <paramref name="documentId"/> against every op
     /// in <c>[minAnchoredRevision … upToRevision]</c>, then delegates to
     /// <see cref="IDocumentStore.CompactAsync"/>.
+    /// Clamps <paramref name="upToRevision"/> down to the lowest pinned version revision when
+    /// version tags exist, so compaction never destroys the snapshot a tag depends on.
     /// </summary>
     /// <param name="documentId">Global document id (already resolved by the caller).</param>
     /// <param name="upToRevision">Inclusive upper bound passed to the store compaction call.</param>
     /// <param name="ct">Cancellation token.</param>
     public async Task CompactAsync(string documentId, long upToRevision, CancellationToken ct = default)
     {
+        // Versioning pin guard: clamp the compaction floor so tagged revisions are preserved.
+        var minPinned = await versioningRouter.GetMinPinnedRevisionAsync(documentId, ct);
+        if (minPinned.HasValue && minPinned.Value < upToRevision)
+        {
+            logger.LogInformation(
+                "Compaction for {DocId} clamped to revision {Floor} (pinned by a version tag)",
+                documentId, minPinned.Value - 1);
+            upToRevision = minPinned.Value - 1;
+        }
+
+        if (upToRevision <= 0) return;
+
         var minRevision = await commentStore.GetMinAnchoredRevisionAsync(documentId, ct);
 
         if (minRevision.HasValue && minRevision.Value <= upToRevision)

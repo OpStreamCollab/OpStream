@@ -1,0 +1,300 @@
+@* Generic collaborative wrapper. Drop any contenteditable-based rich editor
+   (RadzenHtmlEditor, Quill, a plain [contenteditable] div…) inside ChildContent
+   and it becomes collaborative automatically over an OpStream "rich-text" doc.
+
+   The wrapper owns the DOM/collab bridge entirely; it never touches the inner
+   editor's C# API. Locate the editable region with ContentSelector.
+
+   IMPORTANT: do NOT two-way @bind the inner editor's Value — once mounted the
+   JS adapter owns the DOM, and a Blazor re-render would reset the caret. Initial
+   content is seeded from the server snapshot via JS. *@
+
+@using System.Text
+@using System.Text.Json
+@using OpStream.Client.Transports
+@inject IOpStreamClient OpStreamClient
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+@if (ShowStatus)
+{
+    <div class="collab-status-bar">
+        <span class="status-dot @(_isConnected ? "connected" : "disconnected")"></span>
+        <span>@_statusMessage</span>
+        <span class="revision">Rev: @_currentRevision</span>
+    </div>
+}
+
+<div id="@_containerId">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>Document key joined on the OpStream hub. Required.</summary>
+    [Parameter, EditorRequired] public string DocumentId { get; set; } = "";
+
+    /// <summary>OpStream engine/document type. Defaults to "rich-text".</summary>
+    [Parameter] public string DocumentType { get; set; } = "rich-text";
+
+    /// <summary>The editor to make collaborative (e.g. a &lt;RadzenHtmlEditor /&gt;).</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// CSS selector (relative to the wrapper container) of the contenteditable
+    /// region. Defaults to Radzen's editable surface.
+    /// </summary>
+    [Parameter] public string ContentSelector { get; set; } = ".rz-html-editor-content";
+
+    /// <summary>Whether to render the built-in connection/revision status bar.</summary>
+    [Parameter] public bool ShowStatus { get; set; } = true;
+
+    /// <summary>Outward-only: current HTML, raised on every local or remote change (for saving).</summary>
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    private readonly string _instanceId = Guid.NewGuid().ToString("N");
+    private string _containerId => $"collab-editor-{_instanceId}";
+
+    // Revisions produced by our own SendOpAsync. Each echoes back through ReceiveOp —
+    // we consume the entry and skip re-applying so the local DOM is not clobbered.
+    private readonly HashSet<long> _ownRevisions = new();
+
+    private string? _htmlContent;
+    private string? _lastSentHtml;
+    private long _currentRevision = 0;
+    private string _statusMessage = "Connecting…";
+    private bool _isConnected = false;
+    private bool _isRemoteUpdate = false;
+    private DotNetObjectReference<CollabHtmlEditor>? _objRef;
+
+    // ── Lifecycle ────────────────────────────────────────────
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _objRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("RadzenCollabAdapter.init",
+                _instanceId, $"#{_containerId}", ContentSelector, _objRef);
+            await InitializeOpStreamAsync();
+        }
+    }
+
+    // ── OpStream init ────────────────────────────────────────
+    private async Task InitializeOpStreamAsync()
+    {
+        try
+        {
+            OpStreamClient.OnReceiveOp += HandleRemoteOp;
+            OpStreamClient.OnDisconnected += HandleDisconnected;
+
+            var result = await OpStreamClient.ConnectAndJoinAsync(DocumentId, DocumentType);
+            _currentRevision = result.Revision;
+            _htmlContent = ExtractSnapshotHtml(result.Snapshot);
+
+            _lastSentHtml = _htmlContent;
+            _isConnected = true;
+            _statusMessage = "Connected";
+
+            await InvokeAsync(StateHasChanged);
+            // Seed the editor DOM with the server snapshot (the inner editor is opaque).
+            await JS.InvokeVoidAsync("RadzenCollabAdapter.setInitialHtml", _instanceId, _htmlContent ?? "");
+            await RaiseValueChangedAsync(_htmlContent ?? "");
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Error: {ex.Message}";
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private static string ExtractSnapshotHtml(ReadOnlyMemory<byte> snapshot)
+    {
+        if (snapshot.IsEmpty) return "";
+        try
+        {
+            using var doc = JsonDocument.Parse(snapshot);
+            if (doc.RootElement.TryGetProperty("content", out var contentArray))
+            {
+                var sb = new StringBuilder();
+                foreach (var insertEl in contentArray.EnumerateArray())
+                {
+                    if (insertEl.TryGetProperty("Text", out var tp))
+                        sb.Append(tp.GetString() ?? "");
+                    else if (insertEl.TryGetProperty("text", out var tp2))
+                        sb.Append(tp2.GetString() ?? "");
+                }
+                return sb.ToString();
+            }
+            return "";
+        }
+        catch { return Encoding.UTF8.GetString(snapshot.Span); }
+    }
+
+    // ── Local edits ──────────────────────────────────────────
+    [JSInvokable]
+    public async Task OnLocalHtmlChange(string newHtml)
+    {
+        if (_isRemoteUpdate || !_isConnected) return;
+
+        var oldHtml = _lastSentHtml ?? "";
+        if (oldHtml == newHtml) return;
+
+        var op = BuildReplaceOp(oldHtml, newHtml);
+        _lastSentHtml = newHtml;
+
+        var payload = Encoding.UTF8.GetBytes(op);
+        var result = await OpStreamClient.SendOpAsync(DocumentId, payload, _currentRevision);
+        if (result.Success)
+        {
+            _currentRevision = result.NewRevision;
+            // Mark revision so the upcoming echo from ReceiveOp is skipped.
+            lock (_ownRevisions) _ownRevisions.Add(result.NewRevision);
+            await RaiseValueChangedAsync(newHtml);
+        }
+    }
+
+    // ── Remote ops ───────────────────────────────────────────
+    private async Task HandleRemoteOp(ReadOnlyMemory<byte> payload, long newRev)
+    {
+        bool isSelfEcho;
+        lock (_ownRevisions) isSelfEcho = _ownRevisions.Remove(newRev);
+        _currentRevision = newRev;
+        if (isSelfEcho) return;
+
+        _isRemoteUpdate = true;
+        try
+        {
+            var opJson = Encoding.UTF8.GetString(payload.Span);
+            using var doc = JsonDocument.Parse(opJson);
+            if (doc.RootElement.TryGetProperty("Components", out var components) ||
+                doc.RootElement.TryGetProperty("components", out components))
+            {
+                var currentHtml = _lastSentHtml ?? "";
+
+                var opsForJs = new List<Dictionary<string, object>>();
+                foreach (var comp in components.EnumerateArray())
+                {
+                    var typeDisc = "";
+                    if (comp.TryGetProperty("$type", out var t1)) typeDisc = t1.GetString() ?? "";
+                    else if (comp.TryGetProperty("type", out var t2)) typeDisc = t2.GetString() ?? "";
+
+                    switch (typeDisc.ToLowerInvariant())
+                    {
+                        case "retain":
+                            int rc = comp.TryGetProperty("Count", out var c1) ? c1.GetInt32()
+                                   : comp.TryGetProperty("count", out var c2) ? c2.GetInt32() : 0;
+                            opsForJs.Add(new Dictionary<string, object> { ["type"] = "retain", ["count"] = rc });
+                            break;
+                        case "insert":
+                            string it = comp.TryGetProperty("Text", out var tx1) ? tx1.GetString() ?? ""
+                                      : comp.TryGetProperty("text", out var tx2) ? tx2.GetString() ?? "" : "";
+                            opsForJs.Add(new Dictionary<string, object> { ["type"] = "insert", ["text"] = it });
+                            break;
+                        case "delete":
+                            int dc = comp.TryGetProperty("Count", out var d1) ? d1.GetInt32()
+                                   : comp.TryGetProperty("count", out var d2) ? d2.GetInt32() : 0;
+                            opsForJs.Add(new Dictionary<string, object> { ["type"] = "delete", ["count"] = dc });
+                            break;
+                    }
+                }
+
+                var newHtml = ApplyOpToContent(currentHtml, components);
+                _lastSentHtml = newHtml;
+                await JS.InvokeVoidAsync("RadzenCollabAdapter.applyRemoteOp", _instanceId, newHtml, opsForJs);
+                await RaiseValueChangedAsync(newHtml);
+            }
+        }
+        catch (Exception ex) { Console.Error.WriteLine($"[OpStream] Remote op error: {ex.Message}"); }
+        finally
+        {
+            _isRemoteUpdate = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void HandleDisconnected(Exception? ex)
+    {
+        _isConnected = false;
+        _statusMessage = "Disconnected";
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RaiseValueChangedAsync(string html)
+    {
+        if (ValueChanged.HasDelegate) await ValueChanged.InvokeAsync(html);
+    }
+
+    // ── OT helpers ───────────────────────────────────────────
+    private string BuildReplaceOp(string oldContent, string newContent)
+    {
+        var components = new List<Dictionary<string, object>>();
+        int prefixLen = 0;
+        int minLen = Math.Min(oldContent.Length, newContent.Length);
+        while (prefixLen < minLen && oldContent[prefixLen] == newContent[prefixLen]) prefixLen++;
+
+        int suffixLen = 0;
+        while (suffixLen < (minLen - prefixLen)
+               && oldContent[oldContent.Length - 1 - suffixLen] == newContent[newContent.Length - 1 - suffixLen])
+            suffixLen++;
+
+        int deleteCount = oldContent.Length - prefixLen - suffixLen;
+        string insertText = newContent.Substring(prefixLen, newContent.Length - prefixLen - suffixLen);
+
+        if (prefixLen > 0)
+            components.Add(new Dictionary<string, object> { ["$type"] = "retain", ["Count"] = prefixLen });
+        if (deleteCount > 0)
+            components.Add(new Dictionary<string, object> { ["$type"] = "delete", ["Count"] = deleteCount });
+        if (insertText.Length > 0)
+            components.Add(new Dictionary<string, object> { ["$type"] = "insert", ["Text"] = insertText });
+
+        return JsonSerializer.Serialize(new Dictionary<string, object> { ["Components"] = components });
+    }
+
+    private string ApplyOpToContent(string currentContent, JsonElement components)
+    {
+        var sb = new StringBuilder();
+        int cursor = 0;
+        foreach (var comp in components.EnumerateArray())
+        {
+            var typeDisc = "";
+            if (comp.TryGetProperty("$type", out var t1)) typeDisc = t1.GetString() ?? "";
+            else if (comp.TryGetProperty("type", out var t2)) typeDisc = t2.GetString() ?? "";
+
+            switch (typeDisc.ToLowerInvariant())
+            {
+                case "retain":
+                    int rc = comp.TryGetProperty("Count", out var c1) ? c1.GetInt32()
+                           : comp.TryGetProperty("count", out var c2) ? c2.GetInt32() : 0;
+                    int ar = Math.Min(rc, currentContent.Length - cursor);
+                    if (ar > 0) { sb.Append(currentContent, cursor, ar); cursor += ar; }
+                    break;
+                case "insert":
+                    string it = comp.TryGetProperty("Text", out var tx1) ? tx1.GetString() ?? ""
+                              : comp.TryGetProperty("text", out var tx2) ? tx2.GetString() ?? "" : "";
+                    sb.Append(it);
+                    break;
+                case "delete":
+                    int dc = comp.TryGetProperty("Count", out var d1) ? d1.GetInt32()
+                           : comp.TryGetProperty("count", out var d2) ? d2.GetInt32() : 0;
+                    cursor += Math.Min(dc, currentContent.Length - cursor);
+                    break;
+            }
+        }
+        if (cursor < currentContent.Length) sb.Append(currentContent, cursor, currentContent.Length - cursor);
+        return sb.ToString();
+    }
+
+    // ── Dispose ──────────────────────────────────────────────
+    public async ValueTask DisposeAsync()
+    {
+        if (OpStreamClient != null)
+        {
+            OpStreamClient.OnReceiveOp -= HandleRemoteOp;
+            OpStreamClient.OnDisconnected -= HandleDisconnected;
+        }
+        if (_objRef != null)
+        {
+            try { await JS.InvokeVoidAsync("RadzenCollabAdapter.dispose", _instanceId); } catch { }
+            _objRef.Dispose();
+        }
+    }
+}

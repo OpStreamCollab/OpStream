@@ -96,6 +96,24 @@ public static class OpStreamConstants
         public const string TextOt = "TextOtEngine";
     }
 
+    public static class VersioningHubMethods
+    {
+        // Names
+        public const string RegisterName = "VRegisterName";
+        public const string ListNames    = "VListNames";
 
-   
+        // Branches
+        public const string ListBranches  = "VListBranches";
+        public const string ForkBranch    = "VForkBranch";
+        public const string DeleteBranch  = "VDeleteBranch";
+
+        // Versions / tags
+        public const string CreateVersion       = "VCreateVersion";
+        public const string ListVersions        = "VListVersions";
+        public const string ReadVersionSnapshot = "VReadVersionSnapshot";
+
+        // Merge
+        public const string MergeBranch    = "VMergeBranch";
+        public const string DryRunMerge    = "VDryRunMerge";
+    }
 }

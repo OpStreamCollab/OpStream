@@ -17,6 +17,11 @@ public abstract class OpStreamDbContext : DbContext
     public DbSet<HistorySnapshotEntity> HistorySnapshots => Set<HistorySnapshotEntity>();
     public DbSet<CommentEntity> Comments => Set<CommentEntity>();
 
+    // Versioning ref registry
+    public DbSet<DocumentNameEntity>    DocumentNames    => Set<DocumentNameEntity>();
+    public DbSet<DocumentBranchEntity>  DocumentBranches => Set<DocumentBranchEntity>();
+    public DbSet<DocumentVersionEntity> DocumentVersions => Set<DocumentVersionEntity>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -49,6 +54,19 @@ public abstract class OpStreamDbContext : DbContext
             // Covering index for the most common query: open comments per document.
             entity.HasIndex(e => new { e.DocumentId, e.ParentCommentId, e.ResolvedAt });
             // Single-row lookup by comment id is the PK (string, covered above).
+        });
+
+        // Versioning ref registry
+        modelBuilder.Entity<DocumentBranchEntity>(entity =>
+        {
+            entity.HasKey(e => new { e.GlobalName, e.BranchId });
+            entity.HasIndex(e => e.PhysicalDocumentId);
+        });
+
+        modelBuilder.Entity<DocumentVersionEntity>(entity =>
+        {
+            entity.HasKey(e => new { e.GlobalName, e.BranchId, e.Tag });
+            entity.HasIndex(e => new { e.GlobalName, e.BranchId });
         });
     }
 }
