@@ -26,7 +26,7 @@ public class SignalRTransport(DocumentRouter router, IDocumentIdGlobalizer globa
 
         var peerId = Context.ConnectionId;
 
-        var result = await router.JoinDocumentAsync(globalDocId, documentType, peerId, clientProtoVersion);
+        var result = await router.JoinDocumentAsync(documentId, documentType, peerId, clientProtoVersion);
         if (!result.Success) throw new HubException(result.ErrorMessage);
 
         await Groups.AddToGroupAsync(peerId, globalDocId);
@@ -48,7 +48,7 @@ public class SignalRTransport(DocumentRouter router, IDocumentIdGlobalizer globa
 
         var peerId = Context.ConnectionId;
 
-        var result = await router.ApplyOpAsync(peerId, documentId: globalDocId, payload: payload, baseRevision: baseRevision, ct: Context.ConnectionAborted);
+        var result = await router.ApplyOpAsync(peerId, documentId: documentId, payload: payload, baseRevision: baseRevision, ct: Context.ConnectionAborted);
         if (!result.Success) throw new HubException(result.ErrorMessage);
 
         // Broadcast is now handled via Backplane -> HandleBackplaneMessageAsync
@@ -67,7 +67,7 @@ public class SignalRTransport(DocumentRouter router, IDocumentIdGlobalizer globa
 
         var peerId = Context.ConnectionId;
 
-        await router.UpdateAwarenessAsync(peerId, globalDocId, data,ct: Context.ConnectionAborted);
+        await router.UpdateAwarenessAsync(peerId, documentId, data,ct: Context.ConnectionAborted);
 
         // Broadcast is now handled via Backplane -> HandleBackplaneMessageAsync
     }

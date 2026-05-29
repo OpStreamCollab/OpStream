@@ -108,7 +108,7 @@ public class WebSocketTransport(DocumentRouter router, WebSocketConnectionManage
                     {
                         string globalDocId = globalizer.ToGlobalId(message.JoinRequest.DocumentId);
                         var result = await router.JoinDocumentAsync(
-                            globalDocId,
+                            message.JoinRequest.DocumentId,
                             message.JoinRequest.DocumentType,
                             peerId,
                             message.JoinRequest.ClientProtoVersion);
@@ -148,7 +148,7 @@ public class WebSocketTransport(DocumentRouter router, WebSocketConnectionManage
 
                         var result = await router.ApplyOpAsync(
                             peerId,
-                            globalDocId,
+                            message.OpRequest.DocumentId,
                             message.OpRequest.Payload,
                             message.OpRequest.BaseRevision);
 
@@ -180,7 +180,7 @@ public class WebSocketTransport(DocumentRouter router, WebSocketConnectionManage
                     {
                         string globalDocId = globalizer.ToGlobalId(message.AwarenessRequest.DocumentId);
                         using var doc = JsonDocument.Parse(message.AwarenessRequest.DataJson);
-                        await router.UpdateAwarenessAsync(peerId, globalDocId, doc.RootElement.Clone());
+                        await router.UpdateAwarenessAsync(peerId, message.AwarenessRequest.DocumentId, doc.RootElement.Clone());
                     }
                     break;
             }

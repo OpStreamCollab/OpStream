@@ -79,7 +79,7 @@ public class gRPCTransport(DocumentRouter router, gRPCConnectionManager connecti
     {
         string globalDocId = globalizer.ToGlobalId(request.DocumentId);
 
-        var result = await router.JoinDocumentAsync(globalDocId, request.DocumentType, peerId, request.ClientProtoVersion, ct: ct);
+        var result = await router.JoinDocumentAsync(request.DocumentId, request.DocumentType, peerId, request.ClientProtoVersion, ct: ct);
 
         if (result.Success)
         {
@@ -124,7 +124,7 @@ public class gRPCTransport(DocumentRouter router, gRPCConnectionManager connecti
     {
         string globalDocId = globalizer.ToGlobalId(request.DocumentId);
 
-        var result = await router.ApplyOpAsync(peerId, globalDocId, request.Payload.ToByteArray(), request.BaseRevision,ct: ct);
+        var result = await router.ApplyOpAsync(peerId, request.DocumentId, request.Payload.ToByteArray(), request.BaseRevision,ct: ct);
 
         if (result.Success)
         {
@@ -171,7 +171,7 @@ public class gRPCTransport(DocumentRouter router, gRPCConnectionManager connecti
         string globalDocId = globalizer.ToGlobalId(request.DocumentId);
 
         using var doc = JsonDocument.Parse(request.DataJson);
-        await router.UpdateAwarenessAsync(peerId, globalDocId, doc.RootElement.Clone(),ct: ct);
+        await router.UpdateAwarenessAsync(peerId, request.DocumentId, doc.RootElement.Clone(),ct: ct);
     }
 
     /// <summary>
