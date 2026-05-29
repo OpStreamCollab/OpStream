@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpStream + three.js editor — collaborative demo</title>
+    <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+    <!--
+        The three.js editor is loaded as-is from its upstream folder, with zero
+        modifications. The CollabSession (loaded below in the parent window)
+        reaches into the iframe at runtime to wrap editor.history.execute.
+    -->
+    <iframe id="editorFrame" src="/three.js-dev/editor/index.html"></iframe>
+
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>
