@@ -57,7 +57,7 @@ public class DocumentDrainTests
 
         var op = new TextOp(new TextOpComponent[] { new Insert("Hello") });
         var payload = JsonSerializer.SerializeToUtf8Bytes(op, OpStreamJsonOptions.Default);
-        var applied = await router.ApplyOpAsync(peerId, docId, payload, baseRevision: 0);
+        var applied = await router.ApplyOpAsync(peerId, docId, payload, baseRevision: join.Value!.Revision);
         applied.Success.Should().BeTrue();
         return applied.Value!.NewRevision;
     }

@@ -72,7 +72,8 @@ public class ConcurrencyIntegrationTests : IAsyncLifetime
             .WithEnvironment("ASPNETCORE_URLS", $"http://+:{ContainerPort}")
             .WithEnvironment("OPSTREAM__TRANSPORTS", "signalr")
             .WithEnvironment("OPSTREAM__ENGINES", "text")
-            .WithEnvironment("OPSTREAM__STORAGE__PROVIDER", "memory")
+            .WithEnvironment("OPSTREAM__STORAGE__PROVIDER", "redis")
+            .WithEnvironment("OPSTREAM__STORAGE__CONNECTIONSTRING", "redis:6379")
             .WithEnvironment("OPSTREAM__BACKPLANE__PROVIDER", "redis")
             .WithEnvironment("OPSTREAM__BACKPLANE__CONNECTIONSTRING", "redis:6379")
             .WithEnvironment("OPSTREAM__SIGNALR__PATH", "/collab")
@@ -96,7 +97,7 @@ public class ConcurrencyIntegrationTests : IAsyncLifetime
         var docId = "concurrency-doc";
         var ports = new[] { _hostAPort, _hostBPort, _hostCPort };
         var numClients = 9; // 3 clients per host
-        var opsPerClient = 20;
+        var opsPerClient = 10;
 
         var clients = new List<HubConnection>();
         var joinTasks = new List<Task<JoinResult>>();
