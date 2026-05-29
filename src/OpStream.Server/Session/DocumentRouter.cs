@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using OpStream.Constants;
 using OpStream.Server.Diagnostics;
+using OpStream.Server.Multitenancy;
 using OpStream.Shared.Abstractions;
 using OpStream.Shared.Messages;
 using System.Collections.Concurrent;
@@ -39,6 +40,7 @@ public class DocumentRouter(
     OpStreamStartupValidator startupValidator,
     IBackplane backplane,
     IDocumentOwnershipManager ownershipManager,
+    IDocumentIdGlobalizer globalizer,
     ITimerFactory timerFactory,
     SessionRegistryOptions options,
     ILogger<DocumentRouter> logger)
@@ -78,27 +80,29 @@ public class DocumentRouter(
         if (protocolVersion != ProtocolVersions.Current)
             return OpResult<SessionJoinResult>.Fail($"UnsupportedProtocol: Required proto={ProtocolVersions.Current}");
 
-        peers.Track(peerId, documentId);
-        CancelIdleClosure(documentId);
+        var globalId = isProxied ? documentId : globalizer.ToGlobalId(documentId);
+
+        peers.Track(peerId, globalId);
+        CancelIdleClosure(globalId);
 
         var result = await pipeline.ExecuteAsync<SessionJoinResult, JoinRequestData>(
-            documentId,
+            globalId,
             isProxied,
             access => access.CanRead,
             OpStreamConstants.BackplaneCommands.JoinDocument,
-            new JoinRequestData(documentId, documentType, peerId, protocolVersion),
-            ct => sessions.GetOrOpenAsync(documentId, documentType, ct),
+            new JoinRequestData(globalId, documentType, peerId, protocolVersion),
+            ct => sessions.GetOrOpenAsync(globalId, documentType, ct),
             async (session, innerCt) =>
             {
                 var docResult = await session.JoinAsync(peerId, innerCt);
-                var awarenessSession = await awareness.GetOrCreateAsync(documentId, innerCt);
+                var awarenessSession = await awareness.GetOrCreateAsync(globalId, innerCt);
                 var currentAwareness = awarenessSession.GetStates().ToList();
                 return new SessionJoinResult(docResult.Revision, docResult.Snapshot, docResult.PendingOps, currentAwareness);
             },
             ct);
 
         if (result.Success)
-            await EnsureBackplaneSubscriptionAsync(documentId, ct);
+            await EnsureBackplaneSubscriptionAsync(globalId, ct);
 
         return result;
     }
@@ -107,33 +111,39 @@ public class DocumentRouter(
     public Task<OpResult<OpApplyResult>> ApplyOpAsync(
         string peerId, string documentId, ReadOnlyMemory<byte> payload, long baseRevision,
         bool isProxied = false, CancellationToken ct = default)
-        => pipeline.ExecuteAsync<OpApplyResult, ApplyOpRequestData>(
-            documentId,
+    {
+        var globalId = isProxied ? documentId : globalizer.ToGlobalId(documentId);
+        return pipeline.ExecuteAsync<OpApplyResult, ApplyOpRequestData>(
+            globalId,
             isProxied,
             access => access.CanWrite,
             OpStreamConstants.BackplaneCommands.ApplyOp,
-            new ApplyOpRequestData(documentId, peerId, payload.ToArray(), baseRevision),
-            _ => Task.FromResult(sessions.TryGet(documentId) ?? throw new Exception("Session not found on owner node.")),
+            new ApplyOpRequestData(globalId, peerId, payload.ToArray(), baseRevision),
+            _ => Task.FromResult(sessions.TryGet(globalId) ?? throw new Exception("Session not found on owner node.")),
             (session, innerCt) => session.ApplyOpAsync(peerId, payload, baseRevision, innerCt),
             ct);
+    }
 
     /// <summary>Updates a peer's awareness (presence) state, distributed across the cluster.</summary>
     public Task<OpResult<AwarenessState>> UpdateAwarenessAsync(
         string peerId, string documentId, System.Text.Json.JsonElement data,
         bool isProxied = false, CancellationToken ct = default)
-        => pipeline.ExecuteAsync<AwarenessState, UpdateAwarenessRequestData>(
-            documentId,
+    {
+        var globalId = isProxied ? documentId : globalizer.ToGlobalId(documentId);
+        return pipeline.ExecuteAsync<AwarenessState, UpdateAwarenessRequestData>(
+            globalId,
             isProxied,
             access => access.CanRead,
             OpStreamConstants.BackplaneCommands.UpdateAwareness,
-            new UpdateAwarenessRequestData(documentId, peerId, data),
+            new UpdateAwarenessRequestData(globalId, peerId, data),
             _ => Task.FromResult<IDocumentSession>(null!),
             async (_, innerCt) =>
             {
-                var awarenessSession = await awareness.GetOrCreateAsync(documentId, innerCt);
+                var awarenessSession = await awareness.GetOrCreateAsync(globalId, innerCt);
                 return await awarenessSession.UpdateAsync(peerId, data, innerCt);
             },
             ct);
+    }
 
     /// <summary>
     /// Disconnects a peer from every document it was in. When a document loses its last peer it
@@ -142,12 +152,12 @@ public class DocumentRouter(
     /// </summary>
     public async Task RemovePeerFromAllSessionsAsync(string peerId)
     {
-        var documentIds = peers.Remove(peerId);
-        if (documentIds.Count == 0) return;
+        var globalIds = peers.Remove(peerId);
+        if (globalIds.Count == 0) return;
 
-        foreach (var documentId in documentIds)
+        foreach (var globalId in globalIds)
         {
-            var session = sessions.TryGet(documentId);
+            var session = sessions.TryGet(globalId);
             if (session is not null)
             {
                 await session.LeaveAsync(peerId);
@@ -157,21 +167,21 @@ public class DocumentRouter(
                     var decision = await drain.NotifyAsync(session);
                     if (decision == DocumentDrainDecision.Delete)
                     {
-                        await CloseSessionAsync(documentId);
-                        await drain.DeleteDataAsync(documentId);
+                        await CloseSessionAsync(globalId);
+                        await drain.DeleteDataAsync(globalId);
                     }
                     else
                     {
-                        ScheduleSessionClosure(documentId);
+                        ScheduleSessionClosure(globalId);
                     }
                 }
             }
 
-            var awarenessSession = awareness.TryGet(documentId);
+            var awarenessSession = awareness.TryGet(globalId);
             if (awarenessSession is not null)
                 await awarenessSession.LeaveAsync(peerId);
 
-            await backplane.PublishAsync(documentId, new BackplaneMessage(
+            await backplane.PublishAsync(globalId, new BackplaneMessage(
                 backplane.NodeId,
                 OpStreamConstants.BackplaneMessages.PeerDisconnected,
                 ReadOnlyMemory<byte>.Empty,
@@ -181,46 +191,49 @@ public class DocumentRouter(
 
     // ─── Session lifecycle (facade-level orchestration) ──────────────────────
 
-    /// <summary>Ids of every document with a live session on this node.</summary>
+    /// <summary>Ids of every document with a live session on this node (global IDs).</summary>
     public IReadOnlyList<string> GetActiveDocumentIds() => sessions.ActiveDocumentIds;
 
     /// <summary>Returns the live session for a document, or null if not owned/open here.</summary>
-    public IDocumentSession? TryGetActiveSession(string documentId) => sessions.TryGet(documentId);
+    public IDocumentSession? TryGetActiveSession(string globalDocumentId) => sessions.TryGet(globalDocumentId);
 
-    /// <summary>Documents a given peer is currently joined to.</summary>
-    public string[] GetDocumentsId(string peerId) => peers.DocumentsFor(peerId);
+    /// <summary>Documents a given peer is currently joined to (local IDs).</summary>
+    public string[] GetDocumentsId(string peerId) => peers.DocumentsFor(peerId).Select(globalizer.ToLocalId).ToArray();
 
     /// <summary>Closes any local session/awareness/subscription/timer bound to the document and releases ownership.</summary>
-    public async Task EvictSessionAsync(string documentId, CancellationToken ct = default)
+    public async Task EvictSessionAsync(string globalDocumentId, CancellationToken ct = default)
     {
-        await CloseSessionAsync(documentId);
+        await CloseSessionAsync(globalDocumentId);
         try
         {
-            await ownershipManager.ReleaseOwnershipAsync(documentId, backplane.NodeId, ct);
+            await ownershipManager.ReleaseOwnershipAsync(globalDocumentId, backplane.NodeId, ct);
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to release ownership for document {DocId} during eviction", documentId);
+            logger.LogWarning(ex, "Failed to release ownership for document {DocId} during eviction", globalDocumentId);
         }
     }
 
     /// <summary>Fully closes a document on this node: session, awareness, subscription, idle timer, lock.</summary>
-    public async Task CloseSessionAsync(string documentId)
+    public async Task CloseSessionAsync(string globalDocumentId)
     {
-        await sessions.CloseAsync(documentId);
-        await awareness.CloseAsync(documentId);
+        await sessions.CloseAsync(globalDocumentId);
+        await awareness.CloseAsync(globalDocumentId);
 
-        if (_backplaneSubscriptions.TryRemove(documentId, out var sub))
+        if (_backplaneSubscriptions.TryRemove(globalDocumentId, out var sub))
             await sub.DisposeAsync();
 
-        CancelIdleClosure(documentId);
-        locks.Remove(documentId);
+        CancelIdleClosure(globalDocumentId);
+        locks.Remove(globalDocumentId);
     }
 
     /// <summary>Builds a read-only diagnostic snapshot of a document.</summary>
     public Task<DocumentDiagnostics> GetDiagnosticsSnapshotAsync(
         string documentId, int recentOpCount = 50, CancellationToken ct = default)
-        => diagnostics.GetSnapshotAsync(documentId, recentOpCount, ct);
+    {
+        var globalId = globalizer.ToGlobalId(documentId);
+        return diagnostics.GetSnapshotAsync(globalId, recentOpCount, ct);
+    }
 
     // ─── Cross-cutting glue ──────────────────────────────────────────────────
 

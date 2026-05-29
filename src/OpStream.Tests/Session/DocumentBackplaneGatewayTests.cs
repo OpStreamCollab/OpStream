@@ -8,6 +8,8 @@ using OpStream.Shared.Messages;
 using System.Text.Json;
 using Xunit;
 
+using ServerJoinRequestData = OpStream.Server.Session.JoinRequestData;
+
 namespace OpStream.Tests.Session;
 
 public class DocumentBackplaneGatewayTests
@@ -31,9 +33,10 @@ public class DocumentBackplaneGatewayTests
         await documentRouter.InitializeAsync();
         // Since we are using LocalBackplane, StartAsync will register the handler.
         
-        var joinData = new JoinRequestData("doc-proxy-1", "text", "peer-1", ProtocolVersions.Current);
+        var joinData = new ServerJoinRequestData("doc-proxy-1", "text", "peer-1", ProtocolVersions.Current);
         var request = new BackplaneRequest(
             RequestId: "req-1",
+            SenderNodeId: "node-1",
             Type: OpStreamConstants.BackplaneCommands.JoinDocument,
             Payload: JsonSerializer.SerializeToUtf8Bytes(joinData, OpStreamJsonOptions.Default));
 

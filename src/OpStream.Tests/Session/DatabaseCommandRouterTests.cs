@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using OpStream.Constants;
+using OpStream.Server.Multitenancy;
 using OpStream.Server.Session;
 using OpStream.Server.Storage;
 using OpStream.Shared.Abstractions;
@@ -17,7 +18,8 @@ public class DatabaseCommandRouterTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddOpStream(); // Adds in-memory stores, local backplane, router, etc.
+        services.AddOpStream()
+                .UseDatabaseCommandAuthorization<TestAllowAllDatabaseCommandAuthorizer>(); // Allow commands in tests
         
         if (backplaneMock != null)
         {
@@ -26,6 +28,12 @@ public class DatabaseCommandRouterTests
         }
 
         return services.BuildServiceProvider();
+    }
+
+    private class TestAllowAllDatabaseCommandAuthorizer : IDatabaseCommandAuthorizer
+    {
+        public ValueTask<bool> AuthorizeAsync(DatabaseCommandContext ctx, CancellationToken ct = default)
+            => ValueTask.FromResult(true);
     }
 
     [Fact]
@@ -69,7 +77,7 @@ public class DatabaseCommandRouterTests
 
         // Assert
         result.Success.Should().BeTrue();
-        result.Value.Should().HaveCountGreaterOrEqualTo(2);
+        result.Value.Should().HaveCountGreaterThanOrEqualTo(2);
         result.Value!.Select(d => d.DocumentId).Should().Contain(new[] { "doc-A", "doc-B" });
     }
 
@@ -79,19 +87,21 @@ public class DatabaseCommandRouterTests
         // Arrange
         var sp = BuildProvider();
         var documentRouter = sp.GetRequiredService<DocumentRouter>();
+        var globalizer = sp.GetRequiredService<IDocumentIdGlobalizer>();
         await documentRouter.InitializeAsync();
         var dbRouter = sp.GetRequiredService<DatabaseCommandRouter>();
         await dbRouter.InitializeAsync();
 
         await documentRouter.JoinDocumentAsync("doc-delete", "text", "peer-1", ProtocolVersions.Current);
-        documentRouter.GetActiveDocumentIds().Should().Contain("doc-delete");
+        var globalId = globalizer.ToGlobalId("doc-delete");
+        documentRouter.GetActiveDocumentIds().Should().Contain(globalId);
 
         // Act
         var result = await dbRouter.DeleteDocumentAsync("doc-delete");
 
         // Assert
         result.Success.Should().BeTrue();
-        documentRouter.GetActiveDocumentIds().Should().NotContain("doc-delete");
+        documentRouter.GetActiveDocumentIds().Should().NotContain(globalId);
         
         var info = await dbRouter.GetDocumentInfoAsync("doc-delete");
         info.Value.Should().BeNull(); // Data is deleted
@@ -103,6 +113,7 @@ public class DatabaseCommandRouterTests
         // Arrange
         var sp = BuildProvider();
         var documentRouter = sp.GetRequiredService<DocumentRouter>();
+        var globalizer = sp.GetRequiredService<IDocumentIdGlobalizer>();
         await documentRouter.InitializeAsync();
         var dbRouter = sp.GetRequiredService<DatabaseCommandRouter>();
         await dbRouter.InitializeAsync();
@@ -120,7 +131,9 @@ public class DatabaseCommandRouterTests
         result.Value.Should().BeGreaterThanOrEqualTo(2); // Number of docs deleted
         
         // Broadcast handler should have evicted sessions
-        documentRouter.GetActiveDocumentIds().Should().NotContain("doc-tenant-1");
-        documentRouter.GetActiveDocumentIds().Should().NotContain("doc-tenant-2");
+        var globalId1 = globalizer.ToGlobalId("doc-tenant-1");
+        var globalId2 = globalizer.ToGlobalId("doc-tenant-2");
+        documentRouter.GetActiveDocumentIds().Should().NotContain(globalId1);
+        documentRouter.GetActiveDocumentIds().Should().NotContain(globalId2);
     }
 }
