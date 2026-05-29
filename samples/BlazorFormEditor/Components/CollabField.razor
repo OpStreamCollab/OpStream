@@ -1,38 +1,73 @@
-@* Wraps a single form control with collaborative-awareness chrome: a colored
-   border + "<name> is editing" badge when a remote peer holds the field, and a
-   disabled fieldset so two users cannot edit the same field at once. Focus
-   in/out (which bubble, unlike focus/blur) drive the soft lock. *@
+@* Thin collaborative field. Declares which model property it wraps (via the
+   strongly-typed <c>For</c> expression) and renders awareness chrome — a colored
+   border + "<name> is editing" badge and a disabled fieldset so two users can't
+   edit the same field at once. All sync/awareness logic lives in CollabForm,
+   reached through the cascaded <c>ICollabFormContext</c>. *@
 
-<div class="collab-field @(Class) @(IsLocked ? "locked" : "")"
-     style="@(IsLocked ? $"--lock-color:{EditorColor};" : null)"
-     @onfocusin="() => OnFocus.InvokeAsync(FieldName)"
-     @onfocusout="() => OnBlur.InvokeAsync(FieldName)">
+@typeparam TValue
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+@implements IDisposable
+
+<div class="collab-field @(Class) @(_locked ? "locked" : "")"
+     style="@(_locked ? $"--lock-color:{_editor!.Color};" : null)"
+     @onfocusin="OnFocusIn"
+     @onfocusout="OnFocusOut">
 
     <div class="collab-field-head">
-        <label>@Label</label>
-        @if (IsLocked)
+        @if (!string.IsNullOrEmpty(Label))
         {
-            <span class="lock-badge" style="background:@EditorColor">@EditorName is editing…</span>
+            <label>@Label</label>
+        }
+        @if (_locked)
+        {
+            <span class="lock-badge" style="background:@_editor!.Color">@_editor!.Name is editing…</span>
         }
     </div>
 
-    <fieldset class="collab-field-inner" disabled="@IsLocked">
+    <fieldset class="collab-field-inner" disabled="@_locked">
         @ChildContent
     </fieldset>
 </div>
 
 @code {
-    [Parameter, EditorRequired] public string FieldName { get; set; } = "";
+    [Parameter, EditorRequired] public Expression<Func<TValue>> For { get; set; } = default!;
     [Parameter] public string? Label { get; set; }
     [Parameter] public string? Class { get; set; }
-
-    /// <summary>Display name of the remote peer currently editing this field, or null.</summary>
-    [Parameter] public string? EditorName { get; set; }
-    [Parameter] public string? EditorColor { get; set; }
-
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public EventCallback<string> OnFocus { get; set; }
-    [Parameter] public EventCallback<string> OnBlur { get; set; }
 
-    private bool IsLocked => EditorName is not null;
+    [CascadingParameter] public ICollabFormContext? Context { get; set; }
+
+    private string _fieldName = "";
+    private FieldEditor? _editor;
+    private bool _locked => _editor is not null;
+    private ICollabFormContext? _subscribed;
+
+    protected override void OnParametersSet()
+    {
+        _fieldName = FieldIdentifier.Create(For).FieldName;
+
+        if (!ReferenceEquals(_subscribed, Context))
+        {
+            if (_subscribed is not null) _subscribed.StateChanged -= OnContextChanged;
+            _subscribed = Context;
+            if (_subscribed is not null) _subscribed.StateChanged += OnContextChanged;
+        }
+
+        _editor = Context?.EditorOf(_fieldName);
+    }
+
+    private void OnContextChanged()
+    {
+        _editor = Context?.EditorOf(_fieldName);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnFocusIn() => Context?.NotifyFocusAsync(_fieldName) ?? Task.CompletedTask;
+    private Task OnFocusOut() => Context?.NotifyBlurAsync(_fieldName) ?? Task.CompletedTask;
+
+    public void Dispose()
+    {
+        if (_subscribed is not null) _subscribed.StateChanged -= OnContextChanged;
+    }
 }

@@ -1,0 +1,467 @@
+@typeparam TModel
+@using System.Text
+@using System.Text.Json
+@using System.Text.Json.Nodes
+@using Microsoft.AspNetCore.Components.Forms
+@using OpStream.Client.Transports
+@using OpStream.Shared.Messages
+@implements ICollabFormContext
+@implements IAsyncDisposable
+@inject IOpStreamClient Client
+@inject IJSRuntime JS
+
+<div class="collab-bar">
+    <span class="collab-status @(_joined ? "ok" : "wait")">@_statusMessage</span>
+    <span class="collab-rev">doc: <code>@DocumentId</code> · rev: <code>@_currentRevision</code></span>
+    <span class="collab-peers">
+        @foreach (var p in _peers.Values)
+        {
+            <span class="peer-dot" style="background:@p.Color" title="@p.Name"></span>
+        }
+        @if (_joined)
+        {
+            <span class="peer-dot me" style="background:@_myColor" title="@_myName (you)"></span>
+        }
+    </span>
+    @if (!string.IsNullOrEmpty(_lastActivity))
+    {
+        <span class="collab-activity">@_lastActivity</span>
+    }
+</div>
+
+<EditForm EditContext="_editContext" OnValidSubmit="@(() => OnValidSubmit.InvokeAsync())">
+    <DataAnnotationsValidator />
+    <fieldset disabled="@(!_joined)" class="collab-fieldset">
+        <CascadingValue Value="(ICollabFormContext)this" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
+    </fieldset>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired] public string DocumentId { get; set; } = "";
+    [Parameter] public string DocumentType { get; set; } = "form";
+    [Parameter, EditorRequired] public TModel Model { get; set; } = default!;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+
+    public event Action? StateChanged;
+    public bool Joined => _joined;
+
+    private static readonly string[] Palette =
+    {
+        "#e57373","#64b5f6","#81c784","#ffb74d","#ba68c8","#4db6ac",
+        "#f06292","#9575cd","#7986cb","#a1887f","#90a4ae","#dce775",
+    };
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
+    private EditContext? _editContext;
+    private bool _joined;
+    private bool _started;
+    private long _currentRevision;
+    private string _statusMessage = "Connecting…";
+
+    private readonly string _peerId = $"peer-{Guid.NewGuid():N}";
+    private string _myName = "Anonymous";
+    private string _myColor = Palette[0];
+    private string _lastActivity = "";
+    private string _editingField = "";
+
+    private readonly Dictionary<string, PeerInfo> _peers = new(StringComparer.Ordinal);
+
+    protected override void OnParametersSet()
+    {
+        if (_editContext is null || !ReferenceEquals(_editContext.Model, Model))
+        {
+            if (_editContext is not null) _editContext.OnFieldChanged -= HandleFieldChanged;
+            _editContext = new EditContext(Model!);
+            _editContext.OnFieldChanged += HandleFieldChanged;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _started) return;
+        _started = true;
+
+        var name = await JS.InvokeAsync<string?>("prompt", "What name should others see?", "");
+        _myName = string.IsNullOrWhiteSpace(name) ? "Anonymous" : name.Trim();
+        _myColor = PickColor(_myName);
+
+        await ConnectAsync();
+    }
+
+    private async Task ConnectAsync()
+    {
+        Client.OnReceiveOp += HandleRemoteOpAsync;
+        Client.OnReceiveAwareness += HandleAwarenessAsync;
+        Client.OnPeerDisconnected += HandlePeerDisconnected;
+        Client.OnDisconnected += HandleTransportClosed;
+
+        try
+        {
+            var join = await Client.ConnectAndJoinAsync(DocumentId, DocumentType);
+            _currentRevision = join.Revision;
+
+            LoadSnapshot(join.Snapshot);
+            foreach (var state in join.Awareness) ApplyAwareness(state);
+
+            _joined = true;
+            _statusMessage = "Connected";
+
+            await PublishAwarenessAsync("joined");
+            NotifyStateChanged();
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Error: {ex.Message}";
+            NotifyStateChanged();
+        }
+    }
+
+    // ── EditContext → server (automatic per-field sync) ─────────────────────────
+
+    private async void HandleFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        try { await SendFieldAsync(e.FieldIdentifier.FieldName); }
+        catch (Exception ex) { Console.Error.WriteLine($"Field sync failed: {ex.Message}"); }
+    }
+
+    private async Task SendFieldAsync(string fieldName)
+    {
+        if (!_joined) return;
+
+        var prop = Model!.GetType().GetProperty(fieldName);
+        if (prop is null) return;
+
+        var node = ToNode(prop.GetValue(Model));
+        var op = new JsonObject
+        {
+            ["$type"] = node is null ? "clr" : "set",
+            ["fieldName"] = fieldName,
+        };
+        if (node is not null) op["value"] = node;
+        op["timestamp"] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        op["peerId"] = _peerId;
+
+        var batch = new JsonObject { ["operations"] = new JsonArray(op) };
+        var payload = Encoding.UTF8.GetBytes(batch.ToJsonString());
+
+        try
+        {
+            var result = await Client.SendOpAsync(DocumentId, payload, _currentRevision);
+            if (result.Success)
+            {
+                _currentRevision = result.NewRevision;
+                await PublishAwarenessAsync($"edited {Humanize(fieldName)}");
+                NotifyStateChanged();
+            }
+            else
+            {
+                Console.Error.WriteLine($"SendOp rejected: {result.ErrorMessage}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"SendOp failed: {ex.Message}");
+        }
+    }
+
+    // ── Server → model ──────────────────────────────────────────────────────────
+
+    private Task HandleRemoteOpAsync(ReadOnlyMemory<byte> payload, long newRevision)
+    {
+        _currentRevision = newRevision;
+
+        using var doc = JsonDocument.Parse(payload);
+        if (doc.RootElement.TryGetProperty("operations", out var ops))
+        {
+            foreach (var op in ops.EnumerateArray())
+            {
+                if (!op.TryGetProperty("fieldName", out var fn)) continue;
+                var fieldName = fn.GetString();
+                if (fieldName is null) continue;
+
+                if (op.TryGetProperty("value", out var value))
+                    ApplyToModel(fieldName, value);
+                else
+                    ApplyToModel(fieldName, null); // clear op carries no value
+            }
+        }
+
+        NotifyStateChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task HandleAwarenessAsync(IEnumerable<AwarenessState> states)
+    {
+        foreach (var state in states) ApplyAwareness(state);
+        NotifyStateChanged();
+        return Task.CompletedTask;
+    }
+
+    private void HandlePeerDisconnected(string peerId)
+    {
+        _peers.Remove(peerId);
+        NotifyStateChanged();
+    }
+
+    private void HandleTransportClosed(Exception? ex)
+    {
+        _joined = false;
+        _statusMessage = ex is null ? "Disconnected" : $"Disconnected: {ex.Message}";
+        NotifyStateChanged();
+    }
+
+    private void LoadSnapshot(ReadOnlyMemory<byte> snapshot)
+    {
+        if (snapshot.IsEmpty) return;
+        using var doc = JsonDocument.Parse(snapshot);
+        if (!doc.RootElement.TryGetProperty("fields", out var fields)) return;
+
+        foreach (var field in fields.EnumerateObject())
+        {
+            if (field.Value.TryGetProperty("value", out var value))
+                ApplyToModel(field.Name, value);
+        }
+    }
+
+    private void ApplyToModel(string fieldName, JsonElement? valueOrNull)
+    {
+        var prop = Model!.GetType().GetProperty(fieldName);
+        if (prop is null || !prop.CanWrite) return;
+
+        bool isNull = valueOrNull is null || valueOrNull.Value.ValueKind == JsonValueKind.Null;
+        if (isNull)
+        {
+            object? cleared = prop.PropertyType == typeof(string)
+                ? string.Empty
+                : (Nullable.GetUnderlyingType(prop.PropertyType) is null && prop.PropertyType.IsValueType
+                    ? Activator.CreateInstance(prop.PropertyType)
+                    : null);
+            prop.SetValue(Model, cleared);
+        }
+        else
+        {
+            var converted = JsonSerializer.Deserialize(
+                valueOrNull!.Value.GetRawText(), prop.PropertyType, OpStream.Constants.OpStreamJsonOptions.Default);
+            prop.SetValue(Model, converted);
+        }
+    }
+
+    // ── ICollabFormContext (consumed by CollabField) ────────────────────────────
+
+    public FieldEditor? EditorOf(string fieldName)
+    {
+        foreach (var p in _peers.Values)
+        {
+            if (string.Equals(p.EditingField, fieldName, StringComparison.Ordinal))
+                return new FieldEditor(p.Name, p.Color);
+        }
+        return null;
+    }
+
+    public async Task NotifyFocusAsync(string fieldName)
+    {
+        _editingField = fieldName;
+        await PublishAwarenessAsync($"is editing {Humanize(fieldName)}");
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task NotifyBlurAsync(string fieldName)
+    {
+        if (_editingField == fieldName) _editingField = "";
+        await PublishAwarenessAsync("");
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // ── Awareness ────────────────────────────────────────────────────────────────
+
+    private async Task PublishAwarenessAsync(string action)
+    {
+        var payload = new AwarenessPayload(_myName, _myColor, action, _editingField, DateTimeOffset.UtcNow);
+        var element = JsonSerializer.SerializeToElement(payload, JsonOptions);
+        try { await Client.SendAwarenessAsync(DocumentId, element); }
+        catch (Exception ex) { Console.Error.WriteLine($"SendAwareness failed: {ex.Message}"); }
+    }
+
+    private void ApplyAwareness(AwarenessState state)
+    {
+        if (state.PeerId == _peerId) return;
+
+        string name = "anonymous", color = "#888", action = "", editingField = "";
+        try
+        {
+            var payload = state.Data.Deserialize<AwarenessPayload>(JsonOptions);
+            if (payload is not null)
+            {
+                name = payload.Name;
+                color = payload.Color;
+                action = payload.LastAction;
+                editingField = payload.EditingField ?? "";
+            }
+        }
+        catch { /* tolerate older / different shapes */ }
+
+        if (!_peers.TryGetValue(state.PeerId, out var info))
+        {
+            info = new PeerInfo { PeerId = state.PeerId };
+            _peers[state.PeerId] = info;
+        }
+        info.Name = name;
+        info.Color = color;
+        info.LastAction = action;
+        info.EditingField = editingField;
+
+        if (!string.IsNullOrEmpty(action))
+            _lastActivity = $"{name} {action}";
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────────
+
+    private void NotifyStateChanged()
+    {
+        StateChanged?.Invoke();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private static JsonNode? ToNode(object? value)
+    {
+        if (value is null) return null;
+        if (value is string s) return string.IsNullOrEmpty(s) ? null : JsonValue.Create(s);
+        return JsonSerializer.SerializeToNode(value, value.GetType(), OpStream.Constants.OpStreamJsonOptions.Default);
+    }
+
+    private static string Humanize(string name)
+    {
+        var sb = new StringBuilder(name.Length + 4);
+        for (int i = 0; i < name.Length; i++)
+        {
+            char c = name[i];
+            if (i > 0 && char.IsUpper(c) && !char.IsUpper(name[i - 1])) sb.Append(' ');
+            sb.Append(i == 0 ? char.ToUpperInvariant(c) : c);
+        }
+        return sb.ToString();
+    }
+
+    private static string PickColor(string seed)
+    {
+        unchecked
+        {
+            int hash = 17;
+            foreach (var ch in seed) hash = hash * 31 + ch;
+            return Palette[Math.Abs(hash) % Palette.Length];
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_editContext is not null) _editContext.OnFieldChanged -= HandleFieldChanged;
+
+        Client.OnReceiveOp -= HandleRemoteOpAsync;
+        Client.OnReceiveAwareness -= HandleAwarenessAsync;
+        Client.OnPeerDisconnected -= HandlePeerDisconnected;
+        Client.OnDisconnected -= HandleTransportClosed;
+
+        try { await Client.DisposeAsync(); } catch { /* ignore */ }
+    }
+
+    private sealed class PeerInfo
+    {
+        public required string PeerId { get; init; }
+        public string Name { get; set; } = "anonymous";
+        public string Color { get; set; } = "#888";
+        public string LastAction { get; set; } = "";
+        public string EditingField { get; set; } = "";
+    }
+
+    private sealed record AwarenessPayload(string Name, string Color, string LastAction, string? EditingField, DateTimeOffset LastActionAt);
+}
+
+<style>
+    .collab-bar {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 1.5rem;
+        background: #f6f8fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        color: #555;
+    }
+
+    .collab-status {
+        font-weight: 600;
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+    }
+    .collab-status.ok { background: #d4edda; color: #155724; }
+    .collab-status.wait { background: #fff3cd; color: #856404; }
+
+    .collab-rev code { color: #007bff; }
+
+    .collab-peers { display: flex; align-items: center; gap: 0.3rem; }
+    .peer-dot {
+        width: 12px; height: 12px; border-radius: 50%;
+        display: inline-block; border: 1px solid rgba(0,0,0,0.15);
+    }
+    .peer-dot.me { box-shadow: 0 0 0 2px #fff, 0 0 0 3px currentColor; }
+
+    .collab-activity { margin-left: auto; font-style: italic; color: #888; }
+
+    .collab-fieldset { border: none; padding: 0; margin: 0; min-inline-size: auto; }
+
+    .collab-field {
+        border: 2px solid transparent;
+        border-radius: 8px;
+        padding: 0.4rem 0.6rem;
+        margin-bottom: 0.85rem;
+        transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+    }
+
+    .collab-field.locked {
+        border-color: var(--lock-color, #888);
+        background-color: color-mix(in srgb, var(--lock-color, #888) 8%, transparent);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--lock-color, #888) 25%, transparent);
+    }
+
+    .collab-field-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .collab-field-head label {
+        margin-bottom: 0;
+        font-weight: 500;
+        color: #555;
+    }
+
+    .lock-badge {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #fff;
+        padding: 0.1rem 0.5rem;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+
+    .collab-field-inner {
+        border: none;
+        padding: 0;
+        margin: 0;
+        min-inline-size: auto;
+    }
+
+    .collab-field-inner:disabled { opacity: 0.85; }
+</style>
