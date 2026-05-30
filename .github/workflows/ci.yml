@@ -91,6 +91,9 @@ jobs:
           echo "gRPC_PluginFullPath=$GRPC_TOOLS/grpc_csharp_plugin"               >> "$GITHUB_ENV"
           echo "Protobuf_StandardImportsPath=$GRPC_PKG_ROOT/build/native/include" >> "$GITHUB_ENV"
 
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION }} -c Release --no-restore -p:ContinuousIntegrationBuild=true
+
       # Versión: en un tag v1.2.3 => 1.2.3 (estable); en cualquier otro push a
       # master => 1.0.0-ci.<run_number> (prerelease, así nunca colisiona).
       - name: Compute package version
@@ -131,7 +134,7 @@ jobs:
             src/OpStream.Client.Transports.gRPC/OpStream.Client.Transports.gRPC.csproj
           )
           for proj in "${PROJECTS[@]}"; do
-            dotnet pack "$proj" -c Release -o ./artifacts \
+            dotnet pack "$proj" -c Release -o ./artifacts --no-build \
               -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true
           done
 
