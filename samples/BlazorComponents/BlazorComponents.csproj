@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Versión de los paquetes OpStream (alineada con el RCL y DemoHost). -->
+    <OpStreamVersion Condition="'$(OpStreamVersion)' == ''">1.0.0-ci.11</OpStreamVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- UI reutilizable compartida con OpStream.DemoHost. -->
+    <ProjectReference Include="..\BlazorComponents.View\BlazorComponents.View.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Transporte SignalR del cliente OpStream (registra AddOpStreamClient().UseSignalRTransport). -->
+    <PackageReference Include="OpStream.Client.Transports.SignalR" Version="$(OpStreamVersion)" />
+  </ItemGroup>
+
+</Project>

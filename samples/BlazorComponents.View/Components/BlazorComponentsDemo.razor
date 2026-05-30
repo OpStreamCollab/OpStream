@@ -1,0 +1,277 @@
+@* Reusable demo body for the OpStream.BlazorComponents sample.
+   Carries no @page directive so it can be mounted at "/" by the standalone host
+   and at "/samples/blazor-components" by OpStream.DemoHost.
+
+   This demo showcases the component-shadowing approach:
+   @using OpStream.BlazorComponents.Inputs (in _Imports.razor) replaces the native
+   Blazor input components (InputText, InputCheckbox, InputSelect, etc.) with
+   collaborative versions — no per-field wrapper needed. *@
+@using System.ComponentModel.DataAnnotations
+
+<div class="demo-container">
+    <h1>Employee Onboarding</h1>
+    <p class="demo-subtitle">
+        Open this page in two browser tabs to see real-time collaboration, soft-locking and comments in action.
+    </p>
+
+    <CollabForm DocumentId="employee-onboarding"
+                Model="employee"
+                ShowConnectedUsers="true"
+                AllowComments="true"
+                OnValidSubmit="HandleValidSubmit">
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">First Name <span class="required">*</span></label>
+                <InputText @bind-Value="employee.FirstName" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Last Name <span class="required">*</span></label>
+                <InputText @bind-Value="employee.LastName" class="form-control" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Email Address <span class="required">*</span></label>
+            <InputText @bind-Value="employee.Email" class="form-control" type="email" />
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Department</label>
+                <InputSelect @bind-Value="employee.Department" class="form-control">
+                    <option value="">Select a department…</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Product">Product</option>
+                    <option value="Design">Design</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Sales">Sales</option>
+                    <option value="HR">Human Resources</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Legal">Legal</option>
+                </InputSelect>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Job Title</label>
+                <InputText @bind-Value="employee.JobTitle" class="form-control" />
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Start Date</label>
+                <InputDate @bind-Value="employee.StartDate" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Annual Salary (€)</label>
+                <InputNumber @bind-Value="employee.Salary" class="form-control" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Contract Type</label>
+            <InputRadioGroup @bind-Value="employee.ContractType">
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <InputRadio Value="@("Permanent")" /> Permanent
+                    </label>
+                    <label class="radio-label">
+                        <InputRadio Value="@("Contract")" /> Fixed-term Contract
+                    </label>
+                    <label class="radio-label">
+                        <InputRadio Value="@("Freelance")" /> Freelance
+                    </label>
+                </div>
+            </InputRadioGroup>
+        </div>
+
+        <div class="form-group">
+            <label class="checkbox-label">
+                <InputCheckbox @bind-Value="employee.RemoteWork" class="form-check-input" />
+                <span>Remote work allowed</span>
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Skills &amp; Notes</label>
+            <InputTextArea @bind-Value="employee.Notes" class="form-control" rows="4"
+                           placeholder="Describe key skills, tools, languages, certifications…" />
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">Save Employee</button>
+        </div>
+
+    </CollabForm>
+
+    @if (submitted)
+    {
+        <div class="alert-success">
+            <strong>Saved!</strong> @employee.FirstName @employee.LastName has been onboarded successfully.
+        </div>
+    }
+</div>
+
+<style>
+    .demo-container {
+        max-width: 720px;
+        margin: 2rem auto;
+        padding: 2rem 2.5rem;
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+        border: 1px solid #e5e7eb;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    h1 {
+        margin: 0 0 0.4rem;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #111;
+        text-align: center;
+    }
+
+    .demo-subtitle {
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .required { color: #e02020; }
+
+    .form-row {
+        display: flex;
+        gap: 1rem;
+    }
+    .form-row .form-group { flex: 1; }
+
+    .form-group {
+        margin-bottom: 0.1rem;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.3rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.55rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 7px;
+        font-size: 0.95rem;
+        font-family: inherit;
+        color: #111;
+        background: #fff;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        box-sizing: border-box;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    }
+
+    .radio-group {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.25rem;
+    }
+    .radio-label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.9rem;
+        color: #374151;
+        cursor: pointer;
+        font-weight: 400;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #374151;
+        cursor: pointer;
+        font-weight: 400;
+    }
+    .form-check-input { width: 1.1rem; height: 1.1rem; cursor: pointer; }
+
+    .form-actions { margin-top: 1.5rem; }
+
+    .btn-submit {
+        display: block;
+        width: 100%;
+        padding: 0.8rem;
+        background: #6366f1;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+        font-family: inherit;
+    }
+    .btn-submit:hover { background: #4f46e5; }
+    .btn-submit:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+    .alert-success {
+        margin-top: 1.5rem;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #6ee7b7;
+        font-size: 0.9rem;
+    }
+
+    .text-danger {
+        color: #dc2626;
+        font-size: 0.8rem;
+        margin-top: 0.2rem;
+        display: block;
+    }
+</style>
+
+@code {
+    private Employee employee = new();
+    private bool submitted = false;
+
+    private void HandleValidSubmit()
+    {
+        submitted = true;
+    }
+
+    public class Employee
+    {
+        [Required(ErrorMessage = "First name is required")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required")]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address")]
+        public string Email { get; set; } = string.Empty;
+
+        public string? Department { get; set; }
+        public string? JobTitle { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime? StartDate { get; set; }
+
+        public decimal? Salary { get; set; }
+
+        public string ContractType { get; set; } = "Permanent";
+        public bool RemoteWork { get; set; } = false;
+        public string? Notes { get; set; }
+    }
+}

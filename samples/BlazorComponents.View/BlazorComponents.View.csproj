@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!--
+    Reusable UI for the OpStream.BlazorComponents sample, packaged as a Razor
+    Class Library so it can be consumed by BOTH the standalone host
+    (BlazorComponents) and OpStream.DemoHost, which mounts it at /samples/blazor-components.
+    Mirrors the BlazorFormEditor.View RCL pattern.
+
+    Key difference from BlazorFormEditor.View: this sample uses the component-shadowing
+    approach — @using OpStream.BlazorComponents.Inputs overrides the native Blazor inputs
+    (InputText, InputCheckbox, etc.) with collaborative versions. No CollabField wrapper
+    needed per field.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>BlazorComponents</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.16" />
+    <!-- ProjectReference para testear cambios en src/ sin necesidad de reempaquetar -->
+    <ProjectReference Include="..\..\..\OpStream.BlazorComponents\OpStream.BlazorComponents.csproj" />
+  </ItemGroup>
+
+</Project>
