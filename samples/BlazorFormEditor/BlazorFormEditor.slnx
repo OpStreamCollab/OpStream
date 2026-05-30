@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="../BlazorFormEditor.View/BlazorFormEditor.View.csproj" />
   <Project Path="BlazorFormEditor.csproj" />
 </Solution>

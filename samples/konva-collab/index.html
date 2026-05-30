@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpStream + Konva — Collaborative Canvas Editor</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    <!-- Konva v9 — MIT license -->
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+</head>
+<body>
+
+<!-- ── Top bar ─────────────────────────────────────────────────────────────── -->
+<header id="topbar">
+    <strong>Canvas Editor</strong>
+    <span class="topbar-hint">Shift while drawing = constrain · Dbl-click text = edit · Del = remove</span>
+    <span id="me">…</span>
+    <span id="badge">OpStream · <span id="status">starting…</span></span>
+</header>
+
+<!-- ── Left tool panel ────────────────────────────────────────────────────── -->
+<nav id="tool-panel">
+    <!-- Selection -->
+    <button class="tool active" data-tool="select" title="Select / Move  [V]">
+        <svg viewBox="0 0 20 20"><path d="M4 2l12 7-5 2-2 5z" fill="currentColor"/></svg>
+    </button>
+
+    <div class="tool-sep"></div>
+
+    <!-- Vector shapes -->
+    <button class="tool" data-tool="rect"    title="Rectangle  [R]">▭</button>
+    <button class="tool" data-tool="ellipse" title="Ellipse  [E]">⬭</button>
+    <button class="tool" data-tool="line"    title="Line  [L]">╱</button>
+    <button class="tool" data-tool="arrow"   title="Arrow  [A]">→</button>
+    <button class="tool" data-tool="pen"     title="Freehand Pen  [P]">✏</button>
+
+    <div class="tool-sep"></div>
+
+    <!-- Objects -->
+    <button class="tool tool-text" data-tool="text"    title="Text  [T]">T</button>
+    <button class="tool" data-tool="star"    title="Star  [S]">★</button>
+    <button class="tool" data-tool="polygon" title="Polygon  [G]">⬡</button>
+    <button class="tool" data-tool="image"   title="Image from URL  [I]">🖼</button>
+
+    <div class="tool-sep"></div>
+
+    <!-- Actions -->
+    <button class="tool action" id="bringFwd" title="Bring to Front  []]">↑</button>
+    <button class="tool action" id="sendBwd"  title="Send to Back  [[]">↓</button>
+    <button class="tool action danger" id="del" title="Delete  [Del]">🗑</button>
+</nav>
+
+<!-- ── Canvas ─────────────────────────────────────────────────────────────── -->
+<div id="container"></div>
+
+<!-- ── Right sidebar ──────────────────────────────────────────────────────── -->
+<aside id="sidebar">
+
+    <!-- Shape properties (shown only when a shape is selected) -->
+    <div class="sec" id="shape-props" style="display:none">
+        <h3>Properties</h3>
+
+        <div class="prop-row fill-row">
+            <label>Fill</label>
+            <input type="color" id="fillColor" value="#4fc3f7">
+            <button class="icon-btn" id="noFill" title="No fill">⊘</button>
+        </div>
+        <div class="prop-row">
+            <label>Stroke</label>
+            <input type="color" id="strokeColor" value="#1a237e">
+        </div>
+        <div class="prop-row">
+            <label>S.width</label>
+            <input type="range" id="strokeWidth" min="0" max="30" value="2">
+            <output id="strokeWidthVal">2</output>
+        </div>
+        <div class="prop-row">
+            <label>Opacity</label>
+            <input type="range" id="opacity" min="0" max="100" value="100">
+            <output id="opacityVal">100%</output>
+        </div>
+
+        <!-- Rect only -->
+        <div id="rect-props" style="display:none">
+            <div class="prop-row">
+                <label>Radius</label>
+                <input type="range" id="cornerRadius" min="0" max="80" value="0">
+                <output id="cornerRadiusVal">0</output>
+            </div>
+        </div>
+
+        <!-- Star / Polygon only -->
+        <div id="star-poly-props" style="display:none">
+            <div class="prop-row">
+                <label id="sidesLabel">Points</label>
+                <input type="range" id="shapeSides" min="3" max="12" value="5">
+                <output id="shapeSidesVal">5</output>
+            </div>
+            <!-- Star: inner radius ratio -->
+            <div id="star-inner-row" class="prop-row" style="display:none">
+                <label>Inner</label>
+                <input type="range" id="starInner" min="10" max="90" value="45">
+                <output id="starInnerVal">45%</output>
+            </div>
+        </div>
+
+        <!-- Text only -->
+        <div id="text-props" style="display:none">
+            <div class="prop-row">
+                <label>Font</label>
+                <select id="fontFamily">
+                    <option value="system-ui, sans-serif">System</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="Georgia, serif">Serif</option>
+                    <option value="'Courier New', monospace">Mono</option>
+                    <option value="Impact, sans-serif">Impact</option>
+                    <option value="'Comic Sans MS', cursive">Comic</option>
+                </select>
+            </div>
+            <div class="prop-row">
+                <label>Size</label>
+                <input type="number" id="fontSize" min="6" max="400" value="22" step="1">
+                <span style="font-size:11px;color:#7a8a9e">px</span>
+            </div>
+            <div class="prop-row">
+                <label>Style</label>
+                <div class="btn-group">
+                    <button class="fmt-btn" id="fmtBold"      title="Bold">B</button>
+                    <button class="fmt-btn fmt-italic" id="fmtItalic"    title="Italic">I</button>
+                    <button class="fmt-btn fmt-under"  id="fmtUnderline" title="Underline">U</button>
+                    <button class="fmt-btn fmt-strike" id="fmtStrike"    title="Strikethrough">S</button>
+                </div>
+            </div>
+            <div class="prop-row">
+                <label>Align</label>
+                <div class="btn-group">
+                    <button class="fmt-btn" id="alignLeft"   title="Left">⇐</button>
+                    <button class="fmt-btn" id="alignCenter" title="Center">≡</button>
+                    <button class="fmt-btn" id="alignRight"  title="Right">⇒</button>
+                </div>
+            </div>
+            <div class="prop-row">
+                <label>Leading</label>
+                <input type="range" id="lineHeight" min="50" max="300" value="100">
+                <output id="lineHeightVal">1.0</output>
+            </div>
+        </div>
+    </div>
+
+    <!-- Presence -->
+    <div class="sec">
+        <h3>Who's here</h3>
+        <div id="peers" class="peers"></div>
+    </div>
+
+    <!-- Comments -->
+    <div class="sec grow">
+        <h3 id="cmHead">Comments</h3>
+        <div id="panel" class="panel"></div>
+    </div>
+    <div class="sec">
+        <div id="addbox">
+            <textarea id="cmBody" rows="2" placeholder="Select a shape, then comment…"></textarea>
+            <button id="cmAdd" disabled>Select a shape first</button>
+        </div>
+    </div>
+
+</aside>
+
+<div id="overlay"></div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

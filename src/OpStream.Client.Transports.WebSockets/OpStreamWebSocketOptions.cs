@@ -6,7 +6,7 @@ namespace OpStream.Client.Transports.WebSockets;
 public class OpStreamWebSocketOptions
 {
     /// <summary>
-    /// Gets or sets the server URI (e.g., ws://localhost:5000/ws-collab).
+    /// Gets or sets the server URI (e.g., ws://hostdemo.opstream.stream/ws-collab).
     /// </summary>
-    public string ServerUri { get; set; } = "ws://localhost:5000/ws-collab";
+    public string ServerUri { get; set; } = "ws://hostdemo.opstream.stream/ws-collab";
 }

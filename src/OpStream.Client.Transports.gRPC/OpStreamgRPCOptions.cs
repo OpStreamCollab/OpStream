@@ -8,5 +8,5 @@ public class OpStreamgRPCOptions
     /// <summary>
     /// Gets or sets the server address.
     /// </summary>
-    public string ServerAddress { get; set; } = "https://localhost:5001";
+    public string ServerAddress { get; set; } = "https://hostdemo.opstream.stream/";
 }

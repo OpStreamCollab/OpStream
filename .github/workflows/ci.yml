@@ -165,6 +165,14 @@ jobs:
           event-type: opstream-packages-published
           client-payload: '{"version": "${{ steps.ver.outputs.version }}"}'
 
+      - name: Trigger BlazorComponents NuGet publish
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DISPATCH_TOKEN }}
+          repository: OpStreamCollab/OpStream.BlazorComponents
+          event-type: opstream-packages-published
+          client-payload: '{"version": "${{ steps.ver.outputs.version }}"}'
+
   # ───────────────────────────────────────────────────────────────────────────
   # 3) Construir y publicar la imagen del Host en Docker Hub — solo en push
   # ───────────────────────────────────────────────────────────────────────────

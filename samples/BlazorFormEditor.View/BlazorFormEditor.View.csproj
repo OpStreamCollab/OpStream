@@ -25,6 +25,7 @@
     <PackageReference Include="OpStream.Client.Transports" Version="$(OpStreamVersion)" />
     <!-- OpStreamJsonOptions.Default (serialización canónica compatible con el motor JSON). -->
     <PackageReference Include="OpStream.Constants" Version="$(OpStreamVersion)" />
+	  <PackageReference Include="OpStream.BlazorComponents" Version="1.0.0-ci.11" />
   </ItemGroup>
 
 </Project>
