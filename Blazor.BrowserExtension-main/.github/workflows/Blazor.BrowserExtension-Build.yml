@@ -1,0 +1,109 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore: [ docs/** ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: '10.0'
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      MajorMinorPatch: ${{ steps.gitversion.outputs.MajorMinorPatch }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v4.5.0
+      with:
+        versionSpec: 6.x
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v4.5.0
+
+  buildAndTest:
+    needs: version
+    runs-on: windows-latest
+    steps:
+    - name: Set up JDK 17
+      uses: actions/setup-java@v5
+      with:
+        java-version: 17
+        distribution: 'zulu'
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}.x
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - name: Cache SonarCloud packages
+      uses: actions/cache@v5
+      with:
+        path: ~\sonar\cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+    - name: Cache SonarCloud scanner
+      id: cache-sonar-scanner
+      uses: actions/cache@v5
+      with:
+        path: ${{ runner.temp }}\scanner
+        key: ${{ runner.os }}-sonar-scanner
+        restore-keys: ${{ runner.os }}-sonar-scanner
+    - name: Install SonarCloud scanner
+      if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+      shell: powershell
+      run: |
+        New-Item -Path ${{ runner.temp }}\scanner -ItemType Directory
+        dotnet tool update dotnet-sonarscanner --tool-path ${{ runner.temp }}\scanner
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Begin analyze
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"Blazor.BrowserExtension" /o:"mingyaulee" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /v:"v${{ needs.version.outputs.MajorMinorPatch }}" /d:sonar.cs.xunit.reportsPaths="test/TestResults/*.xml" /d:sonar.cs.opencover.reportsPaths="test/TestResults/**/*.opencover.xml"
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+    - name: Install Playwright
+      run: .\test\Blazor.BrowserExtension.IntegrationTestRunner\bin\Release\net${{ env.DOTNET_VERSION }}\playwright.ps1 install chromium --with-deps
+    - name: Test
+      run: dotnet test --no-restore --no-build --configuration Release --report-trx --results-directory ./test/TestResults --coverage
+    - name: End analyze
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+  tag:
+    needs: [version, buildAndTest]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+    - name: Check if tag exists
+      uses: mukunku/tag-exists-action@v1.7.0
+      id: tagExistsCheck
+      with: 
+        tag: 'v${{ needs.version.outputs.MajorMinorPatch }}'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create tag
+      if: steps.tagExistsCheck.outputs.exists == 'false'
+      uses: negz/create-tag@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        version: v${{ needs.version.outputs.MajorMinorPatch }}

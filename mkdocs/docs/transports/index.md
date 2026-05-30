@@ -1,7 +1,12 @@
 # Transports overview
 
-A **transport** is the wire-level protocol your clients use to talk to
-the OpStream server. Three are first-class:
+A **transport** is simply *how your client connects* to the OpStream server.
+
+> **Short answer:** building a web or Blazor app? Use **SignalR**. A mobile,
+> native, or hand-rolled JavaScript client? **WebSockets**. Service-to-service
+> or polyglot? **gRPC**. You can also enable several at once.
+
+Three are first-class:
 
 | Transport | Best for | Package |
 |---|---|---|

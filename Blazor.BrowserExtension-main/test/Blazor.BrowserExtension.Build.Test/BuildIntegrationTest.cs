@@ -1,0 +1,106 @@
+﻿using Blazor.BrowserExtension.Build.Test.Helpers;
+
+namespace Blazor.BrowserExtension.Build.Test
+{
+    [TestClass]
+    public class BuildIntegrationTest
+    {
+        private static BuildIntegrationTestFixture testFixture;
+
+        [TestMethod]
+        public async Task TestNewProjectFromTemplate()
+        {
+            var projectName = "NewBrowserExtensionProject";
+            var projectDirectory = testFixture.GetTestProjectDirectory(projectName);
+            testFixture.ExecuteDotnetCommand($"new browserext --name {projectName}");
+            try
+            {
+                testFixture.ExecuteDotnetRestoreCommand(projectName);
+                testFixture.ExecuteDotnetBuildCommand(projectName);
+                using (var extensionFromBuild = await testFixture.LoadExtensionBuildOutput(projectName))
+                {
+                    var pageContentFromBuild = await extensionFromBuild.GetContent("h1");
+                    pageContentFromBuild.ShouldBe("Hello, from Blazor.");
+                }
+
+                testFixture.ExecuteDotnetPublishCommand(projectName);
+                using var extensionFromPublish = await testFixture.LoadExtensionPublishOutput(projectName);
+                var pageContentFromPublish = await extensionFromPublish.GetContent("h1");
+                pageContentFromPublish.ShouldBe("Hello, from Blazor.");
+            }
+            finally
+            {
+                ResetDirectoryChanges(projectDirectory);
+            }
+        }
+
+        [TestMethod]
+        public async Task TestBootstrapExistingProject()
+        {
+            var projectName = "EmptyBlazorProject";
+            var projectDirectory = testFixture.GetTestProjectDirectory(projectName);
+            try
+            {
+                var projectFile = Path.Combine(projectDirectory, projectName + ".csproj");
+                var projectFileContent = await File.ReadAllTextAsync(projectFile);
+                projectFileContent = projectFileContent
+                    .Replace("[NetVersion]", CommonTestHelper.TargetFrameworkMajorVersion);
+                await File.WriteAllTextAsync(projectFile, projectFileContent);
+
+                testFixture.ExecuteDotnetRestoreCommand(projectName);
+                testFixture.ExecuteDotnetBuildCommand(projectName);
+                projectFileContent = await File.ReadAllTextAsync(projectFile);
+                projectFileContent.ShouldNotContain("BrowserExtensionBootstrap");
+                using (var extensionFromBuild = await testFixture.LoadExtensionBuildOutput(projectName))
+                {
+                    var pageContentFromBuild = await extensionFromBuild.GetContent("h1");
+                    pageContentFromBuild.ShouldBe("Hello, world!");
+                }
+
+                testFixture.ExecuteDotnetPublishCommand(projectName);
+                using var extensionFromPublish = await testFixture.LoadExtensionPublishOutput(projectName);
+                var pageContentFromPublish = await extensionFromPublish.GetContent("h1");
+                pageContentFromPublish.ShouldBe("Hello, world!");
+            }
+            finally
+            {
+                ResetDirectoryChanges(projectDirectory);
+            }
+        }
+
+        private static void ResetDirectoryChanges(string directory)
+        {
+            try
+            {
+                CommandHelper.ExecuteCommandVoid("git", "restore .", directory);
+            }
+            catch (Exception exception) when (exception.Message.Contains("pathspec '.' did not match any file(s) known to git"))
+            {
+                // No file to restore which is fine
+            }
+
+            // Delete the bin and obj folders first to prevent long path issues on Windows
+            if (Directory.Exists(Path.Combine(directory, "bin")))
+            {
+                Directory.Delete(Path.Combine(directory, "bin"), true);
+            }
+
+            if (Directory.Exists(Path.Combine(directory, "obj")))
+            {
+                Directory.Delete(Path.Combine(directory, "obj"), true);
+            }
+
+            CommandHelper.ExecuteCommandVoid("git", "clean . -xdf", directory);
+        }
+
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext testContext) => testFixture = new BuildIntegrationTestFixture();
+
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            testFixture?.Dispose();
+            testFixture = null;
+        }
+    }
+}

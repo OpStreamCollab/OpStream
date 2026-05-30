@@ -25,7 +25,6 @@ theme:
         name: Switch to light mode
   features:
     - navigation.sections
-    - navigation.expand
     - navigation.path
     - navigation.top
     - navigation.indexes
@@ -77,12 +76,60 @@ plugins:
 
 nav:
   - Home: index.md
-  - Getting started:
+
+  - Get started:
       - Run with Docker: getting-started/docker.md
-      - Installation: getting-started/installation.md
-      - Quickstart: getting-started/quickstart.md
+      - Install the packages: getting-started/installation.md
+      - 5-minute quickstart: getting-started/quickstart.md
+
+  - What can you build:
+      - Collaborative text editor: recipes/collaborative-text-editor.md
+      - Collaborative 3D editor: recipes/collaborative-3d-editor.md
+      - Notion-style block document: recipes/notion-blocks.md
+      - Multi-user spreadsheet: recipes/spreadsheet.md
+      - Shared settings form: recipes/settings-form.md
+
+  - Choose your pieces:
+      - Document types (engines):
+          - Overview: engines/index.md
+          - Text OT: engines/text-ot.md
+          - Rich Text: engines/rich-text.md
+          - JSON CRDT: engines/json-crdt.md
+          - Tree CRDT: engines/tree-crdt.md
+          - Table CRDT: engines/table-crdt.md
+          - Form OT: engines/form-ot.md
+          - Awareness (presence): engines/awareness.md
+          - Undo / Redo: engines/undo-redo.md
+      - Connections (transports):
+          - Overview: transports/index.md
+          - SignalR: transports/signalr.md
+          - WebSockets: transports/websockets.md
+          - gRPC: transports/grpc.md
+      - Storage:
+          - Overview: storage/index.md
+          - In-memory: storage/memory.md
+          - Entity Framework Core: storage/ef-core.md
+          - SQL Server: storage/sql-server.md
+          - PostgreSQL: storage/postgresql.md
+          - MySQL: storage/mysql.md
+          - SQLite: storage/sqlite.md
+          - MongoDB: storage/mongodb.md
+          - Redis: storage/redis.md
+
+  - Run in production:
+      - Scaling out (backplane): operations/backplane.md
+      - Authorization: operations/authorization.md
+      - Multi-tenancy: operations/multitenancy.md
+      - Observability: operations/observability.md
+      - Snapshots: operations/snapshots.md
+      - Deployment: operations/deployment.md
+      - Docker image: operations/docker.md
+
+  # ---- everything below is "the guts": for contributors & the deeply curious ----
+
+  - How it works:
+      - Architecture: architecture.md
       - Core concepts: getting-started/concepts.md
-  - Concepts:
       - Document: concepts/document.md
       - Document Router: concepts/document-router.md
       - Session: concepts/session.md
@@ -95,48 +142,11 @@ nav:
       - Merging: concepts/merging.md
       - History: concepts/history.md
       - Compaction: concepts/compaction.md
-  - Recipes:
-      - Collaborative text editor: recipes/collaborative-text-editor.md
-      - Notion-style block tree: recipes/notion-blocks.md
-      - Settings dialog (form): recipes/settings-form.md
-      - Spreadsheet: recipes/spreadsheet.md
-  - Transports:
-      - Overview: transports/index.md
-      - SignalR: transports/signalr.md
-      - WebSockets: transports/websockets.md
-      - gRPC: transports/grpc.md
-  - Storage:
-      - Overview: storage/index.md
-      - In-memory: storage/memory.md
-      - Entity Framework Core: storage/ef-core.md
-      - SQL Server: storage/sql-server.md
-      - PostgreSQL: storage/postgresql.md
-      - MySQL: storage/mysql.md
-      - SQLite: storage/sqlite.md
-      - MongoDB: storage/mongodb.md
-      - Redis: storage/redis.md
-  - Architecture: architecture.md
-  - Engines:
-      - Overview: engines/index.md
-      - Text OT: engines/text-ot.md
-      - Rich Text: engines/rich-text.md
-      - JSON CRDT: engines/json-crdt.md
-      - Tree CRDT: engines/tree-crdt.md
-      - Table CRDT: engines/table-crdt.md
-      - Form OT: engines/form-ot.md
-      - Awareness: engines/awareness.md
-      - Undo / Redo: engines/undo-redo.md
-  - Operations:
-      - Backplane (scaling out): operations/backplane.md
-      - Authorization: operations/authorization.md
-      - Multi-tenancy: operations/multitenancy.md
-      - Observability: operations/observability.md
-      - Snapshots: operations/snapshots.md
-      - Deployment: operations/deployment.md
-      - Docker image: operations/docker.md
+
   - Internals:
       - First user join flow: internals/first-join-flow.md
       - Document lifecycle: internals/document-lifecycle.md
+
   - Reference:
       - Builder API: reference/builder-api.md
       - Configuration (DI): reference/configuration.md

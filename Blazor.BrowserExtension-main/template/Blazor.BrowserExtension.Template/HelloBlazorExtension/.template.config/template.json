@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "mingyaulee",
+  "classifications": [
+    "Web",
+    "Blazor",
+    "WebAssembly",
+    "BrowserExtension"
+  ],
+  "name": "Browser extension with Blazor WebAssembly",
+  "description": "Template to create a browser extension with Blazor WebAssembly.",
+  "identity": "Blazor.BrowserExtension",
+  "shortName": "browserext",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "HelloBlazorExtension",
+  "defaultName": "BrowserExtension1",
+  "preferNameDirectory": true,
+  "symbols": {
+    "Framework": {
+      "type": "parameter",
+      "description": "The target framework for the project.",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "net8.0",
+          "description": "Target .NET 8.0"
+        },
+        {
+          "choice": "net9.0",
+          "description": "Target .NET 9.0"
+        },
+        {
+          "choice": "net10.0",
+          "description": "Target .NET 10.0"
+        }
+      ],
+      "defaultValue": "net10.0",
+      "replaces": "net10.0"
+    },
+    "ManifestVersion": {
+      "type": "parameter",
+      "description": "The manifest version for the browser extension.",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "3",
+          "description": "Manifest V3"
+        }
+      ],
+      "defaultValue": "3"
+    },
+    "IsNet8": {
+      "type": "computed",
+      "value": "Framework == \"net8.0\""
+    },
+    "IsNet9": {
+      "type": "computed",
+      "value": "Framework == \"net9.0\""
+    }
+  },
+  "sources": [
+    {
+      "source": "./",
+      "target": "./",
+      "include": [ "**/*" ],
+      "exclude": [ ".template.config/**/*" ],
+      "modifiers": []
+    }
+  ]
+}

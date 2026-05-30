@@ -1,0 +1,206 @@
+name: CI
+
+# Disparadores:
+#   - push a master  -> tests + publicar NuGet (prerelease 1.0.0-ci.N) + imagen Docker
+#   - push de tag v* -> tests + publicar NuGet (versión estable, ej. v1.2.3 => 1.2.3) + imagen Docker
+#   - pull_request   -> SOLO tests (no publica nada)
+on:
+  push:
+    branches: [ master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ master ]
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  DOTNET_NOLOGO: 'true'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  SOLUTION: OpStream.slnx
+  DOCKER_IMAGE: opstreamcollab/opstream-host
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # 1) Tests — corre siempre (también en PRs)
+  # ───────────────────────────────────────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION }}
+
+      # Grpc.Tools tiene un bug de resolución de ruta en Linux (MSB6004): la ruta
+      # a protoc/grpc_csharp_plugin no se expande bien. Localizamos las tools tras
+      # el restore y exportamos las propiedades como variables de entorno (MSBuild
+      # las lee como propiedades) para los pasos build/test siguientes.
+      - name: Configure Grpc.Tools (Linux protoc workaround)
+        run: |
+          set -euo pipefail
+          GRPC_TOOLS=$(find ~/.nuget/packages/grpc.tools -maxdepth 3 -name linux_x64 -type d | head -1)
+          if [ -z "$GRPC_TOOLS" ]; then echo "::error::No se encontró grpc.tools/linux_x64"; exit 1; fi
+          GRPC_PKG_ROOT=$(dirname "$(dirname "$GRPC_TOOLS")")
+          chmod +x "$GRPC_TOOLS/protoc" "$GRPC_TOOLS/grpc_csharp_plugin"
+          echo "Protobuf_ProtocFullPath=$GRPC_TOOLS/protoc"                       >> "$GITHUB_ENV"
+          echo "gRPC_PluginFullPath=$GRPC_TOOLS/grpc_csharp_plugin"               >> "$GITHUB_ENV"
+          echo "Protobuf_StandardImportsPath=$GRPC_PKG_ROOT/build/native/include" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION }} -c Release --no-restore
+
+      # Excluimos los tests marcados con [Trait("Category", "Integration")]
+      # (usan Testcontainers: Redis/Postgres). Solo se ejecutan los unitarios.
+      - name: Test
+        run: dotnet test ${{ env.SOLUTION }} -c Release --no-build --verbosity normal --filter "Category!=Integration"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # 2) Publicar paquetes NuGet en NuGet.org — solo en push (no en PRs)
+  # ───────────────────────────────────────────────────────────────────────────
+  publish-nuget:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION }}
+
+      - name: Configure Grpc.Tools (Linux protoc workaround)
+        run: |
+          set -euo pipefail
+          GRPC_TOOLS=$(find ~/.nuget/packages/grpc.tools -maxdepth 3 -name linux_x64 -type d | head -1)
+          if [ -z "$GRPC_TOOLS" ]; then echo "::error::No se encontró grpc.tools/linux_x64"; exit 1; fi
+          GRPC_PKG_ROOT=$(dirname "$(dirname "$GRPC_TOOLS")")
+          chmod +x "$GRPC_TOOLS/protoc" "$GRPC_TOOLS/grpc_csharp_plugin"
+          echo "Protobuf_ProtocFullPath=$GRPC_TOOLS/protoc"                       >> "$GITHUB_ENV"
+          echo "gRPC_PluginFullPath=$GRPC_TOOLS/grpc_csharp_plugin"               >> "$GITHUB_ENV"
+          echo "Protobuf_StandardImportsPath=$GRPC_PKG_ROOT/build/native/include" >> "$GITHUB_ENV"
+
+      # Versión: en un tag v1.2.3 => 1.2.3 (estable); en cualquier otro push a
+      # master => 1.0.0-ci.<run_number> (prerelease, así nunca colisiona).
+      - name: Compute package version
+        id: ver
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="1.0.0-ci.${GITHUB_RUN_NUMBER}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Packing version $VERSION"
+
+      - name: Pack
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+          PROJECTS=(
+            src/OpStream.Constants/OpStream.Constants.csproj
+            src/OpStream.Shared.Abstractions/OpStream.Shared.Abstractions.csproj
+            src/OpStream.Shared.Messages/OpStream.Shared.Messages.csproj
+            src/OpStream.Server/OpStream.Server.csproj
+            src/OpStream.Server.Backplane.Redis/OpStream.Server.Backplane.Redis.csproj
+            src/OpStream.Server.Storage.EntityFrameworkCore/OpStream.Server.Storage.EntityFrameworkCore.csproj
+            src/OpStream.Server.Storage.PostgreSQL/OpStream.Server.Storage.PostgreSQL.csproj
+            src/OpStream.Server.Storage.MySQL/OpStream.Server.Storage.MySQL.csproj
+            src/OpStream.Server.Storage.SqlServer/OpStream.Server.Storage.SqlServer.csproj
+            src/OpStream.Server.Storage.SQLite/OpStream.Server.Storage.SQLite.csproj
+            src/OpStream.Server.Storage.MongoDB/OpStream.Server.Storage.MongoDB.csproj
+            src/OpStream.Server.Storage.Redis/OpStream.Server.Storage.Redis.csproj
+            src/OpStream.Server.Transports.SignalR/OpStream.Server.Transports.SignalR.csproj
+            src/OpStream.Server.Transports.WebSockets/OpStream.Server.Transports.WebSockets.csproj
+            src/OpStream.Server.Transports.gRPC/OpStream.Server.Transports.gRPC.csproj
+            src/OpStream.Client.Transports/OpStream.Client.Transports.csproj
+            src/OpStream.Client.Transports.SignalR/OpStream.Client.Transports.SignalR.csproj
+            src/OpStream.Client.Transports.WebSockets/OpStream.Client.Transports.WebSockets.csproj
+            src/OpStream.Client.Transports.gRPC/OpStream.Client.Transports.gRPC.csproj
+          )
+          for proj in "${PROJECTS[@]}"; do
+            dotnet pack "$proj" -c Release -o ./artifacts \
+              -p:Version="$VERSION" -p:ContinuousIntegrationBuild=true
+          done
+
+      - name: Push to NuGet.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          set -euo pipefail
+          dotnet nuget push "artifacts/*.nupkg" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Upload packages artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/*.nupkg
+
+      # Avisa al repo OpStream.DemoHost para que reconstruya su imagen Docker
+      # con la versión recién publicada. Requiere un PAT (secret DISPATCH_TOKEN)
+      # con permiso de Actions (write) sobre OpStreamCollab/OpStream.DemoHost,
+      # porque el GITHUB_TOKEN por defecto no puede disparar otros repos.
+      - name: Trigger DemoHost image build
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DISPATCH_TOKEN }}
+          repository: OpStreamCollab/OpStream.DemoHost
+          event-type: opstream-packages-published
+          client-payload: '{"version": "${{ steps.ver.outputs.version }}"}'
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # 3) Construir y publicar la imagen del Host en Docker Hub — solo en push
+  # ───────────────────────────────────────────────────────────────────────────
+  docker:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Docker metadata (tags & labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_IMAGE }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=,format=short
+            type=raw,value=ci-${{ github.run_number }},enable=${{ github.ref == 'refs/heads/master' }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

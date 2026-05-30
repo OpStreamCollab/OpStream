@@ -1,5 +1,12 @@
 # Recipe: Collaborative spreadsheet
 
+!!! tip "Working HTML + JS sample"
+    For a ready-to-run, no-.NET version, see
+    [`samples/luckysheet-collab`](https://github.com/OpStreamCollab/OpStream/tree/main/samples/luckysheet-collab):
+    the unmodified Luckysheet spreadsheet made collaborative over the JSON engine
+    via SignalR. `docker run -p 8080:8080 opstreamcollab/opstream`, then
+    `npm install && npm run dev`.
+
 A simplified Airtable / Google Sheets clone backed by
 [`TableCrdtEngine`](../engines/table-crdt.md). Concurrent users add and
 remove rows, edit cells, and reorder columns without locks.

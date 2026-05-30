@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpStream + LiteGraph — collaborative node editor</title>
+
+    <!-- LiteGraph (unmodified, from CDN) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litegraph.js/css/litegraph.css" />
+    <link rel="stylesheet" href="./src/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litegraph.js/build/litegraph.js"></script>
+</head>
+<body>
+    <div id="badge">OpStream · <span id="status">starting…</span></div>
+    <div id="toolbar">
+        <button id="addConst">+ Const</button>
+        <button id="addWatch">+ Watch</button>
+        <span class="hint">drag from a node's output dot to an input to connect · right-click for more nodes</span>
+    </div>
+
+    <canvas id="mycanvas"></canvas>
+
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>

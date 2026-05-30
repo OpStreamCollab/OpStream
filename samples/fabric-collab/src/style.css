@@ -1,0 +1,55 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #eef1f5;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+#toolbar {
+    height: 48px; display: flex; align-items: center; gap: 8px; padding: 0 12px;
+    background: #0d1b2a; color: #fff; font: 13px system-ui, sans-serif;
+}
+#toolbar strong { margin-right: 8px; }
+#toolbar button {
+    cursor: pointer; border: none; border-radius: 6px; padding: 6px 10px;
+    font-weight: 600; font-size: 12px; background: #2d6cdf; color: #fff;
+}
+#toolbar button:hover { background: #245bc0; }
+#me { margin-left: 16px; font-weight: 700; }
+#badge { margin-left: auto; font-weight: 600; }
+#status { color: #2ecc71; font-weight: 700; }
+
+#stage { position: absolute; top: 48px; left: 0; right: 280px; bottom: 0; }
+canvas { display: block; }
+
+#sidebar {
+    position: absolute; top: 48px; right: 0; bottom: 0; width: 280px;
+    background: #fff; border-left: 1px solid #dde2e8;
+    display: flex; flex-direction: column; padding: 12px; gap: 14px;
+}
+#sidebar h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase;
+    letter-spacing: .04em; color: #5a6678; }
+#sidebar .sec.grow { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+.peers { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.peers .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; }
+
+.panel { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.panel .empty { color: #9aa3ad; font-size: 13px; }
+.cm { position: relative; background: #f4f6f8; border-radius: 8px; padding: 8px 10px; }
+.cm .body { font-size: 13px; color: #1a2230; white-space: pre-wrap; }
+.cm .meta { font-size: 11px; color: #8a93a0; margin-top: 4px; cursor: pointer; }
+.cm .resolve { position: absolute; top: 6px; right: 6px; border: none; background: transparent;
+    color: #2d6cdf; font-size: 11px; font-weight: 600; cursor: pointer; }
+.cm .resolve:hover { text-decoration: underline; }
+
+#addbox { display: flex; flex-direction: column; gap: 6px; }
+#cmBody { resize: none; border: 1px solid #d0d4da; border-radius: 6px; padding: 7px; font: 13px system-ui; }
+#cmAdd { cursor: pointer; border: none; border-radius: 6px; padding: 8px; font-weight: 600;
+    background: #2d6cdf; color: #fff; }
+#cmAdd:disabled { background: #b9c2cd; cursor: not-allowed; }
+
+#overlay { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+#overlay .pin {
+    position: fixed; transform: translate(-50%, -50%);
+    background: #ff9800; color: #fff; font-size: 11px; font-weight: 700;
+    padding: 2px 6px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.35);
+    cursor: pointer; pointer-events: auto; white-space: nowrap;
+}

@@ -1,75 +1,149 @@
 # OpStream
 
-**A real-time collaborative editing toolkit for .NET applications.**
+**Let several people edit the same thing at the same time — inside your own app.**
 
-Bring Google-Docs-style co-editing to any document type your app already
-owns — without rewriting your authentication, your storage, or your editor.
+You know how Google Docs lets a whole team type into one document and everyone
+sees every keystroke instantly, with live cursors and no "who has the file open?"
+emails? OpStream brings that to **your** application — your editor, your data,
+your login — instead of sending your users off to someone else's cloud.
 
-[Get started in 5 minutes :material-arrow-right:](getting-started/quickstart.md){ .md-button .md-button--primary }
-[Browse the engines :material-arrow-right:](engines/index.md){ .md-button }
+You keep the app you already have. OpStream adds the real-time, multi-user layer.
+
+OpStream is a **server you run** — one Docker command, or host it inside an
+ASP.NET Core app. Your **frontend connects to it**: plain **HTML + JavaScript**,
+React, Vue, Blazor, or a mobile app, over WebSockets, SignalR, or gRPC. The
+server happens to be built on .NET; **your client doesn't have to be.**
+
+[Try it in 5 minutes :material-arrow-right:](getting-started/quickstart.md){ .md-button .md-button--primary }
+[See what you can build :material-arrow-right:](#what-can-you-build){ .md-button }
 
 ---
 
-## What OpStream gives you
-
-- **Eight production-ready engines** for the document shapes you actually ship —
-  plain text, rich text, JSON, hierarchical trees, tables, forms, presence,
-  and per-peer undo / redo.
-- **Three transports** (SignalR, WebSockets, gRPC) — pick the one that
-  already fits your stack.
-- **Eight storage backends** (EF Core, SQL Server, PostgreSQL, MySQL,
-  SQLite, MongoDB, Redis, in-memory) behind one `IDocumentStore` contract.
-- **Multi-node scaling** via the Redis backplane — flip a single
-  `UseRedisBackplane()` call and your single-node setup becomes a cluster.
-- **OpenTelemetry traces and metrics out of the box** — every op is a span,
-  every store call is timed, every backplane publish is counted.
-- **A DI-first builder API** that follows the standard ASP.NET Core
-  conventions: `Use*()` replaces, `Add*()` accumulates.
-
-## Mental model in one diagram
-
-```mermaid
-flowchart LR
-    Client[Editor / UI] -- transport --> Hub[Transport layer]
-    Hub --> Router[DocumentRouter]
-    Router --> Session[DocumentSession]
-    Session --> Engine[IOpEngine&lt;TDoc, TOp&gt;]
-    Session --> Store[(IDocumentStore)]
-    Router -. backplane .- Router2[Other node]
-    Router --> Awareness[AwarenessSession]
-```
-
-You write the **engine** (or pick a built-in one), wire the **transport**
-that fits your client, point at a **storage** backend, and let OpStream do
-the rest. Replace any layer when production demands it.
-
-## When to use OpStream
-
-| You want… | OpStream is a good fit |
-|---|---|
-| Multiple users editing the same document at the same time | :material-check: |
-| Live cursors, selections, "user is typing" presence | :material-check: |
-| Per-peer undo / redo that respects other peers' work | :material-check: |
-| Offline / re-sync support driven by an op log | :material-check: |
-| Working with your existing ASP.NET Core auth and storage | :material-check: |
-| Going multi-node without rewriting your app | :material-check: |
-| A standalone WYSIWYG editor — no collaboration | :material-close: use Quill / TipTap directly |
-| A pub/sub messaging backbone | :material-close: use NATS / Kafka / Redis directly |
-
-## Next steps
+## What can you build?
 
 <div class="grid cards" markdown>
 
-- :material-package-down: **[Install the packages](getting-started/installation.md)**
-  Pick the engine, transport, and storage packages you need.
+-   :material-text-box-edit: **A shared text or code editor**
 
-- :material-rocket-launch: **[5-minute quickstart](getting-started/quickstart.md)**
-  Hello-world collaborative text editor.
+    Two people type into the same document; edits merge without clobbering
+    each other. Live cursors and selections included.
 
-- :material-school: **[Core concepts](getting-started/concepts.md)**
-  Documents, ops, revisions, peers, and the engine lifecycle.
+    [:octicons-arrow-right-24: Recipe](recipes/collaborative-text-editor.md)
 
-- :material-book-open-page-variant: **[Browse the engines](engines/index.md)**
-  Choose the right algorithm for your document shape.
+-   :material-file-tree: **A Notion-style block document**
+
+    Nested, reorderable blocks that several editors can move and rewrite at
+    once.
+
+    [:octicons-arrow-right-24: Recipe](recipes/notion-blocks.md)
+
+-   :material-table: **A multi-user spreadsheet**
+
+    Many people editing cells live, with conflicts resolved per-cell.
+
+    [:octicons-arrow-right-24: Recipe](recipes/spreadsheet.md)
+
+-   :material-form-select: **A settings dialog edited by a team**
+
+    A plain form where two admins changing different fields don't overwrite
+    each other.
+
+    [:octicons-arrow-right-24: Recipe](recipes/settings-form.md)
 
 </div>
+
+!!! tip "Showcase: a collaborative 3D editor"
+    The full **[three.js editor](https://threejs.org/editor/)** — *unmodified* —
+    turned multiplayer from the outside in a few hundred lines of JavaScript. Add
+    and move objects in one browser; a teammate sees them instantly. Proof you can
+    make an editor you **don't own** collaborative.
+    [See the sample :material-arrow-right:](https://github.com/OpStreamCollab/OpStream/tree/main/samples/threejs-editor)
+
+!!! tip "Showcase: a collaborative spreadsheet"
+    The [Luckysheet](https://github.com/dream-num/Luckysheet) spreadsheet —
+    *unmodified* — made multiplayer: type in a cell in one browser, a teammate
+    sees it instantly. ~150 lines of JavaScript over the JSON engine.
+    [See the sample :material-arrow-right:](https://github.com/OpStreamCollab/OpStream/tree/main/samples/luckysheet-collab)
+
+And the things that make it feel "live":
+
+- **Live cursors & presence** — see where everyone else is, and who's typing.
+- **Per-user undo / redo** — your ++ctrl+z++ undoes *your* last change, not your
+  teammate's.
+- **Offline & reconnect** — clients catch up from where they left off.
+
+---
+
+## Is OpStream the right tool?
+
+| You want… | Fit |
+|---|---|
+| Several users editing one document at once | :material-check: yes |
+| Live cursors, selections, "is typing" presence | :material-check: yes |
+| To keep your existing ASP.NET Core login and database | :material-check: yes |
+| To grow from one server to many without a rewrite | :material-check: yes |
+| Just a fancy text editor for **one** user | :material-close: use Quill / TipTap |
+| A general message bus | :material-close: use NATS / Kafka |
+
+---
+
+## Try it now
+
+The fastest taste — one command, no .NET SDK, no project:
+
+```bash
+docker run -p 8080:8080 opstreamcollab/opstream
+```
+
+The server is now listening on `ws://localhost:8080/collab-ws`. Connect from a
+few lines of **browser JavaScript** — no .NET on the client:
+
+```html
+<textarea id="editor"></textarea>
+<script type="module">
+  import { WebSocketOpStreamClient } from "./WebSocketOpStreamClient.js";
+
+  const client = new WebSocketOpStreamClient("ws://localhost:8080/collab-ws");
+  const join = await client.connectAndJoinAsync("doc-1", "text");
+
+  // Remote edits from other tabs/users arrive here…
+  client.onReceiveOp = (payload, newRevision) => { /* apply to the textarea */ };
+  // …and you send local edits with client.sendOpAsync("doc-1", op, join.revision)
+</script>
+```
+
+Open that page in two tabs and they're editing the same document. The full,
+runnable version (editing wired both ways, with live cursors) is in the
+[HTML + JS samples](https://github.com/OpStreamCollab/OpStream/tree/main/samples) —
+or follow the quickstart:
+
+[5-minute quickstart :material-rocket-launch:](getting-started/quickstart.md){ .md-button .md-button--primary }
+
+---
+
+## How it works (the short version)
+
+You only need this if you're curious — you can build a lot without it.
+
+OpStream sits between your editor and your database. When someone makes an edit,
+it travels as a tiny **operation** ("insert 'x' at position 5"), gets merged with
+everyone else's operations so the result is consistent for all, and is saved so
+late-joiners and reconnecting clients can catch up.
+
+You choose three things, and OpStream handles the rest:
+
+- **What kind of document** you're editing (text, rich text, a tree, a table, a
+  form…) — these are the *engines*.
+- **How clients connect** (SignalR, WebSockets, or gRPC) — the *transports*.
+- **Where data is stored** (SQL Server, PostgreSQL, Redis, in-memory, and more).
+
+[The full architecture :material-arrow-right:](architecture.md)
+
+---
+
+## Going deeper
+
+- **[Choose your pieces](engines/index.md)** — engines, transports, storage.
+- **[Run in production](operations/backplane.md)** — scaling, auth, deploy.
+- **[How it works](concepts/document.md)** — the internal model, lifecycle, and
+  wire protocol, for contributors and the deeply curious.

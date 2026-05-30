@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <_BrowserExtensionBuildOutputFolder>bin\$(Configuration)</_BrowserExtensionBuildOutputFolder>
+    <WasmEnableHotReload>false</WasmEnableHotReload>
+  </PropertyGroup>
+
+  <!-- Link scripts according to the directory structure in the NuGet package -->
+  <PropertyGroup>
+    <_BrowserExtension_Package_Contents_Scripts_Directory>$(MSBuildThisFileDirectory)..\..\src\Blazor.BrowserExtension\content\dist</_BrowserExtension_Package_Contents_Scripts_Directory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <StaticWebAsset Include="$(MSBuildThisFileDirectory)..\..\src\Blazor.BrowserExtension\content\src\lib\*.*">
+      <SourceType>Package</SourceType>
+      <SourceId>Blazor.BrowserExtension</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\..\src\Blazor.BrowserExtension\content\src\lib</ContentRoot>
+      <BasePath>_content/Blazor.BrowserExtension/lib</BasePath>
+      <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+    </StaticWebAsset>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Import project reference and build props and targets as if we are referencing the built NuGet package -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Blazor.BrowserExtension.Analyzer\Blazor.BrowserExtension.Analyzer.csproj" PrivateAssets="all" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\..\src\Blazor.BrowserExtension\Blazor.BrowserExtension.csproj"></ProjectReference>
+  </ItemGroup>
+  <Import Project="..\..\src\Blazor.BrowserExtension\build\Blazor.BrowserExtension.props" />
+  <Import Project="..\..\src\Blazor.BrowserExtension\build\Blazor.BrowserExtension.targets" />
+  <Import Project="..\..\src\Blazor.BrowserExtension.Build\build\Blazor.BrowserExtension.Build.props" />
+  <Import Project="..\..\src\Blazor.BrowserExtension.Build\build\Blazor.BrowserExtension.Build.targets" />
+
+</Project>

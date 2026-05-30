@@ -1,18 +1,22 @@
 # Recipe: Collaborative text editor
 
-End-to-end walkthrough: an ASP.NET Core server plus a minimal Blazor
-WASM client that lets two browsers edit the same document concurrently
-with live cursors and undo.
+Two browsers editing the same document at once, with live cursors and
+per-user undo. We'll show the client in **plain HTML + JavaScript** (the fast
+path) and in **Blazor** — both talking to the same server.
 
-## What we're building
+## What you're building
 
-- Plain-text document (`TextOtEngine`).
-- SignalR transport.
-- SQL Server storage.
-- Awareness: live cursors per peer.
-- Per-peer undo / redo.
+- A plain-text document (the **Text** engine).
+- Live cursors for every connected user.
+- Per-user undo / redo.
 
-## Server
+> **You don't have to write the server to try this.** `docker run -p 8080:8080
+> opstreamcollab/opstream` gives you one with the text engine ready, listening
+> on `ws://localhost:8080/collab-ws`. Jump straight to [the client](#the-client).
+> The server section below is for when you want your own — with your storage and
+> your auth.
+
+## Server (optional — bring your own)
 
 ```csharp
 // Program.cs
@@ -42,7 +46,42 @@ app.MapOpStreamSignalR();
 app.Run();
 ```
 
-## Client (Blazor)
+## The client
+
+### HTML + JavaScript
+
+This is the fast path — no .NET on the client. The working sample wires a
+Monaco editor to OpStream in a few lines with the `attachCollab` helper from
+`monaco-collab.js`; it runs the merge (OT) state machine and renders remote
+cursors for you:
+
+```html
+<div id="editor" style="height:60vh"></div>
+
+<script type="module">
+  import { attachCollab } from "./monaco-collab.js";
+
+  const editor = monaco.editor.create(
+    document.getElementById("editor"), { value: "", language: "markdown" });
+
+  attachCollab(editor, {
+    url: "ws://localhost:8080/collab-ws",
+    documentId: "doc-1",
+    presence: { name: "Ada", color: "#e91e63" },   // your live cursor
+  });
+</script>
+```
+
+That's the whole client. Open it in two tabs and they're editing `doc-1`
+together, cursors and all. The full runnable version — Monaco set-up, the
+`monaco-collab.js` / `WebSocketOpStreamClient.js` helpers, plus a plain
+`<textarea>` variant — is in the
+[HTML + JS samples](https://github.com/OpStreamCollab/OpStream/tree/main/samples).
+
+Prefer another editor? The same helper pattern works for CodeMirror, a plain
+`<textarea>`, or any `contenteditable` — only the editor-binding glue changes.
+
+### Blazor
 
 ```razor
 @inject SignalROpStreamClient Client

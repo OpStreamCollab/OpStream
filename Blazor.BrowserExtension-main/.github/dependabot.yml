@@ -1,0 +1,34 @@
+version: 2
+updates:
+  # Check for updates to GitHub Actions every month
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+  # Check for updates to NuGet packages every month
+  - package-ecosystem: "nuget"
+    directories:
+    - "/docs/"
+    - "/test/Blazor.BrowserExtension.Analyzer.Test/"
+    - "/test/Blazor.BrowserExtension.Build.Test/"
+    - "/test/Blazor.BrowserExtension.IntegrationTest/"
+    - "/test/Blazor.BrowserExtension.IntegrationTestRunner/"
+    allow:
+    - dependency-type: "direct"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    groups:
+      aspnetcore:
+        patterns: [ Microsoft.AspNetCore.* ]
+      mstest:
+        patterns: [ MSTest.* ]
+      xunit:
+        patterns: [ xunit, xunit.* ]
+  # Check for updates to npm packages every month
+  - package-ecosystem: "npm"
+    directory: "/src/Blazor.BrowserExtension/content/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5

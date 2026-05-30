@@ -364,7 +364,11 @@ export function attachCollab(editor, opts) {
 
   client.onReceiveAwareness = (list) => {
     for (const s of list) {
-      try { renderRemote(s.peerId, typeof s.dataJson === "string" ? JSON.parse(s.dataJson) : s.dataJson); }
+      // The server serializes AwarenessState as { peerId, data, lastUpdated } (camelCase).
+      // `data` is the presence object the peer broadcast ({ name, color, anchor, head }).
+      // Tolerate a JSON string too in case a peer sends pre-stringified data.
+      const raw = s.data ?? s.dataJson;
+      try { renderRemote(s.peerId, typeof raw === "string" ? JSON.parse(raw) : raw); }
       catch { /* ignore malformed presence */ }
     }
   };

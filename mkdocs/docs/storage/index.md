@@ -1,14 +1,11 @@
 # Storage overview
 
-OpStream persists two things:
+Storage is where OpStream keeps your documents so edits survive restarts and
+people who join late (or reconnect) can catch up.
 
-| What | Where | Interface |
-|---|---|---|
-| The **op log** (append-only) | `IDocumentStore` | `AppendOpAsync` / `StreamOpsAsync` |
-| **Snapshots** (compacted state) | `IDocumentStore` | `SaveSnapshotAsync` / `LoadSnapshotAsync` |
-
-Plus an optional **history store** (`IHistoryStore`) for the
-[history / milestone subsystem](../operations/snapshots.md#history).
+Start with the built-in **in-memory** store — zero setup, perfect for trying
+OpStream and for tests. For anything real, point it at a database you already
+run. You don't need a new one: pick whichever you're already using.
 
 ## Supported backends
 
@@ -38,6 +35,18 @@ registration. See [Builder API conventions](../reference/builder-api.md).
   [PostgreSQL](postgresql.md) or [SQL Server](sql-server.md).
 - **Your business data is in MongoDB** → [MongoDB](mongodb.md) keeps
   the op log next to it.
+
+## What actually gets stored
+
+Each backend keeps two things behind one `IDocumentStore` contract:
+
+| What | Methods |
+|---|---|
+| The **op log** (append-only — every edit) | `AppendOpAsync` / `StreamOpsAsync` |
+| **Snapshots** (compacted state, so you don't replay every op) | `SaveSnapshotAsync` / `LoadSnapshotAsync` |
+
+Plus an optional **history store** (`IHistoryStore`) for the
+[history / milestone subsystem](../operations/snapshots.md#history).
 
 ## Implementing a custom backend
 
