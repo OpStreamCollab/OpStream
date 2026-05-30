@@ -57,10 +57,10 @@ jobs:
       - name: Build
         run: dotnet build ${{ env.SOLUTION }} -c Release --no-restore
 
-      # Los tests de integración usan Testcontainers (Redis/Postgres). El runner
-      # ubuntu-latest trae Docker, así que arrancan solos.
+      # Excluimos los tests marcados con [Trait("Category", "Integration")]
+      # (usan Testcontainers: Redis/Postgres). Solo se ejecutan los unitarios.
       - name: Test
-        run: dotnet test ${{ env.SOLUTION }} -c Release --no-build --verbosity normal
+        run: dotnet test ${{ env.SOLUTION }} -c Release --no-build --verbosity normal --filter "Category!=Integration"
 
   # ───────────────────────────────────────────────────────────────────────────
   # 2) Publicar paquetes NuGet en NuGet.org — solo en push (no en PRs)
