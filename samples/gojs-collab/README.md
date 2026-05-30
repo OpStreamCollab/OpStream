@@ -16,6 +16,17 @@ both straightforward.
 > you evaluate. A production deployment needs a GoJS license — unlike the other
 > samples here, which use MIT/permissive libraries.
 
+Beyond live sync it also shows **presence** (who's here + colored edit feedback
+on the touched node) and **anchored comments** (a 💬 pin per commented node + a
+side panel).
+
+## Node types
+
+Four templates, selected by the node data's `category` (so the shape syncs
+automatically through the JSON register): **Process** (rounded box), **Decision**
+(diamond), **Start/End** (capsule/terminator) and **Data** (parallelogram).
+Add them from the toolbar.
+
 ## How it works
 
 - **Document type `json`** (JSON CRDT engine). Each node is a register at
@@ -33,6 +44,22 @@ both straightforward.
 - **Transport:** SignalR via `@microsoft/signalr` to `/collab`.
 
 > Op discriminator is **`$type`** (`{ "$type": "set", "path": "nodes.k-ab12", … }`).
+
+### Presence & comments (verified server wire contract)
+
+- **Awareness** is pushed as the **`ReceiveAwarenessUpdate`** event (NOT
+  `ReceiveAwareness`), one `AwarenessState` `{ peerId: <connId>, data, lastUpdated }`
+  where `data` is the `{ peerId, name, color }` we sent via `UpdateAwareness`. The
+  server **excludes the sender** and only emits on change, so each peer
+  **re-broadcasts** when it first sees a newcomer (plus an 8 s heartbeat) — that's
+  how a late joiner appears in everyone's "Who's here".
+- **Edit feedback:** every op carries the sender's `peerId`; on a remote node op
+  we flash that peer's name + color label and briefly glow the node.
+- **Comments** use the real DTO: `anchor: { kind, data }` (we anchor with
+  `{ kind: 'gojs-node', data: { key } }` — a custom kind, no rebasing needed since
+  node keys are stable), `authorPeerId` (the server ConnectionId, mapped to the
+  presence name), and **resolved = `resolvedAt != null`**. There is **no
+  `anchorJson` and no `isResolved`** field.
 
 ## Run it
 

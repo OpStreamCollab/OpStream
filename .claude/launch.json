@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "gojs",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "samples/gojs-collab", "run", "dev"],
+      "port": 5173
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OpStream + GoJS — collaborative flowchart</title>
+    <title>OpStream + GoJS — collaborative flowchart (presence + comments)</title>
     <link rel="stylesheet" href="./src/style.css" />
     <!-- GoJS evaluation build (watermarked). Commercial license: https://gojs.net -->
     <script src="https://cdn.jsdelivr.net/npm/gojs/release/go.js"></script>
@@ -11,11 +11,37 @@
 <body>
     <div id="toolbar">
         <strong>Collaborative flowchart</strong>
-        <button id="addNode">+ Node</button>
-        <span class="hint">drag a node's edge to another node to link · double-click text to edit · Del to remove</span>
+        <button id="addProcess">+ Process</button>
+        <button id="addDecision">◆ Decision</button>
+        <button id="addStart">▭ Start/End</button>
+        <button id="addData">▰ Data</button>
+        <button id="del" class="ghost">Delete</button>
+        <span class="hint">drag a node's edge to link · double-click to rename · Del to remove</span>
+        <span id="me">…</span>
         <span id="badge">OpStream · <span id="status">starting…</span></span>
     </div>
+
     <div id="diagram"></div>
+
+    <aside id="sidebar">
+        <div class="sec">
+            <h3>Who's here</h3>
+            <div id="peers" class="peers"></div>
+        </div>
+        <div class="sec grow">
+            <h3 id="cmHead">Comments</h3>
+            <div id="panel" class="panel"></div>
+        </div>
+        <div class="sec">
+            <div id="addbox">
+                <textarea id="cmBody" rows="2" placeholder="Select a node, then comment…"></textarea>
+                <button id="cmAdd" disabled>Select a node first</button>
+            </div>
+        </div>
+    </aside>
+
+    <div id="overlay"></div>
+
     <script type="module" src="./src/main.js"></script>
 </body>
 </html>

@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://opstreamcollab.github.io/OpStream/transports/websockets/">
+        <link rel="canonical" href="https://opstreamcollab.github.io/OpStream/samples/">
       
       
-        <link rel="prev" href="../signalr/">
+        <link rel="prev" href="../getting-started/quickstart/">
       
       
-        <link rel="next" href="../grpc/">
+        <link rel="next" href="../recipes/collaborative-text-editor/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>WebSockets - OpStream</title>
+        <title>Live samples gallery - OpStream</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,7 +53,7 @@
       
     
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
   
@@ -88,7 +88,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#websockets-transport" class="md-skip">
+        <a href="#live-samples-gallery" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="OpStream" class="md-header__button md-logo" aria-label="OpStream" data-md-component="logo">
+    <a href=".." title="OpStream" class="md-header__button md-logo" aria-label="OpStream" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -124,7 +124,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              WebSockets
+              Live samples gallery
             
           </span>
         </div>
@@ -247,7 +247,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="OpStream" class="md-nav__button md-logo" aria-label="OpStream" data-md-component="logo">
+    <a href=".." title="OpStream" class="md-nav__button md-logo" aria-label="OpStream" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -277,7 +277,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -364,7 +364,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/docker/" class="md-nav__link">
+      <a href="../getting-started/docker/" class="md-nav__link">
         
   
   
@@ -392,7 +392,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/installation/" class="md-nav__link">
+      <a href="../getting-started/installation/" class="md-nav__link">
         
   
   
@@ -420,7 +420,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/quickstart/" class="md-nav__link">
+      <a href="../getting-started/quickstart/" class="md-nav__link">
         
   
   
@@ -452,8 +452,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -478,11 +480,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
@@ -503,7 +505,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -518,10 +520,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../samples/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live samples gallery
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -537,6 +566,59 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#make-any-editor-collaborative-json-crdt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Make any editor collaborative (JSON CRDT)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#text-rich-text" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Text &amp; rich text
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Forms
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -549,7 +631,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../recipes/collaborative-text-editor/" class="md-nav__link">
+      <a href="../recipes/collaborative-text-editor/" class="md-nav__link">
         
   
   
@@ -577,7 +659,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../recipes/collaborative-3d-editor/" class="md-nav__link">
+      <a href="../recipes/collaborative-3d-editor/" class="md-nav__link">
         
   
   
@@ -605,7 +687,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../recipes/notion-blocks/" class="md-nav__link">
+      <a href="../recipes/notion-blocks/" class="md-nav__link">
         
   
   
@@ -633,7 +715,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../recipes/spreadsheet/" class="md-nav__link">
+      <a href="../recipes/spreadsheet/" class="md-nav__link">
         
   
   
@@ -661,7 +743,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../recipes/settings-form/" class="md-nav__link">
+      <a href="../recipes/settings-form/" class="md-nav__link">
         
   
   
@@ -693,10 +775,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -715,11 +795,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
@@ -740,7 +820,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -794,7 +874,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../engines/" class="md-nav__link ">
+            <a href="../engines/" class="md-nav__link ">
               
   
   
@@ -838,7 +918,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../engines/text-ot/" class="md-nav__link">
+      <a href="../engines/text-ot/" class="md-nav__link">
         
   
   
@@ -866,7 +946,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../engines/rich-text/" class="md-nav__link">
+      <a href="../engines/rich-text/" class="md-nav__link">
         
   
   
@@ -894,7 +974,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../engines/json-crdt/" class="md-nav__link">
+      <a href="../engines/json-crdt/" class="md-nav__link">
         
   
   
@@ -922,7 +1002,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../engines/tree-crdt/" class="md-nav__link">
+      <a href="../engines/tree-crdt/" class="md-nav__link">
         
   
   
@@ -950,7 +1030,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../engines/table-crdt/" class="md-nav__link">
+      <a href="../engines/table-crdt/" class="md-nav__link">
         
   
   
@@ -978,7 +1058,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../engines/form-ot/" class="md-nav__link">
+      <a href="../engines/form-ot/" class="md-nav__link">
         
   
   
@@ -1006,7 +1086,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../engines/awareness/" class="md-nav__link">
+      <a href="../engines/awareness/" class="md-nav__link">
         
   
   
@@ -1034,7 +1114,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../engines/undo-redo/" class="md-nav__link">
+      <a href="../engines/undo-redo/" class="md-nav__link">
         
   
   
@@ -1067,8 +1147,6 @@
                 
   
   
-    
-  
   
   
     
@@ -1090,15 +1168,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../transports/" class="md-nav__link ">
               
   
   
@@ -1122,7 +1200,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1142,7 +1220,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../signalr/" class="md-nav__link">
+      <a href="../transports/signalr/" class="md-nav__link">
         
   
   
@@ -1167,37 +1245,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    WebSockets
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../transports/websockets/" class="md-nav__link">
         
   
   
@@ -1213,131 +1264,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#install" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Install
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#server-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Server setup
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#message-framing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Message framing
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Message framing">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#client-server" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Client → server
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#server-client" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Server → client
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#net-client" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        .NET client
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authentication" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Authentication
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#scaling-out" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Scaling out
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#choosing-websockets-over-signalr" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Choosing WebSockets over SignalR
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1350,7 +1276,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../grpc/" class="md-nav__link">
+      <a href="../transports/grpc/" class="md-nav__link">
         
   
   
@@ -1422,7 +1348,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../storage/" class="md-nav__link ">
+            <a href="../storage/" class="md-nav__link ">
               
   
   
@@ -1466,7 +1392,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../storage/memory/" class="md-nav__link">
+      <a href="../storage/memory/" class="md-nav__link">
         
   
   
@@ -1494,7 +1420,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../storage/ef-core/" class="md-nav__link">
+      <a href="../storage/ef-core/" class="md-nav__link">
         
   
   
@@ -1522,7 +1448,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../storage/sql-server/" class="md-nav__link">
+      <a href="../storage/sql-server/" class="md-nav__link">
         
   
   
@@ -1550,7 +1476,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../storage/postgresql/" class="md-nav__link">
+      <a href="../storage/postgresql/" class="md-nav__link">
         
   
   
@@ -1578,7 +1504,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../storage/mysql/" class="md-nav__link">
+      <a href="../storage/mysql/" class="md-nav__link">
         
   
   
@@ -1606,7 +1532,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../storage/sqlite/" class="md-nav__link">
+      <a href="../storage/sqlite/" class="md-nav__link">
         
   
   
@@ -1634,7 +1560,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../storage/mongodb/" class="md-nav__link">
+      <a href="../storage/mongodb/" class="md-nav__link">
         
   
   
@@ -1662,7 +1588,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../storage/redis/" class="md-nav__link">
+      <a href="../storage/redis/" class="md-nav__link">
         
   
   
@@ -1773,7 +1699,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../operations/backplane/" class="md-nav__link">
+      <a href="../operations/backplane/" class="md-nav__link">
         
   
   
@@ -1801,7 +1727,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../operations/authorization/" class="md-nav__link">
+      <a href="../operations/authorization/" class="md-nav__link">
         
   
   
@@ -1829,7 +1755,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../operations/multitenancy/" class="md-nav__link">
+      <a href="../operations/multitenancy/" class="md-nav__link">
         
   
   
@@ -1857,7 +1783,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../operations/observability/" class="md-nav__link">
+      <a href="../operations/observability/" class="md-nav__link">
         
   
   
@@ -1885,7 +1811,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../operations/snapshots/" class="md-nav__link">
+      <a href="../operations/snapshots/" class="md-nav__link">
         
   
   
@@ -1913,7 +1839,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../operations/deployment/" class="md-nav__link">
+      <a href="../operations/deployment/" class="md-nav__link">
         
   
   
@@ -1941,7 +1867,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../operations/docker/" class="md-nav__link">
+      <a href="../operations/docker/" class="md-nav__link">
         
   
   
@@ -2058,7 +1984,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/" class="md-nav__link">
+      <a href="../architecture/" class="md-nav__link">
         
   
   
@@ -2086,7 +2012,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/concepts/" class="md-nav__link">
+      <a href="../getting-started/concepts/" class="md-nav__link">
         
   
   
@@ -2114,7 +2040,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../concepts/document/" class="md-nav__link">
+      <a href="../concepts/document/" class="md-nav__link">
         
   
   
@@ -2142,7 +2068,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../concepts/document-router/" class="md-nav__link">
+      <a href="../concepts/document-router/" class="md-nav__link">
         
   
   
@@ -2170,7 +2096,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../concepts/session/" class="md-nav__link">
+      <a href="../concepts/session/" class="md-nav__link">
         
   
   
@@ -2198,7 +2124,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../concepts/peer/" class="md-nav__link">
+      <a href="../concepts/peer/" class="md-nav__link">
         
   
   
@@ -2226,7 +2152,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../concepts/revision/" class="md-nav__link">
+      <a href="../concepts/revision/" class="md-nav__link">
         
   
   
@@ -2254,7 +2180,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../concepts/comments/" class="md-nav__link">
+      <a href="../concepts/comments/" class="md-nav__link">
         
   
   
@@ -2282,7 +2208,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../concepts/comment-router/" class="md-nav__link">
+      <a href="../concepts/comment-router/" class="md-nav__link">
         
   
   
@@ -2310,7 +2236,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../concepts/branching/" class="md-nav__link">
+      <a href="../concepts/branching/" class="md-nav__link">
         
   
   
@@ -2338,7 +2264,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../concepts/versioning/" class="md-nav__link">
+      <a href="../concepts/versioning/" class="md-nav__link">
         
   
   
@@ -2366,7 +2292,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../concepts/merging/" class="md-nav__link">
+      <a href="../concepts/merging/" class="md-nav__link">
         
   
   
@@ -2394,7 +2320,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../concepts/history/" class="md-nav__link">
+      <a href="../concepts/history/" class="md-nav__link">
         
   
   
@@ -2422,7 +2348,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../concepts/compaction/" class="md-nav__link">
+      <a href="../concepts/compaction/" class="md-nav__link">
         
   
   
@@ -2515,7 +2441,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../internals/first-join-flow/" class="md-nav__link">
+      <a href="../internals/first-join-flow/" class="md-nav__link">
         
   
   
@@ -2543,7 +2469,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../internals/document-lifecycle/" class="md-nav__link">
+      <a href="../internals/document-lifecycle/" class="md-nav__link">
         
   
   
@@ -2640,7 +2566,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/builder-api/" class="md-nav__link">
+      <a href="../reference/builder-api/" class="md-nav__link">
         
   
   
@@ -2668,7 +2594,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/configuration/" class="md-nav__link">
+      <a href="../reference/configuration/" class="md-nav__link">
         
   
   
@@ -2696,7 +2622,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/interfaces/" class="md-nav__link">
+      <a href="../reference/interfaces/" class="md-nav__link">
         
   
   
@@ -2724,7 +2650,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/wire-protocol/" class="md-nav__link">
+      <a href="../reference/wire-protocol/" class="md-nav__link">
         
   
   
@@ -2779,10 +2705,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#install" class="md-nav__link">
+  <a href="#make-any-editor-collaborative-json-crdt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Install
+        Make any editor collaborative (JSON CRDT)
       
     </span>
   </a>
@@ -2790,10 +2716,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#server-setup" class="md-nav__link">
+  <a href="#text-rich-text" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Server setup
+        Text &amp; rich text
       
     </span>
   </a>
@@ -2801,82 +2727,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#message-framing" class="md-nav__link">
+  <a href="#forms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Message framing
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Message framing">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#client-server" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Client → server
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#server-client" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Server → client
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#net-client" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        .NET client
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authentication" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Authentication
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#scaling-out" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Scaling out
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#choosing-websockets-over-signalr" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Choosing WebSockets over SignalR
+        Forms
       
     </span>
   </a>
@@ -2908,7 +2762,7 @@
   
   
     <li class="md-path__item">
-      <a href="../.." class="md-path__link">
+      <a href=".." class="md-path__link">
         
   <span class="md-ellipsis">
     Home
@@ -2925,37 +2779,11 @@
   
     
     
-      
-  
-  
-    
-    
       <li class="md-path__item">
-        <a href="../../engines/" class="md-path__link">
+        <a href="./" class="md-path__link">
           
   <span class="md-ellipsis">
-    Choose your pieces
-  </span>
-
-        </a>
-      </li>
-    
-  
-
-    
-  
-
-      
-        
-  
-  
-    
-    
-      <li class="md-path__item">
-        <a href="../" class="md-path__link">
-          
-  <span class="md-ellipsis">
-    Connections (transports)
+    What can you build
   </span>
 
         </a>
@@ -2977,85 +2805,108 @@
   
 
 
-<h1 id="websockets-transport">WebSockets transport<a class="headerlink" href="#websockets-transport" title="Permanent link">&para;</a></h1>
-<p>Bare WebSocket transport for clients that don't want a SignalR runtime —
-mobile apps, native desktop, or any custom client speaking a JSON
-framing protocol.</p>
-<h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>dotnet<span class="w"> </span>add<span class="w"> </span>package<span class="w"> </span>OpStream.Server.Transports.WebSockets
-</span></code></pre></div>
-<h2 id="server-setup">Server setup<a class="headerlink" href="#server-setup" title="Permanent link">&para;</a></h2>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">builder</span><span class="p">.</span><span class="n">Services</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">()</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="p">.</span><span class="n">UseSqlServer</span><span class="p">(</span><span class="n">connStr</span><span class="p">)</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="p">.</span><span class="n">AddWebSocketTransport</span><span class="p">();</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="kt">var</span><span class="w"> </span><span class="n">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">app</span><span class="p">.</span><span class="n">UseWebSockets</span><span class="p">();</span><span class="w">              </span><span class="c1">// standard ASP.NET Core middleware</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamWebSockets</span><span class="p">();</span><span class="w">      </span><span class="c1">// default path /opstream/ws</span>
-</span></code></pre></div>
-<p>Override the path: <code>app.MapOpStreamWebSockets("/realtime");</code></p>
-<h2 id="message-framing">Message framing<a class="headerlink" href="#message-framing" title="Permanent link">&para;</a></h2>
-<p>Each WebSocket message is a UTF-8 JSON object with a <code>type</code> discriminator
-plus per-type fields. See <code>WebSocketMessages.cs</code>.</p>
-<h3 id="client-server">Client → server<a class="headerlink" href="#client-server" title="Permanent link">&para;</a></h3>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">// Join a document</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;join&quot;</span><span class="p">,</span><span class="w">        </span><span class="nt">&quot;documentId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;doc-1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;documentType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;text&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;protocolVersion&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1">// Send an op</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;op&quot;</span><span class="p">,</span><span class="w">          </span><span class="nt">&quot;documentId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;doc-1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;payload&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;base64&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;baseRevision&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1">// Update awareness</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;awareness&quot;</span><span class="p">,</span><span class="w">   </span><span class="nt">&quot;documentId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;doc-1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
-</span></code></pre></div>
-<h3 id="server-client">Server → client<a class="headerlink" href="#server-client" title="Permanent link">&para;</a></h3>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// Join ack — the document&#39;s current state and revision</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;join_ack&quot;</span><span class="p">,</span><span class="w">         </span><span class="nt">&quot;revision&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;snapshot&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;base64&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;awareness&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1">// Remote op landed</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;op&quot;</span><span class="p">,</span><span class="w">               </span><span class="nt">&quot;documentId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;doc-1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;payload&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;base64&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;revision&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1">// Peer awareness changed</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;awareness_update&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;documentId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;doc-1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;peerId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;p-3&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="nt">&quot;lastUpdated&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1">// Peer disconnected</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;peer_disconnected&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;peerId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;p-3&quot;</span><span class="w"> </span><span class="p">}</span>
-</span></code></pre></div>
-<p>The discriminator strings live in <code>OpStreamConstants.WebSocketMessages</code>.</p>
-<h2 id="net-client">.NET client<a class="headerlink" href="#net-client" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>dotnet<span class="w"> </span>add<span class="w"> </span>package<span class="w"> </span>OpStream.Client.Transports.WebSockets
-</span></code></pre></div>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">OpStream.Client.Transports.WebSockets</span><span class="p">;</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kt">var</span><span class="w"> </span><span class="n">client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">WebSocketOpStreamClient</span><span class="p">(</span><span class="s">&quot;wss://your-app/opstream/ws&quot;</span><span class="p">);</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">await</span><span class="w"> </span><span class="n">client</span><span class="p">.</span><span class="n">ConnectAsync</span><span class="p">();</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="kt">var</span><span class="w"> </span><span class="k">join</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="n">client</span><span class="p">.</span><span class="n">JoinAsync</span><span class="p">(</span><span class="s">&quot;doc-1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;text&quot;</span><span class="p">);</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">client</span><span class="p">.</span><span class="n">OnReceiveOp</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">;</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="k">await</span><span class="w"> </span><span class="n">client</span><span class="p">.</span><span class="n">SendOpAsync</span><span class="p">(...);</span>
-</span></code></pre></div>
-<p>The API surface mirrors the SignalR client; the only difference is the
-URL scheme and the underlying transport.</p>
-<h2 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h2>
-<p>WebSocket upgrades go through the ASP.NET Core authentication pipeline.
-Pass your token via the standard <code>Authorization</code> header on the initial
-HTTP request, or via a query string (<code>?access_token=...</code>) — whichever
-your client supports.</p>
-<p>For document-level access, plug <code>IDocumentAuthorizer</code> via
-<a href="../../operations/authorization/"><code>UseAuthorization&lt;T&gt;()</code></a>.</p>
-<h2 id="scaling-out">Scaling out<a class="headerlink" href="#scaling-out" title="Permanent link">&para;</a></h2>
-<p>Use the <a href="../../operations/backplane/">Redis backplane</a>. The WebSocket
-transport fan-outs ops via the backplane to peers on other nodes; no
-sticky sessions required as long as the load balancer distributes the
-initial HTTP upgrade.</p>
-<h2 id="choosing-websockets-over-signalr">Choosing WebSockets over SignalR<a class="headerlink" href="#choosing-websockets-over-signalr" title="Permanent link">&para;</a></h2>
-<ul>
-<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 7 9 19l-5.5-5.5 1.41-1.41L9 16.17 19.59 5.59z"/></svg></span> Smaller client footprint (no SignalR JS / .NET runtime).</li>
-<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 7 9 19l-5.5-5.5 1.41-1.41L9 16.17 19.59 5.59z"/></svg></span> Trivial to consume from a non-.NET client (Swift / Kotlin / Go).</li>
-<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></span> No automatic reconnection — your client implements it.</li>
-<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></span> No transport fallback (long-polling) — your network must support WS.</li>
-</ul>
+<h1 id="live-samples-gallery">Live samples gallery<a class="headerlink" href="#live-samples-gallery" title="Permanent link">&para;</a></h1>
+<p>Every sample below runs <strong>live</strong> on the public OpStream demo server
+(<a href="https://hostdemo.opstream.stream/samples">hostdemo.opstream.stream</a>) and links to
+its source in this repo. Open any demo in two browser tabs to see real-time
+collaboration — they all talk to the same OpStream server.</p>
+<div class="admonition tip">
+<p class="admonition-title">Zero setup</p>
+<p>No install needed to try them. To run a sample locally instead, follow the
+README in its source folder (<code>docker run -p 8080:8080 opstreamcollab/opstream</code>,
+then <code>npm install &amp;&amp; npm run dev</code> for the JS samples).</p>
+</div>
+<h2 id="make-any-editor-collaborative-json-crdt">Make any editor collaborative (JSON CRDT)<a class="headerlink" href="#make-any-editor-collaborative-json-crdt" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Sample</th>
+<th>Engine</th>
+<th>Links</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Collaborative spreadsheet (Luckysheet)</td>
+<td>JSON CRDT</td>
+<td><a href="https://hostdemo.opstream.stream/samples/luckysheet/">▶ Live</a> · <a href="https://github.com/OpStreamCollab/OpStream/tree/main/samples/luckysheet-collab">Source</a></td>
+</tr>
+<tr>
+<td>Collaborative canvas (Fabric.js)</td>
+<td>JSON CRDT</td>
+<td><a href="https://hostdemo.opstream.stream/samples/fabric/">▶ Live</a> · <a href="https://github.com/OpStreamCollab/OpStream/tree/main/samples/fabric-collab">Source</a></td>
+</tr>
+<tr>
+<td>Collaborative flowchart (GoJS)</td>
+<td>JSON CRDT</td>
+<td><a href="https://hostdemo.opstream.stream/samples/gojs/">▶ Live</a> · <a href="https://github.com/OpStreamCollab/OpStream/tree/main/samples/gojs-collab">Source</a></td>
+</tr>
+<tr>
+<td>Collaborative Kanban board (SortableJS)</td>
+<td>JSON CRDT</td>
+<td><a href="https://hostdemo.opstream.stream/samples/kanban/">▶ Live</a> · <a href="https://github.com/OpStreamCollab/OpStream/tree/main/samples/kanban-collab">Source</a></td>
+</tr>
+<tr>
+<td>Collaborative node editor (LiteGraph)</td>
+<td>JSON CRDT</td>
+<td><a href="https://hostdemo.opstream.stream/samples/litegraph/">▶ Live</a> · <a href="https://github.com/OpStreamCollab/OpStream/tree/main/samples/litegraph-collab">Source</a></td>
+</tr>
+<tr>
+<td>Collaborative 3D editor (three.js)</td>
+<td>JSON CRDT</td>
+<td><a href="https://hostdemo.opstream.stream/samples/threejs/">▶ Live</a> · <a href="https://github.com/OpStreamCollab/OpStream/tree/main/samples/threejs-editor">Source</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="text-rich-text">Text &amp; rich text<a class="headerlink" href="#text-rich-text" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Sample</th>
+<th>Engine</th>
+<th>Links</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Collaborative Monaco editor (HTML + JS)</td>
+<td>Text OT</td>
+<td><a href="https://hostdemo.opstream.stream/samples/monaco/">▶ Live</a> · <a href="https://github.com/OpStreamCollab/OpStream/tree/main/samples/MonacoCollaborativeJs">Source</a></td>
+</tr>
+<tr>
+<td>Collaborative text editor (Blazor)</td>
+<td>Text OT</td>
+<td><a href="https://hostdemo.opstream.stream/samples/text">▶ Live</a> · <a href="https://github.com/OpStreamCollab/OpStream/tree/main/samples/BlazorTextEditor">Source</a></td>
+</tr>
+<tr>
+<td>Collaborative rich text editor (Blazorise)</td>
+<td>Rich Text</td>
+<td><a href="https://hostdemo.opstream.stream/samples/rich-text">▶ Live</a> · <a href="https://github.com/OpStreamCollab/OpStream/tree/main/samples/BlazoriseRichTextEditor">Source</a></td>
+</tr>
+<tr>
+<td>Collaborative HTML editor (Radzen)</td>
+<td>Rich Text</td>
+<td><a href="https://hostdemo.opstream.stream/samples/html-editor">▶ Live</a> · <a href="https://github.com/OpStreamCollab/OpStream/tree/main/samples/OpStream.CollabHtmlEditor">Source</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="forms">Forms<a class="headerlink" href="#forms" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Sample</th>
+<th>Engine</th>
+<th>Links</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shared settings form (Blazor)</td>
+<td>Form OT</td>
+<td><a href="https://hostdemo.opstream.stream/samples/form">▶ Live</a> · <a href="https://github.com/OpStreamCollab/OpStream/tree/main/samples/BlazorFormEditor">Source</a></td>
+</tr>
+</tbody>
+</table>
 
 
 
@@ -3135,10 +2986,10 @@ initial HTTP upgrade.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.path", "navigation.top", "navigation.indexes", "toc.follow", "content.code.copy", "content.code.annotate", "content.tabs.link", "search.highlight", "search.suggest", "search.share"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.path", "navigation.top", "navigation.indexes", "toc.follow", "content.code.copy", "content.code.annotate", "content.tabs.link", "search.highlight", "search.suggest", "search.share"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
