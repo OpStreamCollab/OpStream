@@ -10,9 +10,15 @@
     <!--
         The three.js editor is loaded as-is from its upstream folder, with zero
         modifications. The CollabSession (loaded below in the parent window)
-        reaches into the iframe at runtime to wrap editor.history.execute.
+        reaches into the iframe at runtime to wrap editor.history.execute, so the
+        iframe MUST be same-origin.
+
+        The src is relative (no leading slash) on purpose: in dev it is served by
+        the Vite proxy (/three.js-dev -> threejs.org); in production the editor is
+        vendored under <base>/three.js-dev/ by the DemoHost CI build, and the
+        relative path rebases correctly under base=/samples/threejs/.
     -->
-    <iframe id="editorFrame" src="/three.js-dev/editor/index.html"></iframe>
+    <iframe id="editorFrame" src="three.js-dev/editor/index.html"></iframe>
 
     <script type="module" src="./src/main.js"></script>
 </body>

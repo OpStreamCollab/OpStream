@@ -1,5 +1,10 @@
 # Recipe: Collaborative 3D editor
 
+!!! example "Try it live"
+    **▶ [Live demo](https://hostdemo.opstream.stream/samples/threejs/)** ·
+    **[&lt;/&gt; Source](https://github.com/OpStreamCollab/OpStream/tree/main/samples/threejs-editor)** ·
+    [all samples](../samples.md)
+
 Take the **[three.js editor](https://threejs.org/editor/)** — a full 3D scene
 editor you didn't write — and make it multiplayer. Add a cube in one browser, it
 appears in everyone's; drag it, they all see it move. **Without forking the

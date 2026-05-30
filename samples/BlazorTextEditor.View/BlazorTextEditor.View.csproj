@@ -1,14 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
+  <!--
+    Reusable UI for the collaborative text-editor sample, packaged as a Razor
+    Class Library so it can be consumed by BOTH the standalone host
+    (BlazorTextEditor) and OpStream.DemoHost, which mounts it at /samples/text.
+    The opstream-adapter.js ships as a static web asset under
+    _content/BlazorTextEditor.View/ and is loaded by the component itself.
+  -->
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- Versión de los paquetes OpStream (alineada con DemoHost para no degradar a
-         1.0.0 estable, que carece de la API de comentarios). -->
+    <RootNamespace>BlazorTextEditor</RootNamespace>
     <OpStreamVersion Condition="'$(OpStreamVersion)' == ''">1.0.0-ci.11</OpStreamVersion>
   </PropertyGroup>
-
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />

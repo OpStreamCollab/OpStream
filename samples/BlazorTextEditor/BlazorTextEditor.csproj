@@ -4,13 +4,16 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <OpStreamVersion Condition="'$(OpStreamVersion)' == ''">1.0.0-ci.11</OpStreamVersion>
   </PropertyGroup>
 
-	
+  <ItemGroup>
+    <!-- UI reutilizable compartida con OpStream.DemoHost. -->
+    <ProjectReference Include="..\BlazorTextEditor.View\BlazorTextEditor.View.csproj" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\..\src\OpStream.Client.Transports.SignalR\OpStream.Client.Transports.SignalR.csproj" />		
-	</ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="OpStream.Client.Transports.SignalR" Version="$(OpStreamVersion)" />
+  </ItemGroup>
 
 </Project>

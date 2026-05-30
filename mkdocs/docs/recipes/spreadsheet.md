@@ -1,5 +1,10 @@
 # Recipe: Collaborative spreadsheet
 
+!!! example "Try it live"
+    **▶ [Live demo](https://hostdemo.opstream.stream/samples/luckysheet/)** ·
+    **[&lt;/&gt; Source](https://github.com/OpStreamCollab/OpStream/tree/main/samples/luckysheet-collab)** ·
+    [all samples](../samples.md)
+
 !!! tip "Working HTML + JS sample"
     For a ready-to-run, no-.NET version, see
     [`samples/luckysheet-collab`](https://github.com/OpStreamCollab/OpStream/tree/main/samples/luckysheet-collab):

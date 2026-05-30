@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!--
+    Reusable UI for the collaborative settings-form sample, packaged as a Razor
+    Class Library so it can be consumed by BOTH the standalone host
+    (BlazorFormEditor) and OpStream.DemoHost, which mounts it at /samples/form.
+    Mirrors the existing OpStream.CollabHtmlEditor RCL pattern.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>BlazorFormEditor</RootNamespace>
+    <!-- Versión de los paquetes OpStream. Por defecto la última prerelease;
+         el pipeline la sobreescribe con la versión exacta vía -p:OpStreamVersion=... -->
+    <OpStreamVersion Condition="'$(OpStreamVersion)' == ''">1.0.0-ci.11</OpStreamVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.16" />
+    <PackageReference Include="OpStream.Client.Transports" Version="$(OpStreamVersion)" />
+    <!-- OpStreamJsonOptions.Default (serialización canónica compatible con el motor JSON). -->
+    <PackageReference Include="OpStream.Constants" Version="$(OpStreamVersion)" />
+  </ItemGroup>
+
+</Project>

@@ -13,7 +13,8 @@
 
 <body>
     <Routes @rendermode="InteractiveServer" />
-    <script src="@Assets["opstream-adapter.js"]"></script>
+    @* opstream-adapter.js is now shipped by the BlazorTextEditor.View RCL and
+       loaded by the TextEditorDemo component itself (dynamic import). *@
     <script src="_framework/blazor.web.js"></script>
 </body>
 
