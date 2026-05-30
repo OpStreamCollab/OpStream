@@ -261,6 +261,18 @@
     const params = new URLSearchParams(location.search);
     const documentId = params.get("doc") || "monaco-doc-1";
 
+    // WebSocket endpoint del servidor OpStream. Por defecto, mismo origen que la
+    // página (así funciona hosteado en DemoHost: wss://hostdemo.opstream.stream/collab-ws).
+    // Para desarrollo contra un servidor en otro puerto: ?server=ws://localhost:50109
+    const wsUrl = (() => {
+      const override = params.get("server");
+      if (override) {
+        return /\/collab-ws$/.test(override) ? override : override.replace(/\/+$/, "") + "/collab-ws";
+      }
+      const proto = location.protocol === "https:" ? "wss:" : "ws:";
+      return `${proto}//${location.host}/collab-ws`;
+    })();
+
     let name = params.get("name") || "";
     if (!name) {
       name = prompt("Enter your display name:", "") || "";
@@ -371,7 +383,7 @@
 
       import("./js/monaco-collab.js").then(({ attachCollab }) => {
         const session = attachCollab(editor, {
-          url: "ws://localhost:50109/collab-ws",
+          url: wsUrl,
           documentId,
           presence: { name },
           onStatus: setStatus,
