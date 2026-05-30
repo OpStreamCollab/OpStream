@@ -1,0 +1,444 @@
+@* Reusable demo body for the collaborative Syncfusion Blazor Kanban sample. No
+   @page directive so it can be mounted at "/" by the standalone host and at
+   "/samples/syncfusion-kanban" by OpStream.DemoHost.
+
+   Engine: JSON CRDT — each card is a register at path "cards.<id>".
+   Capture:  ActionBegin pre-assigns Id → ActionComplete broadcasts set/del ops.
+   Apply:    ReceiveOp calls AddCardAsync / UpdateCardAsync / DeleteCardAsync.
+   Guard:    _remoteApplyDepth counter suppresses re-broadcast of remote applies.
+*@
+
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using OpStream.Client.Transports
+@using OpStream.Shared.Messages
+@inject IOpStreamClient OpStreamClient
+@implements IAsyncDisposable
+
+<HeadContent>
+    <link href="_content/Syncfusion.Blazor.Themes/bootstrap5.css" rel="stylesheet" />
+</HeadContent>
+
+<PageTitle>OpStream — Collaborative Kanban (Syncfusion)</PageTitle>
+
+<div class="sfk-wrapper">
+    <div class="sfk-status-bar">
+        <span class="sfk-dot @(_isConnected ? "sfk-on" : "sfk-off")"></span>
+        <span class="sfk-status-text">@_status</span>
+        <span class="sfk-rev">rev @_revision</span>
+        @if (_peers.Count > 0)
+        {
+            <span class="sfk-peers">
+                @foreach (var p in _peers.Values)
+                {
+                    <span class="sfk-chip" style="background:@p.Color" title="@p.Name">
+                        @p.Name[..Math.Min(1, p.Name.Length)]
+                    </span>
+                }
+            </span>
+        }
+    </div>
+
+    <SfKanban @ref="_kanban"
+              TValue="KanbanCard"
+              KeyField="Status"
+              DataSource="@_cards"
+              ShowDeleteButton="true"
+              AllowDragAndDrop="true">
+        <KanbanColumns>
+            <KanbanColumn HeaderText="Open"        KeyField="@(new List<string> { "Open" })" />
+            <KanbanColumn HeaderText="In Progress" KeyField="@(new List<string> { "InProgress" })" />
+            <KanbanColumn HeaderText="Review"      KeyField="@(new List<string> { "Review" })" />
+            <KanbanColumn HeaderText="Done"        KeyField="@(new List<string> { "Done" })" />
+        </KanbanColumns>
+        <KanbanCardSettings HeaderField="Title" ContentField="Summary" />
+        <KanbanEvents TValue="KanbanCard"
+                      ActionBegin="OnActionBegin"
+                      ActionComplete="OnActionComplete" />
+    </SfKanban>
+</div>
+
+<style>
+    .sfk-wrapper {
+        font-family: 'Segoe UI', sans-serif;
+        padding: 1rem;
+    }
+
+    .sfk-status-bar {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        font-size: .85rem;
+        color: #555;
+        margin-bottom: .75rem;
+        padding: .4rem .75rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border: 1px solid #e0e0e0;
+    }
+
+    .sfk-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .sfk-on  { background: #28a745; }
+    .sfk-off { background: #dc3545; }
+
+    .sfk-rev { color: #aaa; font-size: .78rem; margin-left: auto; }
+
+    .sfk-peers { display: flex; gap: .3rem; }
+
+    .sfk-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        color: #fff;
+        font-size: .72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    /* Hide Id and Order from the built-in add/edit dialog */
+    .e-kanban-dialog [id$="Id"],
+    .e-kanban-dialog [id$="Order"] {
+        display: none !important;
+    }
+    .e-kanban-dialog label[for$="Id"],
+    .e-kanban-dialog label[for$="Order"] {
+        display: none !important;
+    }
+</style>
+
+@code {
+    [Parameter, EditorRequired] public string DocumentId { get; set; } = "kanban-syncfusion";
+    [Parameter] public string? UserName { get; set; }
+
+    private SfKanban<KanbanCard>? _kanban;
+    private List<KanbanCard> _cards = new();
+
+    private int _remoteApplyDepth = 0;
+    private long _revision = 0;
+    private bool _isConnected = false;
+    private string _status = "Connecting…";
+
+    private readonly string _peerId = Guid.NewGuid().ToString("N")[..8];
+    private string _myName = "";
+    private string _myColor = "#888";
+    private readonly Dictionary<string, (string Name, string Color)> _peers = new();
+
+    // Serialize without null-skipping so every field round-trips cleanly.
+    private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
+
+    private static readonly string[] Palette =
+    {
+        "#e57373","#64b5f6","#81c784","#ffb74d","#ba68c8",
+        "#4db6ac","#f06292","#9575cd","#7986cb","#a1887f",
+    };
+
+    // ── Lifecycle ────────────────────────────────────────────────────────────
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) await InitializeAsync();
+    }
+
+    private async Task InitializeAsync()
+    {
+        try
+        {
+            _myName = string.IsNullOrWhiteSpace(UserName)
+                ? $"User-{Guid.NewGuid().ToString("N")[..4]}"
+                : UserName!;
+            _myColor = PickColor(_myName);
+
+            OpStreamClient.OnReceiveOp += HandleRemoteOp;
+            OpStreamClient.OnReceiveAwareness += HandleAwareness;
+            OpStreamClient.OnPeerDisconnected += HandlePeerDisconnected;
+            OpStreamClient.OnDisconnected += HandleDisconnected;
+
+            var result = await OpStreamClient.ConnectAndJoinAsync(DocumentId, "json");
+            _revision = result.Revision;
+
+            SeedFromSnapshot(result.Snapshot);
+
+            _isConnected = true;
+            _status = $"Connected · {_myName}";
+
+            await InvokeAsync(StateHasChanged);
+
+            foreach (var state in result.Awareness) ApplyAwarenessState(state);
+            await PublishAwarenessAsync();
+        }
+        catch (Exception ex)
+        {
+            _status = $"Error: {ex.Message}";
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // ── Snapshot seeding ─────────────────────────────────────────────────────
+
+    private void SeedFromSnapshot(ReadOnlyMemory<byte> snapshot)
+    {
+        if (snapshot.IsEmpty) return;
+        try
+        {
+            using var doc = JsonDocument.Parse(snapshot);
+            if (!doc.RootElement.TryGetProperty("registers", out var registers)) return;
+
+            foreach (var reg in registers.EnumerateObject())
+            {
+                if (!reg.Name.StartsWith("cards.")) continue;
+                if (reg.Value.TryGetProperty("isDeleted", out var del) && del.GetBoolean()) continue;
+                if (!reg.Value.TryGetProperty("value", out var value)) continue;
+
+                var card = JsonSerializer.Deserialize<KanbanCard>(value, _json);
+                if (card != null) _cards.Add(card);
+            }
+
+            _cards.Sort((a, b) => a.Order.CompareTo(b.Order));
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[Kanban] Snapshot error: {ex.Message}");
+        }
+    }
+
+    // ── Local edits (ActionBegin + ActionComplete) ───────────────────────────
+
+    // Pre-assign Id before Syncfusion stores the card in its internal state.
+    private void OnActionBegin(ActionEventArgs<KanbanCard> args)
+    {
+        if (_remoteApplyDepth > 0) return;
+
+        long ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        foreach (var card in args.AddedRecords ?? Enumerable.Empty<KanbanCard>())
+        {
+            if (string.IsNullOrEmpty(card.Id))
+                card.Id = $"c-{Guid.NewGuid():N}"[..12];
+            if (card.Order == 0) card.Order = ts++;
+        }
+    }
+
+    private async Task OnActionComplete(ActionEventArgs<KanbanCard> args)
+    {
+        if (_remoteApplyDepth > 0 || !_isConnected) return;
+
+        long ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var ops = new List<Dictionary<string, object>>();
+
+        foreach (var card in args.AddedRecords ?? Enumerable.Empty<KanbanCard>())
+        {
+            if (string.IsNullOrEmpty(card.Id))
+                card.Id = $"c-{Guid.NewGuid():N}"[..12];
+            if (card.Order == 0) card.Order = ts;
+
+            // Sync _cards list
+            if (!_cards.Any(c => c.Id == card.Id))
+                _cards.Add(card);
+
+            ops.Add(MakeSetOp(card, ts++));
+        }
+
+        foreach (var card in args.ChangedRecords ?? Enumerable.Empty<KanbanCard>())
+        {
+            // Sync _cards list (drag-drop may have already mutated Status in-place)
+            var idx = _cards.FindIndex(c => c.Id == card.Id);
+            if (idx >= 0) _cards[idx] = card;
+            else _cards.Add(card);
+
+            ops.Add(MakeSetOp(card, ts++));
+        }
+
+        foreach (var card in args.DeletedRecords ?? Enumerable.Empty<KanbanCard>())
+        {
+            _cards.RemoveAll(c => c.Id == card.Id);
+            ops.Add(MakeDelOp(card.Id, ts++));
+        }
+
+        if (ops.Count == 0) return;
+
+        byte[] payload = ops.Count == 1
+            ? JsonSerializer.SerializeToUtf8Bytes(ops[0], _json)
+            : JsonSerializer.SerializeToUtf8Bytes(
+                new Dictionary<string, object> { ["$type"] = "batch", ["ops"] = ops }, _json);
+
+        try
+        {
+            var result = await OpStreamClient.SendOpAsync(DocumentId, payload, _revision);
+            if (result.Success) _revision = result.NewRevision;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[Kanban] SendOp error: {ex.Message}");
+        }
+    }
+
+    // ── Remote ops ───────────────────────────────────────────────────────────
+
+    private async Task HandleRemoteOp(ReadOnlyMemory<byte> payload, long newRev)
+    {
+        _revision = newRev;
+        _remoteApplyDepth++;
+        try
+        {
+            using var doc = JsonDocument.Parse(payload);
+            var root = doc.RootElement;
+
+            if (root.TryGetProperty("$type", out var typeEl) &&
+                typeEl.GetString() == "batch" &&
+                root.TryGetProperty("ops", out var opsEl))
+            {
+                foreach (var op in opsEl.EnumerateArray())
+                    await ApplySingleOp(op);
+            }
+            else
+            {
+                await ApplySingleOp(root);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[Kanban] RemoteOp error: {ex.Message}");
+        }
+        finally
+        {
+            _remoteApplyDepth--;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task ApplySingleOp(JsonElement op)
+    {
+        if (!op.TryGetProperty("$type", out var typeEl)) return;
+        if (!op.TryGetProperty("path", out var pathEl)) return;
+
+        var path = pathEl.GetString() ?? "";
+        if (!path.StartsWith("cards.")) return;
+        var cardId = path[6..];
+
+        var opType = typeEl.GetString();
+
+        if (opType == "set")
+        {
+            if (!op.TryGetProperty("value", out var valueEl)) return;
+            var card = JsonSerializer.Deserialize<KanbanCard>(valueEl, _json);
+            if (card == null) return;
+
+            var existing = _cards.FirstOrDefault(c => c.Id == cardId);
+            if (existing != null)
+            {
+                var idx = _cards.IndexOf(existing);
+                _cards[idx] = card;
+                if (_kanban != null) await _kanban.UpdateCardAsync(card, idx);
+            }
+            else
+            {
+                _cards.Add(card);
+                if (_kanban != null) await _kanban.AddCardAsync(card);
+            }
+        }
+        else if (opType == "del")
+        {
+            var existing = _cards.FirstOrDefault(c => c.Id == cardId);
+            if (existing != null)
+            {
+                _cards.Remove(existing);
+                if (_kanban != null) await _kanban.DeleteCardAsync(existing);
+            }
+        }
+    }
+
+    // ── Presence ─────────────────────────────────────────────────────────────
+
+    private Task HandleAwareness(IEnumerable<AwarenessState> states)
+        => InvokeAsync(() =>
+        {
+            foreach (var state in states) ApplyAwarenessState(state);
+            StateHasChanged();
+            return Task.CompletedTask;
+        });
+
+    private void ApplyAwarenessState(AwarenessState state)
+    {
+        try
+        {
+            if (state.Data.ValueKind != JsonValueKind.Object) return;
+            var name = state.Data.TryGetProperty("name", out var n) ? n.GetString() ?? "?" : "?";
+            var color = state.Data.TryGetProperty("color", out var c) ? c.GetString() ?? "#888" : "#888";
+            _peers[state.PeerId] = (name, color);
+        }
+        catch { /* tolerate unknown presence shapes */ }
+    }
+
+    private void HandlePeerDisconnected(string peerId)
+    {
+        _ = InvokeAsync(() =>
+        {
+            _peers.Remove(peerId);
+            StateHasChanged();
+            return Task.CompletedTask;
+        });
+    }
+
+    private async Task PublishAwarenessAsync()
+    {
+        if (!_isConnected) return;
+        var data = JsonSerializer.SerializeToElement(new { name = _myName, color = _myColor }, _json);
+        try { await OpStreamClient.SendAwarenessAsync(DocumentId, data); }
+        catch (Exception ex) { Console.Error.WriteLine($"[Kanban] Awareness error: {ex.Message}"); }
+    }
+
+    private void HandleDisconnected(Exception? _)
+    {
+        _isConnected = false;
+        _status = "Disconnected";
+        InvokeAsync(StateHasChanged);
+    }
+
+    // ── Op helpers ───────────────────────────────────────────────────────────
+
+    private Dictionary<string, object> MakeSetOp(KanbanCard card, long timestamp) => new()
+    {
+        ["$type"] = "set",
+        ["path"] = $"cards.{card.Id}",
+        ["value"] = JsonSerializer.SerializeToElement(card, _json),
+        ["timestamp"] = timestamp,
+        ["peerId"] = _peerId,
+    };
+
+    private Dictionary<string, object> MakeDelOp(string cardId, long timestamp) => new()
+    {
+        ["$type"] = "del",
+        ["path"] = $"cards.{cardId}",
+        ["timestamp"] = timestamp,
+        ["peerId"] = _peerId,
+    };
+
+    // ── Utilities ────────────────────────────────────────────────────────────
+
+    private static string PickColor(string seed)
+    {
+        unchecked
+        {
+            int hash = 17;
+            foreach (var ch in seed) hash = hash * 31 + ch;
+            return Palette[Math.Abs(hash) % Palette.Length];
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        OpStreamClient.OnReceiveOp -= HandleRemoteOp;
+        OpStreamClient.OnReceiveAwareness -= HandleAwareness;
+        OpStreamClient.OnPeerDisconnected -= HandlePeerDisconnected;
+        OpStreamClient.OnDisconnected -= HandleDisconnected;
+        await Task.CompletedTask;
+    }
+}

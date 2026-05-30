@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!--
+    Reusable UI for the collaborative Syncfusion Blazor Kanban sample, packaged as
+    a Razor Class Library so it can be consumed by BOTH the standalone host
+    (SyncfusionKanban) and OpStream.DemoHost (mounted at /samples/syncfusion-kanban).
+    The Syncfusion CSS is injected by the demo component via <HeadContent> so it
+    stays scoped to the sample page.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>SyncfusionKanban</RootNamespace>
+    <OpStreamVersion Condition="'$(OpStreamVersion)' == ''">1.0.0-ci.11</OpStreamVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.16" />
+    <PackageReference Include="OpStream.Client.Transports" Version="$(OpStreamVersion)" />
+    <PackageReference Include="Syncfusion.Blazor.Kanban" Version="33.2.8" />
+    <PackageReference Include="Syncfusion.Blazor.Themes" Version="33.2.8" />
+  </ItemGroup>
+
+</Project>
