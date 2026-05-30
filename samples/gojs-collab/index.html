@@ -3,23 +3,32 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OpStream + GoJS — collaborative flowchart (presence + comments)</title>
+    <title>OpStream + GoJS — collaborative workflow editor</title>
     <link rel="stylesheet" href="./src/style.css" />
     <!-- GoJS evaluation build (watermarked). Commercial license: https://gojs.net -->
     <script src="https://cdn.jsdelivr.net/npm/gojs/release/go.js"></script>
 </head>
 <body>
     <div id="toolbar">
-        <strong>Collaborative flowchart</strong>
-        <button id="addProcess">+ Process</button>
-        <button id="addDecision">◆ Decision</button>
-        <button id="addStart">▭ Start/End</button>
-        <button id="addData">▰ Data</button>
-        <button id="del" class="ghost">Delete</button>
-        <span class="hint">drag a node's edge to link · double-click to rename · Del to remove</span>
+        <strong>Workflow editor</strong>
+        <span class="sep"></span>
+        <button id="undo" title="Undo (Ctrl+Z)">↶ Undo</button>
+        <button id="redo" title="Redo (Ctrl+Y)">↷ Redo</button>
+        <span class="sep"></span>
+        <span class="swatches" id="swatches" title="Recolor selected node"></span>
+        <span class="sep"></span>
+        <button id="fit" class="ghost">Fit</button>
+        <button id="del" class="ghost" title="Delete selection (Del)">Delete</button>
+        <span class="hint">drag from the palette · drag a node's edge to link · double-click to rename</span>
         <span id="me">…</span>
         <span id="badge">OpStream · <span id="status">starting…</span></span>
     </div>
+
+    <aside id="palette-pane">
+        <h3>Palette</h3>
+        <div id="palette"></div>
+        <p class="palette-hint">Drag a shape onto the canvas.</p>
+    </aside>
 
     <div id="diagram"></div>
 

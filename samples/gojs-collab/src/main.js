@@ -4,25 +4,41 @@ const go = window.go; // global from the CDN <script>
 const $ = go.GraphObject.make;
 
 const uuid = () => 'k-' + Math.random().toString(36).slice(2, 10);
-const FILLS = ['#e3f2fd', '#fff3e0', '#e8f5e9', '#fce4ec', '#ede7f6', '#e0f7fa'];
-const PALETTE = ['#e91e63', '#3f51b5', '#009688', '#ff9800', '#9c27b0', '#2d6cdf'];
+const PRESENCE_PALETTE = ['#e91e63', '#3f51b5', '#009688', '#ff9800', '#9c27b0', '#2d6cdf'];
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
+// Fill palette offered in the toolbar for recoloring the selected node.
+const NODE_COLORS = ['#3f7fff', '#1f9d6b', '#e0922f', '#19a3a3', '#c0392b', '#9c5bd6', '#d9b400'];
+
+// ── Diagram ──────────────────────────────────────────────────────────────────
 const diagram = $(go.Diagram, 'diagram', {
     'undoManager.isEnabled': true,
-    layout: $(go.Layout), // free placement
+    'draggingTool.isGridSnapEnabled': true,
+    'animationManager.isEnabled': false,
+    initialContentAlignment: go.Spot.Center,
+    layout: $(go.Layout), // free placement (palette-driven authoring)
+    grid: $(go.Panel, 'Grid', { gridCellSize: new go.Size(20, 20) },
+        $(go.Shape, 'LineH', { stroke: '#19264180', strokeWidth: 1 }),
+        $(go.Shape, 'LineV', { stroke: '#19264180', strokeWidth: 1 })),
 });
 
-// ── Node templates, one per `category` (the data carries `category`, so the
-//    shape syncs automatically through the JSON register). ───────────────────
-const textBlock = () => $(go.TextBlock,
-    { margin: 8, editable: true, font: '14px system-ui', stroke: '#1a2230',
-      maxSize: new go.Size(160, NaN), textAlign: 'center' },
-    new go.Binding('text').makeTwoWay());
+// ── Ports: 4 transparent stubs per node, shown on hover, link-drawable ────────
+function makePort(id, spot, output, input) {
+    return $(go.Shape, 'Circle', {
+        fill: 'transparent', strokeWidth: 0, width: 11, height: 11,
+        alignment: spot, alignmentFocus: spot,
+        portId: id, fromSpot: spot, toSpot: spot,
+        fromLinkable: output, toLinkable: input, cursor: 'crosshair',
+    });
+}
+function showPorts(node, show) {
+    node.ports.each((p) => {
+        if (p.portId !== '') p.fill = show ? 'rgba(63,127,255,.85)' : 'transparent';
+    });
+}
 
-// 'Parallelogram1' / 'Capsule' live in GoJS' Figures.js extension (not in the
-// base build) → define the parallelogram ourselves (lines only) and use a very
-// round RoundedRectangle for the start/end terminator.
+// 'Parallelogram1' lives in GoJS' Figures.js extension (not in the base build) →
+// define it ourselves so the I/O node renders without pulling extra scripts.
 go.Shape.defineFigureGenerator('Parallelogram1', (shape, w, h) => {
     const skew = Math.min(w * 0.22, h);
     const geo = new go.Geometry();
@@ -35,28 +51,70 @@ go.Shape.defineFigureGenerator('Parallelogram1', (shape, w, h) => {
     return geo;
 });
 
-const baseNode = (figure, nodeOpts = {}, shapeOpts = {}) => $(go.Node, 'Auto',
-    { locationSpot: go.Spot.Center, fromLinkable: true, toLinkable: true,
-      fromLinkableSelfNode: false, toLinkableSelfNode: false,
-      resizable: false, ...nodeOpts },
+const textBlock = (stroke = '#ffffff') => $(go.TextBlock,
+    { margin: 10, editable: true, font: '600 13px system-ui', stroke,
+      maxSize: new go.Size(150, NaN), textAlign: 'center', wrap: go.TextBlock.WrapFit },
+    new go.Binding('text').makeTwoWay());
+
+// Generic linkable node (shape + label + 4 ports). `shapeOpts` lets a category
+// tweak the geometry (e.g. a diamond's desired size or a terminator's roundness).
+function flowNode(figure, shapeOpts = {}, textColor = '#fff') {
+    return $(go.Node, 'Spot',
+        { locationSpot: go.Spot.Center, selectionAdorned: true,
+          resizable: false, isShadowed: true, shadowColor: 'rgba(0,0,0,.45)',
+          shadowOffset: new go.Point(0, 2), shadowBlur: 6,
+          mouseEnter: (e, node) => showPorts(node, true),
+          mouseLeave: (e, node) => showPorts(node, false) },
+        new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(go.Point.stringify),
+        $(go.Panel, 'Auto',
+            $(go.Shape, figure,
+                { strokeWidth: 1.5, stroke: 'rgba(255,255,255,.25)', portId: '',
+                  fromLinkable: true, toLinkable: true,
+                  fromSpot: go.Spot.AllSides, toSpot: go.Spot.AllSides,
+                  cursor: 'pointer', ...shapeOpts },
+                new go.Binding('fill', 'color')),
+            textBlock(textColor)),
+        makePort('T', go.Spot.Top, true, true),
+        makePort('L', go.Spot.Left, true, true),
+        makePort('R', go.Spot.Right, true, true),
+        makePort('B', go.Spot.Bottom, true, true),
+    );
+}
+
+diagram.nodeTemplateMap.add('process', flowNode('RoundedRectangle'));
+diagram.nodeTemplateMap.add('', flowNode('RoundedRectangle')); // default
+diagram.nodeTemplateMap.add('decision', flowNode('Diamond', { desiredSize: new go.Size(130, 95) }));
+diagram.nodeTemplateMap.add('start', flowNode('Capsule', { parameter1: 18 }));
+diagram.nodeTemplateMap.add('end', flowNode('Capsule', { parameter1: 18 }));
+diagram.nodeTemplateMap.add('data', flowNode('Parallelogram1'));
+
+// A non-linkable sticky annotation. Useful in a workflow, distinct from the
+// OpStream comment threads in the sidebar.
+diagram.nodeTemplateMap.add('note', $(go.Node, 'Auto',
+    { locationSpot: go.Spot.Center, resizable: true, minSize: new go.Size(90, 50) },
     new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(go.Point.stringify),
-    $(go.Shape, figure,
-        { strokeWidth: 2, stroke: '#5a6678', portId: '', cursor: 'pointer',
-          fromSpot: go.Spot.AllSides, toSpot: go.Spot.AllSides, ...shapeOpts },
+    $(go.Shape, 'RoundedRectangle',
+        { strokeWidth: 0, fill: '#d9b400' },
         new go.Binding('fill', 'color')),
-    textBlock());
+    $(go.TextBlock, { margin: 9, editable: true, font: '13px system-ui',
+        stroke: '#2a2200', maxSize: new go.Size(170, NaN), wrap: go.TextBlock.WrapFit },
+        new go.Binding('text').makeTwoWay())));
 
-diagram.nodeTemplateMap.add('', baseNode('RoundedRectangle'));        // process (default)
-diagram.nodeTemplateMap.add('process', baseNode('RoundedRectangle'));
-diagram.nodeTemplateMap.add('decision', baseNode('Diamond', { desiredSize: new go.Size(120, 90) }));
-diagram.nodeTemplateMap.add('start', baseNode('RoundedRectangle', {}, { parameter1: 20 })); // terminator
-diagram.nodeTemplateMap.add('data', baseNode('Parallelogram1'));     // I/O
-
+// ── Links: orthogonal, relinkable, reshapable, with an editable label ─────────
 diagram.linkTemplate = $(go.Link,
-    { relinkableFrom: true, relinkableTo: true, reshapable: true, corner: 6 },
-    $(go.Shape, { strokeWidth: 2, stroke: '#5a6678' }),
-    $(go.Shape, { toArrow: 'StretchedDiamond', stroke: '#5a6678', fill: '#5a6678' }),
-);
+    { routing: go.Link.AvoidsNodes, corner: 10, curve: go.Link.JumpOver,
+      relinkableFrom: true, relinkableTo: true, reshapable: true, resegmentable: true,
+      fromSpot: go.Spot.AllSides, toSpot: go.Spot.AllSides,
+      selectionAdorned: true },
+    $(go.Shape, { strokeWidth: 2, stroke: '#7088b8' }),
+    $(go.Shape, { toArrow: 'Standard', strokeWidth: 0, fill: '#7088b8', scale: 1.3 }),
+    $(go.Panel, 'Auto',
+        { visible: false, segmentIndex: NaN, segmentFraction: 0.5 },
+        new go.Binding('visible', 'text', (t) => !!t),
+        $(go.Shape, 'RoundedRectangle', { fill: '#16223f', stroke: '#33446b', strokeWidth: 1 }),
+        $(go.TextBlock, { editable: true, font: '600 11px system-ui', stroke: '#cdd6e4',
+            margin: new go.Margin(2, 6) },
+            new go.Binding('text').makeTwoWay())));
 
 const model = new go.GraphLinksModel();
 model.linkKeyProperty = 'key';
@@ -64,10 +122,34 @@ model.makeUniqueKeyFunction = () => uuid();
 model.makeUniqueLinkKeyFunction = () => uuid();
 diagram.model = model;
 
+// Double-click a link to give it a label (then double-click the chip to edit).
+diagram.addDiagramListener('ObjectDoubleClicked', (e) => {
+    const part = e.subject && e.subject.part;
+    if (part instanceof go.Link && !part.data.text) {
+        diagram.model.commit((m) => m.set(part.data, 'text', 'Yes'), 'add label');
+    }
+});
+
+// ── Palette (left pane): drag a prototype onto the canvas ─────────────────────
+const palette = $(go.Palette, 'palette', {
+    nodeTemplateMap: diagram.nodeTemplateMap,
+    'animationManager.isEnabled': false,
+    layout: $(go.GridLayout, { wrappingColumn: 1, cellSize: new go.Size(2, 2),
+        spacing: new go.Size(8, 12) }),
+});
+palette.model = new go.GraphLinksModel([
+    { category: 'start',    text: 'Start',   color: '#1f9d6b' },
+    { category: 'process',  text: 'Step',    color: '#3f7fff' },
+    { category: 'decision', text: 'Choice?', color: '#e0922f' },
+    { category: 'data',     text: 'Data',    color: '#19a3a3' },
+    { category: 'end',      text: 'End',     color: '#c0392b' },
+    { category: 'note',     text: 'Note',    color: '#d9b400' },
+]);
+
 // ── Presence: a random name + color for this user ────────────────────────────
 const presence = {
     name: 'User-' + Math.floor(100 + Math.random() * 900),
-    color: pick(PALETTE),
+    color: pick(PRESENCE_PALETTE),
 };
 const meEl = document.getElementById('me');
 meEl.textContent = '● ' + presence.name;
@@ -86,23 +168,37 @@ const session = new CollabSession({
     onComments: (list) => { comments = list; renderPins(); renderPanel(); },
 });
 
-// ── Toolbar: add the different node types ────────────────────────────────────
-let drop = 0;
-function addNode(category, text) {
-    const p = diagram.transformViewToDoc(new go.Point(90 + (drop % 5) * 40, 90 + (drop % 7) * 36));
-    drop++;
-    diagram.model.commit((m) => {
-        const data = { category, text, color: pick(FILLS), loc: go.Point.stringify(p) };
-        m.addNodeData(data);
-        const node = diagram.findNodeForData(data);
-        if (node) diagram.select(node);
-    }, 'add ' + (category || 'process'));
-}
-document.getElementById('addProcess').onclick = () => addNode('process', 'Step');
-document.getElementById('addDecision').onclick = () => addNode('decision', 'Choice?');
-document.getElementById('addStart').onclick = () => addNode('start', 'Start');
-document.getElementById('addData').onclick = () => addNode('data', 'Data');
+// ── Toolbar ───────────────────────────────────────────────────────────────────
+const undoBtn = document.getElementById('undo');
+const redoBtn = document.getElementById('redo');
+undoBtn.onclick = () => diagram.commandHandler.undo();
+redoBtn.onclick = () => diagram.commandHandler.redo();
+document.getElementById('fit').onclick = () => diagram.commandHandler.zoomToFit();
 document.getElementById('del').onclick = () => diagram.commandHandler.deleteSelection();
+
+function syncUndoButtons() {
+    const um = diagram.undoManager;
+    undoBtn.disabled = !um.canUndo();
+    redoBtn.disabled = !um.canRedo();
+}
+syncUndoButtons();
+
+// Color swatches recolor the selected node(s).
+const swatches = document.getElementById('swatches');
+for (const c of NODE_COLORS) {
+    const sw = document.createElement('span');
+    sw.className = 'sw';
+    sw.style.background = c;
+    sw.title = c;
+    sw.onclick = () => {
+        const nodes = diagram.selection.toArray().filter((p) => p instanceof go.Node);
+        if (!nodes.length) return;
+        diagram.model.commit((m) => {
+            for (const n of nodes) m.set(n.data, 'color', c);
+        }, 'recolor');
+    };
+    swatches.appendChild(sw);
+}
 
 // ── Selection drives the comment box ─────────────────────────────────────────
 diagram.addDiagramListener('ChangedSelection', () => {
@@ -138,6 +234,7 @@ function nodeScreenRect(key) {
 }
 
 function tick() {
+    syncUndoButtons();
     // pins → top-right corner of the node
     for (const key of Object.keys(pins)) {
         const el = pins[key];

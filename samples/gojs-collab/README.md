@@ -1,10 +1,22 @@
-# Collaborative flowchart (GoJS + OpStream)
+# Collaborative workflow editor (GoJS + OpStream)
 
-A polished flowchart/diagram editor where a team builds the same diagram live:
-add nodes, drag them, wire them together, edit labels — everyone sees it instantly.
+A workflow / flowchart editor where a team builds the same diagram live: drag
+shapes from a palette, wire them together with orthogonal connectors, label the
+branches, recolor, undo/redo — everyone sees it instantly.
 [GoJS](https://gojs.net) is the most capable diagramming library here; this is
 the same "collaborativize from the outside" pattern as the
 [three.js](../threejs-editor) and [Fabric.js](../fabric-collab) samples.
+
+## Editor features
+
+- **Palette with drag-and-drop** — drag a shape from the left pane onto the canvas.
+- **Orthogonal connectors** (`AvoidsNodes` routing) — drag from a node's edge port
+  (they appear on hover) to another node; links are relinkable and reshapable.
+- **Branch labels** — double-click a link to label it (e.g. `Yes` / `No`), then
+  double-click the chip to edit.
+- **Inline rename** — double-click a node to edit its text.
+- **Recolor** — pick a swatch in the toolbar to recolor the selected node(s).
+- **Undo / redo** (GoJS `UndoManager`) and **zoom-to-fit**, snap-to-grid.
 
 GoJS is an unusually clean fit: its model emits a `ModelChanged` event per
 transaction and exposes first-class mutation methods, so capture and apply are
@@ -22,10 +34,11 @@ side panel).
 
 ## Node types
 
-Four templates, selected by the node data's `category` (so the shape syncs
-automatically through the JSON register): **Process** (rounded box), **Decision**
-(diamond), **Start/End** (capsule/terminator) and **Data** (parallelogram).
-Add them from the toolbar.
+Templates are selected by the node data's `category` (so the shape syncs
+automatically through the JSON register): **Start** / **End** (capsules),
+**Step** (rounded box), **Decision** (diamond), **Data** (parallelogram, I/O)
+and a non-linkable **Note** sticky for annotations. Drag any of them from the
+palette.
 
 ## How it works
 
@@ -71,8 +84,9 @@ cd samples/gojs-collab
 npm install && npm run dev
 ```
 
-Open <http://localhost:5173> in two tabs (both join `flow-demo`). Add nodes, drag
-them, link them (drag from a node's edge to another), double-click to edit text.
+Open <http://localhost:5173> in two tabs (both join `flow-demo`). Drag shapes
+from the palette, link them (drag from a node's edge port to another), double-click
+a node to rename or a link to label it.
 
 > The dev proxy points `/collab` at `http://localhost:50109` — change it in
 > [`vite.config.js`](vite.config.js) (the Docker image listens on `:8080`).
