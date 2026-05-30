@@ -1,5 +1,10 @@
 # Recipe: Collaborative settings dialog
 
+!!! example "Try it live"
+    **▶ [Live demo](https://hostdemo.opstream.stream/samples/form)** ·
+    **[&lt;/&gt; Source](https://github.com/OpStreamCollab/OpStream/tree/main/samples/BlazorFormEditor)** ·
+    [all samples](../samples.md)
+
 Two users open the same project's settings dialog. They edit different
 fields simultaneously, and the changes propagate live without one
 user's tab clobbering the other's.

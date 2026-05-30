@@ -83,6 +83,7 @@ nav:
       - 5-minute quickstart: getting-started/quickstart.md
 
   - What can you build:
+      - Live samples gallery: samples.md
       - Collaborative text editor: recipes/collaborative-text-editor.md
       - Collaborative 3D editor: recipes/collaborative-3d-editor.md
       - Notion-style block document: recipes/notion-blocks.md

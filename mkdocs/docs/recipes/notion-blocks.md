@@ -1,5 +1,9 @@
 # Recipe: Notion-style block tree
 
+!!! tip "Live samples"
+    See the **[live samples gallery](../samples.md)** for ready-to-run collaborative
+    editors you can try in your browser.
+
 A hierarchical document where each block (paragraph, heading, todo,
 toggle) has a typed payload, blocks are reorderable by drag-and-drop,
 and concurrent moves never produce cycles.

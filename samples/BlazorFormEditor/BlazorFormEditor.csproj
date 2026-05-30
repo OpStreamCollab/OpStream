@@ -4,10 +4,18 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Versión de los paquetes OpStream (alineada con el RCL y DemoHost). -->
+    <OpStreamVersion Condition="'$(OpStreamVersion)' == ''">1.0.0-ci.11</OpStreamVersion>
   </PropertyGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\..\src\OpStream.Client.Transports.SignalR\OpStream.Client.Transports.SignalR.csproj" />	
-	</ItemGroup>
+  <ItemGroup>
+    <!-- UI reutilizable compartida con OpStream.DemoHost. -->
+    <ProjectReference Include="..\BlazorFormEditor.View\BlazorFormEditor.View.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Transporte SignalR del cliente OpStream (registra AddOpStreamClient().UseSignalRTransport). -->
+    <PackageReference Include="OpStream.Client.Transports.SignalR" Version="$(OpStreamVersion)" />
+  </ItemGroup>
 
 </Project>

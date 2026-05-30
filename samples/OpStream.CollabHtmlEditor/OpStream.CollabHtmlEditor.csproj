@@ -4,6 +4,9 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Versión de los paquetes OpStream (alineada con DemoHost para no degradar a
+         1.0.0 estable, que carece de la API de comentarios). -->
+    <OpStreamVersion Condition="'$(OpStreamVersion)' == ''">1.0.0-ci.11</OpStreamVersion>
   </PropertyGroup>
 
 
@@ -13,7 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.16" />
-    <PackageReference Include="OpStream.Client.Transports" Version="*" />
+    <PackageReference Include="OpStream.Client.Transports" Version="$(OpStreamVersion)" />
   </ItemGroup>
 
 </Project>

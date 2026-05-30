@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using OpStream.Aspire;
 using OpStream.Server.Backplane.Redis;
 using OpStream.Server.Engine.Form;
 using OpStream.Server.Engine.Json;
@@ -11,6 +12,7 @@ using OpStream.Server.Engine.Tree;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.AddOpStreamTelemetry();
 var cfg = builder.Configuration.GetSection("OpStream");
 
 // gRPC needs HTTP/2. Allow both protocols on every Kestrel endpoint so a single
@@ -123,6 +125,8 @@ if (enableGrpc)       ops.AddGrpcTransport();
 
 // ─── Build pipeline ──────────────────────────────────────────────────────────
 var app = builder.Build();
+
+app.MapOpStreamDiagnostics();
 
 app.MapGet("/", () => Results.Text(
     $"OpStream host. Storage={storage}, Backplane={backplane}, Transports={string.Join(',', transports)}",

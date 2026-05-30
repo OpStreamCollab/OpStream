@@ -1,5 +1,11 @@
 # Recipe: Collaborative text editor
 
+!!! example "Try it live"
+    **▶ [Monaco (HTML + JS)](https://hostdemo.opstream.stream/samples/monaco/)** ·
+    **▶ [Blazor](https://hostdemo.opstream.stream/samples/text)** ·
+    **[&lt;/&gt; Source](https://github.com/OpStreamCollab/OpStream/tree/main/samples/MonacoCollaborativeJs)** ·
+    [all samples](../samples.md)
+
 Two browsers editing the same document at once, with live cursors and
 per-user undo. We'll show the client in **plain HTML + JavaScript** (the fast
 path) and in **Blazor** — both talking to the same server.

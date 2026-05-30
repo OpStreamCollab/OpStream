@@ -7,7 +7,9 @@ description: >
   y pida "hazlo colaborativo", "crea un ejemplo/sample de OpStream con esto",
   "collaborabiliza este editor", "monta un demo con esta librería", o similar. También
   aplica para añadir presencia, feedback de edición remota o comentarios anclados a un
-  ejemplo existente. Triggers: link a librería + "colaborativo/collab/sample/ejemplo/demo".
+  ejemplo existente, y para **hostear un sample (JS o Blazor) en OpStream.DemoHost**
+  (carpeta `samples/` → páginas `/samples/*` del demo público). Triggers: link a librería +
+  "colaborativo/collab/sample/ejemplo/demo"; o "hostea/monta este sample en DemoHost".
 ---
 
 # Crear un ejemplo colaborativo de OpStream desde una librería
@@ -16,9 +18,14 @@ Proceso completo y probado (2026-05-30) para ir de **"aquí tienes el link de un
 librería"** a **un sample HTML+JS funcional en `samples/<nombre>-collab/`**.
 
 Referencias vivas en el repo (cópialas y adapta): `samples/threejs-editor`,
-`samples/luckysheet-collab`, `samples/fabric-collab` (el más completo:
-presencia + feedback + comentarios), `samples/kanban-collab`,
-`samples/litegraph-collab`, `samples/gojs-collab`.
+`samples/luckysheet-collab`, **`samples/gojs-collab`** (referencia VERIFICADA de
+presencia + feedback + comentarios contra el contrato real del servidor),
+`samples/kanban-collab`, `samples/litegraph-collab`, `samples/fabric-collab`.
+
+> ⚠️ `fabric-collab` tenía la presencia y los comentarios ROTOS (escuchaba
+> `ReceiveAwareness` en vez de `ReceiveAwarenessUpdate`, y leía campos de comentario
+> inexistentes `anchorJson`/`isResolved`/`payload`). Usa el contrato del Paso 5,
+> NO el código viejo de fabric, hasta que se arregle.
 
 ---
 
@@ -150,29 +157,47 @@ Flujo:
 
 ---
 
-## Paso 5 — Extras "pro" (del showcase fabric-collab)
+## Paso 5 — Extras "pro": presencia + comentarios (CONTRATO VERIFICADO)
+
+Verificado contra `src` (SignalRTransport.cs + SignalRBackplaneRelay.cs +
+Comments/*.cs). Referencia limpia: `samples/gojs-collab`.
 
 **Presencia + feedback de edición remota:**
-- Cada peer difunde `invoke('UpdateAwareness', documentId, { peerId, name, color })`.
-- `connection.on('ReceiveAwareness', data => ...)`: lee `state.data` (camelCase,
-  NO `dataJson`); el payload puede venir como objeto único o array → maneja ambos.
-- Como cada op lleva `peerId`, al recibir un op remoto puedes pintar un **borde
-  de color del autor + etiqueta con su nombre** sobre el elemento tocado, y
-  desvanecerlo a los ~2.5s. El overlay debe ser NO sincronizable.
+- Difunde tu estado: `invoke('UpdateAwareness', documentId, { peerId, name, color })`
+  (el hub recibe `(documentId, JsonElement data)` → `data` es ese objeto).
+- **Escucha `ReceiveAwarenessUpdate`** (¡NO `ReceiveAwareness`, que el servidor
+  nunca envía!). Llega **UN** `AwarenessState` `{ peerId: <connId>, data:
+  {peerId,name,color}, lastUpdated }` (camelCase `data`, no `dataJson`).
+- El servidor hace `GroupExcept(sender)` y **solo emite al cambiar** ⇒ el recién
+  llegado NO recibe la presencia de los presentes. Solución: cuando recibes
+  awareness de un `data.peerId` **nuevo**, **re-difunde** la tuya una vez (converge);
+  añade un heartbeat (~8s) por reconexiones.
+- **Dos identidades distintas, no las confundas:** el `peerId` de tus ops y de
+  `data.peerId` es tu id aleatorio (clave para atribuir feedback de edición); el
+  `AwarenessState.peerId` y el `authorPeerId` de comentarios es el **ConnectionId**.
+  Mantén dos mapas: `porOpPeerId` (feedback) y `porConnId` (autor de comentarios).
+- Como cada op lleva `peerId`, al recibir un op remoto pinta **etiqueta con nombre
+  + color del autor** y resáltale el elemento ~2.5s. Overlay NO sincronizable.
 
 **Comentarios anclados a un elemento:**
 - Hub: `CreateComment(documentId, NewCommentCmd)`, `ListOpenComments(documentId)`,
-  `ResolveComment(documentId, commentId)`, `EditComment`, `DeleteComment`.
-- `NewCommentCmd = { Body, Anchor, ParentCommentId? }` donde **`Anchor` es
-  `CommentAnchor { Kind, Payload }`** (objeto, NO un string `anchorJson`). Ancla
-  un elemento con `{ kind: '<libreria>-elemento', payload: { id } }`; usa un
-  `Kind` propio si no necesitas rebasing (los ids inmutables no lo necesitan).
-- Eventos: `ReceiveCommentCreated/Updated/Deleted`.
-- `ListOpenComments` devuelve TODOS los no-borrados (incluidos resueltos), y los
-  "resolve" llegan como **`ReceiveCommentUpdated`** → **filtra por `isResolved`**.
-- `authorId` es el ConnectionId del servidor (no tu peerId de presencia).
-- Pin 💬 anclado al elemento (overlay HTML reposicionado al re-render) + panel
-  lateral para crear/resolver.
+  `ResolveComment`, `EditComment`, `DeleteComment`. Eventos:
+  `ReceiveCommentCreated/Updated/Deleted`.
+- `NewCommentCmd = { body, anchor, parentCommentId }` donde **`anchor` es
+  `AnchorDto { kind, data }`** (¡campo **`data`**, NO `payload`; y NO un string
+  `anchorJson`!). Ancla con `{ kind: '<libreria>-elemento', data: { id } }`; usa un
+  `Kind` propio si no necesitas rebasing (ids inmutables no lo necesitan).
+- **DTO de comentario devuelto** (camelCase): `{ id, documentId, parentCommentId,
+  authorPeerId, body, anchor: { kind, data }, anchoredAtRevision, createdAt,
+  resolvedAt, resolvedByPeerId, isOrphaned }`. Para leer el ancla:
+  `c.anchor.data.<campo>`. **NO existen `anchorJson` ni `isResolved`.**
+- **Resuelto = `resolvedAt != null`** (no hay booleano). `ListOpenComments` devuelve
+  TODOS los no-borrados (incl. resueltos) y los "resolve" llegan como
+  `ReceiveCommentUpdated` → **filtra por `resolvedAt != null`** y descártalos.
+- `authorPeerId` es el ConnectionId; mapéalo a un nombre de presencia vía el mapa
+  `porConnId`.
+- Pin 💬 anclado al elemento (overlay HTML reposicionado por rAF / al re-render) +
+  panel lateral para crear/resolver.
 
 ---
 
@@ -212,10 +237,108 @@ en `mkdocs/docs/recipes/` enlazando al sample en GitHub. Rebuild con
 
 ---
 
+## Paso 9 — Hostear el sample en OpStream.DemoHost (demo público)
+
+`OpStream.DemoHost` es un **repo aparte** (`OpStreamCollab/OpStream.DemoHost`)
+que consume OpStream como **paquetes NuGet** y sirve los samples del repo OpStream
+en `https://hostdemo.opstream.stream/samples/<slug>/`. Catálogo único:
+`OpStream.DemoHost/samples.manifest.json` (lo usan CI, la galería in-app y los
+links de los docs). Memoria viva: `demohost-samples-hosting`.
+
+### 9a. Samples JS (Vite / estático) — los fáciles
+- Todos usan **`/collab` relativo** ⇒ servidos mismo-origen desde DemoHost
+  funcionan **sin tocar URLs**.
+- Build con base path: `npm run build -- --base=/samples/<slug>/` → copiar `dist/`
+  a `wwwroot/samples/<slug>/`. Estático plano (Monaco): copiar tal cual.
+- **threejs**: además vendoriza el editor (`git clone --depth 1 --branch r170
+  mrdoob/three.js`, copia `editor/build/files/examples/jsm`) bajo
+  `wwwroot/samples/threejs/three.js-dev/`, y el **iframe src debe ser relativo**
+  (mismo-origen: `collab-session` entra al `contentWindow`).
+- `npm ci` (lo usa el CI) **exige `package-lock.json` commiteado** — si el sample
+  no lo tiene, commitéalo.
+
+### 9b. Samples Blazor — patrón RCL (Razor Class Library)
+DemoHost ES Blazor, así que los samples Blazor se integran como **páginas**, no
+como estáticos. Molde de referencia ya en el repo: `samples/OpStream.CollabHtmlEditor`.
+
+1. Extrae la UI reutilizable a un RCL `samples/<Nombre>.View/` (`Sdk.Razor`,
+   conserva `RootNamespace` para no tocar namespaces), con un componente raíz
+   **sin `@page`** (p.ej. `FormEditorDemo.razor`). Mueve componentes con `git mv`.
+2. El host standalone se queda con un `Home.razor` fino (`@page "/"` +
+   `<XxxDemo/>`) y referencia el RCL por `ProjectReference`.
+3. **Refs OpStream → paquetes**, NO project refs a `src/`. Pínalas a la
+   **prerelease que trae la feature** (hoy `1.0.0-ci.11`): `*-*` resuelve al
+   **estable `1.0.0`** que en semver gana a la prerelease y **carece de la API de
+   comentarios** (`CommentDto`/`OnCommentCreated`). `OpStreamJsonOptions` vive en
+   el paquete `OpStream.Constants` (añádelo si lo usa el componente).
+4. RCL+host en **net9** está bien aunque DemoHost sea **net10** (referencia
+   cross-major OK). `Microsoft.AspNetCore.Components.Web` 9.0.x para net9.
+5. En DemoHost:
+   - csproj: `ProjectReference Include="$(SamplesSrcDir)\<Nombre>.View\..."`
+     (propiedad overridable por CI; default `..\..\OpStream\samples`).
+   - `Program.cs`: registra el **cliente** OpStream una vez:
+     `AddOpStreamClient().UseSignalRTransport(o => o.HubUrl =
+     config["OpStream:HubUrl"] ?? "https://hostdemo.opstream.stream/collab")`
+     (dev: `http://localhost:5555/collab` en appsettings.Development.json).
+   - Servicios por librería: Blazorise (`AddBlazorise().AddBootstrapProviders()
+     .AddFontAwesomeIcons(); AddBlazoriseRichTextEdit()`), Radzen
+     (`AddRadzenComponents()`).
+   - Página wrapper `Components/Pages/Samples/<X>Sample.razor` con
+     `@page "/samples/<slug>"` que renderiza el componente del RCL.
+6. **CSS/JS host-agnóstico** (sin tocar cada App.razor):
+   - CSS de la librería (Blazorise/Bootstrap/Radzen theme) → `<HeadContent>` en el
+     componente demo (scoped a la página, no reestiliza todo el host).
+   - Adaptadores JS del sample → se envían en el `wwwroot/` del RCL y se cargan
+     desde el propio componente con `await JS.InvokeAsync<IJSObjectReference>(
+     "import", "./_content/<Nombre>.View/<adapter>.js")` (un `<script>` renderizado
+     por Blazor NO se ejecuta). Excepción: Radzen.Blazor.js + radzen-collab-adapter
+     se cargan global en el App.razor de DemoHost.
+7. **Radzen**: su sample standalone es un repo git **anidado, no trackeado** por
+   OpStream → no lo metas en el CI. Hostéalo SIN RCL nuevo: referencia el RCL
+   trackeado `OpStream.CollabHtmlEditor` + paquete `Radzen.Blazor` y compón
+   `<CollabHtmlEditor><RadzenHtmlEditor/></CollabHtmlEditor>` en la página. Omite
+   `UploadUrl` (no exponer subida de ficheros al webroot del demo público).
+
+### 9c. CI / Docker (en el repo DemoHost)
+- `scripts/prepare-samples.sh <opstream-repo>` = **fuente única** de la copia
+  (build Vite, vendor threejs, copia RCLs a `_samples_src/`, estáticos a
+  `wwwroot/samples/`). Lo llama `build-image.yml` (checkout de OpStream + Node) y
+  se puede correr en local.
+- **Dockerfile**: copia `_samples_src/` **antes** del `dotnet restore` (los
+  ProjectReference deben existir) y pasa `-p:OpStreamVersion` + `-p:SamplesSrcDir=_samples_src`.
+- **GOTCHA crítico**: `_samples_src` queda DENTRO del proyecto ⇒ el Razor/Web SDK
+  auto-globa sus `.razor`/`.cs` y los compila además del RCL → **doble compilación
+  (RZ10009)**. Fix: `<DefaultItemExcludes>$(DefaultItemExcludes);_samples_src\**</DefaultItemExcludes>`.
+  (No salta en build local porque ahí `_samples_src` no existe.)
+- **Servir estáticos**: `UseStaticFiles`+`UseDefaultFiles` (PhysicalFileProvider,
+  `RequestPath="/samples"`) en Program.cs — middleware antes que endpoints, gana
+  para ficheros físicos; las rutas Blazor `/samples/{...}` no chocan (no hay
+  fichero físico → pasan al router).
+- `wwwroot/samples/` y `_samples_src/` van a **`.gitignore`** (regenerados por CI).
+- ci.11 movió tipos de storage (`DocumentSnapshot`/`StoredOp`/`HistoryMilestone`)
+  de `OpStream.Server.Models` → **`OpStream.Shared.Messages`** (ajusta usings del
+  código propio de DemoHost si subes de versión).
+
+### 9d. Galería + docs
+- Galería in-app `/samples`: página Blazor que lee `samples.manifest.json` (vía un
+  servicio singleton) y pinta cards con Live demo + Source.
+- Docs mkdocs: página `docs/samples.md` en el nav + admonición "Try it live"
+  (`▶ Live demo` + `</> Source`) al inicio de cada recipe. Valida con
+  `mkdocs build --strict`. Para Radzen el "source" apunta al RCL trackeado
+  (`OpStream.CollabHtmlEditor`), no al repo anidado (evita un link 404).
+
+---
+
 ## Errores ya cometidos (no repetir)
 - **No reescribir un fichero basándose en una lectura sospechosa/corrupta del
   tooling** (sobrescribí un `vite.config.js` bueno). Si una lectura sale rara,
   re-léela o confía en `node --check`, no escribas a ciegas.
 - **No inventar firmas de API** — siempre WebFetch primero.
-- Confundir `type` con `$type`, `anchorJson` con `Anchor{Kind,Payload}`, o tratar
-  los "resolve" como deletes.
+- **Awareness: escuchar `ReceiveAwareness` en vez de `ReceiveAwarenessUpdate`** →
+  presencia siempre vacía y feedback "Someone" gris (le pasaba a fabric-collab).
+- **Comentarios con el DTO equivocado**: leer `anchorJson`/`isResolved`/`authorId` o
+  mandar `anchor.payload` → los comentarios nunca aparecen. Lo real: `anchor.{kind,data}`,
+  `authorPeerId`, `resolvedAt != null` (le pasaba a fabric-collab).
+- Confundir `type` con `$type`.
+- **GoJS: `Diagram.commit(fn)` pasa el Diagram**, no el Model → `addNodeData is not a
+  function`. Usa `diagram.model.commit(fn)` para mutar datos del modelo.
