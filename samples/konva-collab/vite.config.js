@@ -6,12 +6,11 @@ const sampleDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
     root: sampleDir,
-    // `opstream-collab` is a local file: dependency symlinked into node_modules.
-    // Keep the symlinked path so its bare import of @microsoft/signalr (a peer dep)
-    // resolves against THIS sample's node_modules instead of the package's real path.
+    // Keep the symlinked path of the local `opstream-collab` file: dependency so its
+    // bare import of @microsoft/signalr resolves against this sample's node_modules.
     resolve: { preserveSymlinks: true },
     server: {
-        port: 5173,
+        port: 5174,
         open: '/index.html',
         proxy: {
             '/collab': {

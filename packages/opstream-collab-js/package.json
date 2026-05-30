@@ -1,0 +1,44 @@
+{
+  "name": "opstream-collab",
+  "version": "0.1.0",
+  "description": "Minimal browser client for OpStream real-time collaboration: SignalR transport, JSON-CRDT op outbox, snapshots, presence and anchored comments. Bring your own editor.",
+  "type": "module",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "check": "node --check src/index.js"
+  },
+  "keywords": [
+    "opstream",
+    "collaboration",
+    "realtime",
+    "crdt",
+    "signalr",
+    "presence",
+    "comments",
+    "collaborative-editing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpStreamCollab/OpStream.git",
+    "directory": "packages/opstream-collab-js"
+  },
+  "homepage": "https://github.com/OpStreamCollab/OpStream/tree/master/packages/opstream-collab-js#readme",
+  "bugs": {
+    "url": "https://github.com/OpStreamCollab/OpStream/issues"
+  },
+  "license": "MIT",
+  "author": "jvera71",
+  "peerDependencies": {
+    "@microsoft/signalr": ">=8.0.0"
+  }
+}

@@ -12,6 +12,7 @@
     "vite": "^5.0.0"
   },
   "dependencies": {
-    "@microsoft/signalr": "^8.0.0"
+    "@microsoft/signalr": "^8.0.0",
+    "opstream-collab": "file:../../packages/opstream-collab-js"
   }
 }
