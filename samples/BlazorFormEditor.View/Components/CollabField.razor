@@ -23,6 +23,14 @@
         {
             <span class="lock-badge" style="background:@_editor!.Color">@_editor!.Name is editing…</span>
         }
+        @if (Context?.AllowComments == true && _commentCount > 0)
+        {
+            <button class="collab-comment-indicator"
+                    title="@_commentCount comment(s) — click to view"
+                    @onclick="OnShowComments" @onclick:stopPropagation>
+                💬 @_commentCount
+            </button>
+        }
     </div>
 
     <fieldset class="collab-field-inner" disabled="@_locked">
@@ -41,6 +49,7 @@
     private string _fieldName = "";
     private FieldEditor? _editor;
     private bool _locked => _editor is not null;
+    private int _commentCount;
     private ICollabFormContext? _subscribed;
 
     protected override void OnParametersSet()
@@ -54,17 +63,24 @@
             if (_subscribed is not null) _subscribed.StateChanged += OnContextChanged;
         }
 
-        _editor = Context?.EditorOf(_fieldName);
+        RefreshFromContext();
     }
 
     private void OnContextChanged()
     {
-        _editor = Context?.EditorOf(_fieldName);
+        RefreshFromContext();
         InvokeAsync(StateHasChanged);
+    }
+
+    private void RefreshFromContext()
+    {
+        _editor = Context?.EditorOf(_fieldName);
+        _commentCount = Context?.CommentsForField(_fieldName).Count ?? 0;
     }
 
     private Task OnFocusIn() => Context?.NotifyFocusAsync(_fieldName) ?? Task.CompletedTask;
     private Task OnFocusOut() => Context?.NotifyBlurAsync(_fieldName) ?? Task.CompletedTask;
+    private void OnShowComments() => Context?.OpenFieldComments(_fieldName);
 
     public void Dispose()
     {
