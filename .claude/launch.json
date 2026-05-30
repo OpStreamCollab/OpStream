@@ -6,6 +6,24 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "samples/gojs-collab", "run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "konva",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "samples/konva-collab", "run", "dev"],
+      "port": 5174
+    },
+    {
+      "name": "opstream-react-example",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "../OpStream.ReactComponents/example", "run", "dev"],
+      "port": 5175
+    },
+    {
+      "name": "opstream-angular-demo",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--prefix", "../OpStream.AngularComponents", "ng", "serve", "demo", "--configuration=development", "--port=5176"],
+      "port": 5176
     }
   ]
 }

@@ -40,8 +40,8 @@ public static class WebSocketClientExtensions
 public class OpStreamWebSocketManagementOptions
 {
     /// <summary>WebSocket URI for the management endpoint.</summary>
-    public string ManagementWsUri { get; set; } = "ws://localhost:5000/ws-mgmt";
+    public string ManagementWsUri { get; set; } = "ws://hostdemo.opstream.stream/ws-mgmt";
 
     /// <summary>WebSocket URI for the versioning endpoint.</summary>
-    public string VersioningWsUri { get; set; } = "ws://localhost:5000/ws-versioning";
+    public string VersioningWsUri { get; set; } = "ws://hostdemo.opstream.stream/ws-versioning";
 }

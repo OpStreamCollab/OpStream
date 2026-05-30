@@ -39,6 +39,6 @@ public static class OpStreamClientgRPCServiceCollectionExtensions
 /// <summary>Configuration options for the gRPC management transport.</summary>
 public class OpStreamgRPCManagementOptions
 {
-    /// <summary>gRPC server address (e.g., https://localhost:5001).</summary>
-    public string Address { get; set; } = "https://localhost:5001";
+    /// <summary>gRPC server address (e.g., https://hostdemo.opstream.stream/).</summary>
+    public string Address { get; set; } = "https://hostdemo.opstream.stream/";
 }

@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <!-- Transporte SignalR del cliente OpStream (registra AddOpStreamClient().UseSignalRTransport). -->
+    
     <PackageReference Include="OpStream.Client.Transports.SignalR" Version="$(OpStreamVersion)" />
   </ItemGroup>
 

@@ -1,4 +1,4 @@
-# OpStream
+# OpStream <span style="float:right"><span style="color: #E34F26">:material-language-html5:</span> <span style="color: #F7DF1E">:material-language-javascript:</span> <span style="color: #512BD4">:material-dot-net:</span> <span style="color: #61DAFB">:material-react:</span> <span style="color: #DD0031">:material-angular:</span></span>
 
 **Let several people edit the same thing at the same time — inside your own app.**
 
@@ -8,11 +8,6 @@ emails? OpStream brings that to **your** application — your editor, your data,
 your login — instead of sending your users off to someone else's cloud.
 
 You keep the app you already have. OpStream adds the real-time, multi-user layer.
-
-OpStream is a **server you run** — one Docker command, or host it inside an
-ASP.NET Core app. Your **frontend connects to it**: plain **HTML + JavaScript**,
-React, Vue, Blazor, or a mobile app, over WebSockets, SignalR, or gRPC. The
-server happens to be built on .NET; **your client doesn't have to be.**
 
 [Try it in 5 minutes :material-arrow-right:](getting-started/quickstart.md){ .md-button .md-button--primary }
 [See what you can build :material-arrow-right:](#what-can-you-build){ .md-button }

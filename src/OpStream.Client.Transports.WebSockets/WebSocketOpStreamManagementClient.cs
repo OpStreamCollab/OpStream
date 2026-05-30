@@ -38,8 +38,8 @@ public sealed class WebSocketOpStreamManagementClient : IOpStreamManagementClien
     };
 
     public WebSocketOpStreamManagementClient(
-        string managementWsUri = "ws://localhost:5000/ws-mgmt",
-        string versioningWsUri = "ws://localhost:5000/ws-versioning")
+        string managementWsUri = "ws://hostdemo.opstream.stream/ws-mgmt",
+        string versioningWsUri = "ws://hostdemo.opstream.stream/ws-versioning")
     {
         _mgmtUri = new Uri(managementWsUri);
         _verUri  = new Uri(versioningWsUri);

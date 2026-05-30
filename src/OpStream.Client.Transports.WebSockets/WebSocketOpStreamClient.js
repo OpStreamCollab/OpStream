@@ -5,7 +5,7 @@
 export class WebSocketOpStreamClient {
     /**
      * Initializes a new instance of the WebSocketOpStreamClient.
-     * @param {string} serverUri The URI of the WebSocket server (e.g. ws://localhost:5000/ws)
+     * @param {string} serverUri The URI of the WebSocket server (e.g. ws://hostdemo.opstream.stream/ws)
      */
     constructor(serverUri) {
         this.serverUri = serverUri;
