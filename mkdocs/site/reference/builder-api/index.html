@@ -2589,6 +2589,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#addinboundmessagevalidator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddInboundMessageValidator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#useseeder" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2926,6 +2937,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#addinboundmessagevalidator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddInboundMessageValidator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#useseeder" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3195,9 +3217,20 @@ each client sends with its <code>JoinDocument</code> call.</p>
 </span></code></pre></div>
 <p>Registers a per-op validator. Multiple validators are evaluated in
 registration order; the first one that returns <code>false</code> rejects the op.</p>
+<h3 id="addinboundmessagevalidator"><code>AddInboundMessageValidator</code><a class="headerlink" href="#addinboundmessagevalidator" title="Permanent link">&para;</a></h3>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">AddInboundMessageValidator</span><span class="o">&lt;</span><span class="n">TValidator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">TValidator</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IInboundMessageValidator</span><span class="p">;</span>
+</span></code></pre></div>
+<p>Adds a hook that screens <strong>every inbound client message</strong> (Join / Op /
+Awareness / comment ops) across <strong>all</strong> transports before the server acts
+on it — the central place to validate the intentionally-unauthenticated,
+weakly-typed endpoints. Runs after the built-in
+<code>DefaultInboundMessageValidator</code>; the first rejection short-circuits.
+Tune the structural limits via <code>OpStreamOptions.Validation</code>. See
+<a href="../configuration/#inbound-message-validation">Inbound message validation</a>.</p>
 <h3 id="useseeder"><code>UseSeeder</code><a class="headerlink" href="#useseeder" title="Permanent link">&para;</a></h3>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">UseSeeder</span><span class="o">&lt;</span><span class="n">TDoc</span><span class="p">,</span><span class="w"> </span><span class="n">TSeeder</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">)</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">TSeeder</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IDocumentSeeder</span><span class="o">&lt;</span><span class="n">TDoc</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">UseSeeder</span><span class="o">&lt;</span><span class="n">TDoc</span><span class="p">,</span><span class="w"> </span><span class="n">TSeeder</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">TSeeder</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IDocumentSeeder</span><span class="o">&lt;</span><span class="n">TDoc</span><span class="o">&gt;</span><span class="p">;</span>
 </span></code></pre></div>
 <p>Replaces the default <code>EmptyDocumentSeeder&lt;TDoc&gt;</code> used to populate new
 documents on first access.</p>
@@ -3267,14 +3300,14 @@ documents on first access.</p>
 <p>See <a href="../../operations/backplane/">Backplane</a>.</p>
 <h2 id="authorization">Authorization<a class="headerlink" href="#authorization" title="Permanent link">&para;</a></h2>
 <h3 id="useauthorization"><code>UseAuthorization</code><a class="headerlink" href="#useauthorization" title="Permanent link">&para;</a></h3>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">UseAuthorization</span><span class="o">&lt;</span><span class="n">TAuthorizer</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">)</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">TAuthorizer</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IDocumentAuthorizer</span><span class="p">;</span>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">UseAuthorization</span><span class="o">&lt;</span><span class="n">TAuthorizer</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">)</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">TAuthorizer</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IDocumentAuthorizer</span><span class="p">;</span>
 </span></code></pre></div>
 <p>Replaces the default <code>AllowAllAuthorizer</code> with a scoped implementation
 that runs once per request. See <a href="../../operations/authorization/">Authorization</a>.</p>
 <h2 id="snapshots">Snapshots<a class="headerlink" href="#snapshots" title="Permanent link">&para;</a></h2>
 <h3 id="usesnapshotpolicy"><code>UseSnapshotPolicy</code><a class="headerlink" href="#usesnapshotpolicy" title="Permanent link">&para;</a></h3>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="nf">UseSnapshotPolicy</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">,</span><span class="w"> </span><span class="n">ISnapshotPolicy</span><span class="w"> </span><span class="n">policy</span><span class="p">);</span>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="nf">UseSnapshotPolicy</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">,</span><span class="w"> </span><span class="n">ISnapshotPolicy</span><span class="w"> </span><span class="n">policy</span><span class="p">);</span>
 </span></code></pre></div>
 <p>Replaces the default <code>HybridSnapshotPolicy(100, 5 min)</code>. See
 <a href="../../operations/snapshots/">Snapshots</a>.</p>
@@ -3342,7 +3375,7 @@ reference them instead of hard-coding strings.</p>
 <h2 id="fractionalindex">FractionalIndex<a class="headerlink" href="#fractionalindex" title="Permanent link">&para;</a></h2>
 <p><code>OpStream.Server.Engine.Common.FractionalIndex.Between(left, right)</code> —
 strict-between key generator for siblings in Tree / Table CRDTs.</p>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="nf">Between</span><span class="p">(</span><span class="kt">string?</span><span class="w"> </span><span class="n">left</span><span class="p">,</span><span class="w"> </span><span class="kt">string?</span><span class="w"> </span><span class="n">right</span><span class="p">);</span>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="nf">Between</span><span class="p">(</span><span class="kt">string?</span><span class="w"> </span><span class="n">left</span><span class="p">,</span><span class="w"> </span><span class="kt">string?</span><span class="w"> </span><span class="n">right</span><span class="p">);</span>
 </span></code></pre></div>
 <ul>
 <li>Pass <code>null</code> on either side for an open boundary.</li>

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using OpStream.Constants;
 using OpStream.Server.Multitenancy;
 using OpStream.Server.Session;
+using OpStream.Server.Validation;
 using OpStream.Shared.Abstractions;
 using System.Text.Json;
 
@@ -24,6 +25,7 @@ public class CommentRouter(
     IDocumentIdGlobalizer globalizer,
     DocumentRouter documentRouter,
     ICommentStore store,
+    IInboundMessageValidationPipeline inboundValidation,
     ILogger<CommentRouter> logger) : IBackplaneRequestExtension
 {
     /// <summary>
@@ -36,6 +38,11 @@ public class CommentRouter(
 
     public async Task<OpResult<IReadOnlyList<Comment>>> ListOpenAsync(string localDocumentId, CancellationToken ct = default)
     {
+        var validation = await inboundValidation.ValidateAsync(
+            new InboundMessage(InboundMessageKind.CommentList, PeerId: string.Empty, localDocumentId), ct);
+        if (!validation.IsValid)
+            return OpResult<IReadOnlyList<Comment>>.Fail($"InvalidMessage: {validation.Reason}");
+
         if (!await AuthorizeAsync(localDocumentId, requireCanComment: false, ct))
             return Forbidden<IReadOnlyList<Comment>>();
 
@@ -46,29 +53,55 @@ public class CommentRouter(
         return OpResult<IReadOnlyList<Comment>>.Ok(projected);
     }
 
-    public Task<OpResult<Comment>> CreateAsync(string peerId, string localDocumentId, NewCommentCmd cmd, CancellationToken ct = default) =>
-        RouteToOwnerAsync<Comment>(
+    public async Task<OpResult<Comment>> CreateAsync(string peerId, string localDocumentId, NewCommentCmd cmd, CancellationToken ct = default)
+    {
+        var validation = await inboundValidation.ValidateAsync(
+            new InboundMessage(InboundMessageKind.CommentCreate, peerId, localDocumentId, Text: cmd?.Body), ct);
+        if (!validation.IsValid)
+            return OpResult<Comment>.Fail($"InvalidMessage: {validation.Reason}");
+
+        return await RouteToOwnerAsync<Comment>(
             localDocumentId, peerId,
             OpStreamConstants.BackplaneCommands.CreateComment,
             new MutationPayload(MutationKind.Create, peerId, null, cmd, null),
             ct);
+    }
 
-    public Task<OpResult<Comment>> EditAsync(string peerId, string localDocumentId, string commentId, string newBody, CancellationToken ct = default) =>
-        RouteToOwnerAsync<Comment>(
+    public async Task<OpResult<Comment>> EditAsync(string peerId, string localDocumentId, string commentId, string newBody, CancellationToken ct = default)
+    {
+        var validation = await inboundValidation.ValidateAsync(
+            new InboundMessage(InboundMessageKind.CommentEdit, peerId, localDocumentId, Text: newBody), ct);
+        if (!validation.IsValid)
+            return OpResult<Comment>.Fail($"InvalidMessage: {validation.Reason}");
+
+        return await RouteToOwnerAsync<Comment>(
             localDocumentId, peerId,
             OpStreamConstants.BackplaneCommands.EditComment,
             new MutationPayload(MutationKind.Edit, peerId, commentId, null, newBody),
             ct);
+    }
 
-    public Task<OpResult<Comment>> ResolveAsync(string peerId, string localDocumentId, string commentId, CancellationToken ct = default) =>
-        RouteToOwnerAsync<Comment>(
+    public async Task<OpResult<Comment>> ResolveAsync(string peerId, string localDocumentId, string commentId, CancellationToken ct = default)
+    {
+        var validation = await inboundValidation.ValidateAsync(
+            new InboundMessage(InboundMessageKind.CommentResolve, peerId, localDocumentId), ct);
+        if (!validation.IsValid)
+            return OpResult<Comment>.Fail($"InvalidMessage: {validation.Reason}");
+
+        return await RouteToOwnerAsync<Comment>(
             localDocumentId, peerId,
             OpStreamConstants.BackplaneCommands.ResolveComment,
             new MutationPayload(MutationKind.Resolve, peerId, commentId, null, null),
             ct);
+    }
 
     public async Task<OpResult> DeleteAsync(string peerId, string localDocumentId, string commentId, CancellationToken ct = default)
     {
+        var validation = await inboundValidation.ValidateAsync(
+            new InboundMessage(InboundMessageKind.CommentDelete, peerId, localDocumentId), ct);
+        if (!validation.IsValid)
+            return OpResult.Fail($"InvalidMessage: {validation.Reason}");
+
         var routed = await RouteToOwnerAsync<bool>(
             localDocumentId, peerId,
             OpStreamConstants.BackplaneCommands.DeleteComment,

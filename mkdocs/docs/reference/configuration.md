@@ -72,6 +72,7 @@ builder.Services.AddOpStream(options =>
 | Property | Type | Default | Function |
 |---|---|---|---|
 | `History` | `HistoryOptions` | new instance | Cold-store history configuration (see below). |
+| `Validation` | `InboundValidationOptions` | new instance | Limits enforced by the built-in inbound-message validator (payload sizes, id lengths, …). See [Inbound message validation](#inbound-message-validation). |
 | `AutomaticMigrationsEnabled` | `bool` | `true` | When `true`, EF Core / SQL migrations are applied automatically at startup by the `MigrationHostedService`. Set `false` if you run migrations out-of-band (CI, DBA-managed). |
 
 ### `HistoryOptions` (`OpStreamOptions.History`)
@@ -235,6 +236,92 @@ services.AddOpStream()
 !!! danger "Management is deny-all until you wire this"
     Every management and versioning endpoint returns *Forbidden* until you register a
     real `IDatabaseCommandAuthorizer`. This is intentional fail-closed behavior.
+
+---
+
+## Inbound message validation
+
+The three transport endpoints (SignalR, WebSockets, gRPC) are intentionally
+**unauthenticated** and most of their traffic is only **weakly typed** — opaque operation
+payloads and arbitrary awareness JSON. Every such message, on every transport, funnels
+through the router facades (`DocumentRouter`, `CommentRouter`) in the server library, which
+run it past a **validation hook** *before* the server acts on it. This is the single choke
+point where untrusted input is screened — it is separate from, and runs before,
+[authorization](#authorization).
+
+`AddOpStream()` always registers a built-in `DefaultInboundMessageValidator` that enforces
+the structural limits in `OpStreamOptions.Validation`. It makes **no** authorization
+decisions; it only rejects structurally invalid or abusive input (missing/oversized ids,
+empty or oversized op payloads, oversized presence blobs, overlong comment bodies, …).
+Rejected messages come back to the client as an `InvalidMessage: <reason>` error and never
+reach a session.
+
+### `InboundValidationOptions` (`OpStreamOptions.Validation`)
+
+| Property | Type | Default | Function |
+|---|---|---|---|
+| `MaxDocumentIdLength` | `int` | `256` | Maximum length (chars) of a document id. |
+| `MaxDocumentTypeLength` | `int` | `128` | Maximum length (chars) of the document-type discriminator (Join). |
+| `MaxOpPayloadBytes` | `int` | `1 MiB` | Maximum size of a single operation payload. |
+| `MaxAwarenessBytes` | `int` | `64 KiB` | Maximum size (UTF-8) of an awareness/presence JSON blob. |
+| `MaxCommentBodyLength` | `int` | `16 KiB` | Maximum length (chars) of a comment body. |
+
+```csharp
+services.AddOpStream(options =>
+{
+    options.Validation.MaxOpPayloadBytes  = 256 * 1024; // tighten op payloads to 256 KiB
+    options.Validation.MaxAwarenessBytes  = 8 * 1024;   // tighten presence blobs to 8 KiB
+});
+```
+
+### `AddInboundMessageValidator<TValidator>()`
+
+```csharp
+public static IOpStreamBuilder AddInboundMessageValidator<TValidator>(this IOpStreamBuilder builder)
+    where TValidator : class, IInboundMessageValidator;
+```
+
+Adds a custom `IInboundMessageValidator` hook to enforce **host-specific** rules on top of
+the structural defaults. **Collection-style** — register as many as you need. Validators run
+in registration order, *after* the built-in `DefaultInboundMessageValidator`, and the **first
+rejection short-circuits** the rest. Keep them fast and side-effect free: they sit on the hot
+path of every inbound message.
+
+Each validator receives a transport-agnostic `InboundMessage`:
+
+| Field | Type | Description |
+|---|---|---|
+| `Kind` | `InboundMessageKind` | `Join`, `Op`, `Awareness`, `CommentCreate`, `CommentEdit`, `CommentResolve`, `CommentDelete`, `CommentList`. |
+| `PeerId` | `string` | The connection/peer the message arrived on (empty for unattributed reads). |
+| `DocumentId` | `string?` | The (local) document the message targets. |
+| `DocumentType` | `string?` | Type discriminator (Join only). |
+| `ProtocolVersion` | `int?` | Client protocol version (Join only). |
+| `BaseRevision` | `long?` | Revision an op is based on (Op only). |
+| `Payload` | `ReadOnlyMemory<byte>` | Opaque op payload (Op only). |
+| `Data` | `JsonElement?` | Parsed awareness JSON (Awareness only). |
+| `Text` | `string?` | Free-form text such as a comment body (CommentCreate / CommentEdit). |
+
+…and returns `InboundValidationResult.Valid` or `InboundValidationResult.Invalid(reason)`.
+
+```csharp
+services.AddOpStream()
+    .AddInboundMessageValidator<RejectGiantImagesValidator>();
+
+public sealed class RejectGiantImagesValidator : IInboundMessageValidator
+{
+    public ValueTask<InboundValidationResult> ValidateAsync(
+        InboundMessage message, CancellationToken ct = default)
+        => new(message is { Kind: InboundMessageKind.Op, Payload.Length: > 512 * 1024 }
+            ? InboundValidationResult.Invalid("op payload too large for this tenant")
+            : InboundValidationResult.Valid);
+}
+```
+
+!!! note "Where this is wired"
+    Validation is centralized in the server library (`src/OpStream.Server/Validation/`),
+    not in any individual transport — so the same rules apply uniformly across SignalR,
+    WebSockets and gRPC, and to backplane-proxied requests it is skipped (they were already
+    validated at the originating node).
 
 ---
 
@@ -428,6 +515,7 @@ builder.Services.AddOpStream(options =>
     {
         options.History.Enabled = true;
         options.History.SnapshotRevisionInterval = 200;
+        options.Validation.MaxOpPayloadBytes = 256 * 1024; // tighten the default 1 MiB cap
     })
     // Engines
     .AddEngine<RichTextDocument, RichTextOp, RichTextEngine>("rich-text")
@@ -442,6 +530,8 @@ builder.Services.AddOpStream(options =>
     // Security (both planes)
     .UseAuthorization<MyDocumentAuthorizer>()
     .UseDatabaseCommandAuthorization<MyManagementAuthorizer>()
+    // Inbound message validation (on top of the built-in structural validator)
+    .AddInboundMessageValidator<MyInboundMessageValidator>()
     // Snapshot cadence
     .UseSnapshotPolicy(new HybridSnapshotPolicy(250, TimeSpan.FromMinutes(2)))
     // Transports

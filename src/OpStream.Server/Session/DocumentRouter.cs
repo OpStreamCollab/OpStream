@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using OpStream.Constants;
 using OpStream.Server.Diagnostics;
 using OpStream.Server.Multitenancy;
+using OpStream.Server.Validation;
 using OpStream.Shared.Abstractions;
 using OpStream.Shared.Messages;
 using System.Collections.Concurrent;
@@ -42,6 +43,7 @@ public class DocumentRouter(
     IDocumentOwnershipManager ownershipManager,
     IDocumentIdGlobalizer globalizer,
     ITimerFactory timerFactory,
+    IInboundMessageValidationPipeline inboundValidation,
     SessionRegistryOptions options,
     ILogger<DocumentRouter> logger)
 {
@@ -80,6 +82,14 @@ public class DocumentRouter(
         if (protocolVersion != ProtocolVersions.Current)
             return OpResult<SessionJoinResult>.Fail($"UnsupportedProtocol: Required proto={ProtocolVersions.Current}");
 
+        if (!isProxied)
+        {
+            var validation = await inboundValidation.ValidateAsync(
+                new InboundMessage(InboundMessageKind.Join, peerId, documentId, documentType, protocolVersion), ct);
+            if (!validation.IsValid)
+                return OpResult<SessionJoinResult>.Fail($"InvalidMessage: {validation.Reason}");
+        }
+
         var globalId = isProxied ? documentId : globalizer.ToGlobalId(documentId);
 
         peers.Track(peerId, globalId);
@@ -108,12 +118,20 @@ public class DocumentRouter(
     }
 
     /// <summary>Applies an op, ensuring it runs on the authoritative owner node.</summary>
-    public Task<OpResult<OpApplyResult>> ApplyOpAsync(
+    public async Task<OpResult<OpApplyResult>> ApplyOpAsync(
         string peerId, string documentId, ReadOnlyMemory<byte> payload, long baseRevision,
         bool isProxied = false, CancellationToken ct = default)
     {
+        if (!isProxied)
+        {
+            var validation = await inboundValidation.ValidateAsync(
+                new InboundMessage(InboundMessageKind.Op, peerId, documentId, BaseRevision: baseRevision, Payload: payload), ct);
+            if (!validation.IsValid)
+                return OpResult<OpApplyResult>.Fail($"InvalidMessage: {validation.Reason}");
+        }
+
         var globalId = isProxied ? documentId : globalizer.ToGlobalId(documentId);
-        return pipeline.ExecuteAsync<OpApplyResult, ApplyOpRequestData>(
+        return await pipeline.ExecuteAsync<OpApplyResult, ApplyOpRequestData>(
             globalId,
             isProxied,
             access => access.CanWrite,
@@ -125,12 +143,20 @@ public class DocumentRouter(
     }
 
     /// <summary>Updates a peer's awareness (presence) state, distributed across the cluster.</summary>
-    public Task<OpResult<AwarenessState>> UpdateAwarenessAsync(
+    public async Task<OpResult<AwarenessState>> UpdateAwarenessAsync(
         string peerId, string documentId, System.Text.Json.JsonElement data,
         bool isProxied = false, CancellationToken ct = default)
     {
+        if (!isProxied)
+        {
+            var validation = await inboundValidation.ValidateAsync(
+                new InboundMessage(InboundMessageKind.Awareness, peerId, documentId, Data: data), ct);
+            if (!validation.IsValid)
+                return OpResult<AwarenessState>.Fail($"InvalidMessage: {validation.Reason}");
+        }
+
         var globalId = isProxied ? documentId : globalizer.ToGlobalId(documentId);
-        return pipeline.ExecuteAsync<AwarenessState, UpdateAwarenessRequestData>(
+        return await pipeline.ExecuteAsync<AwarenessState, UpdateAwarenessRequestData>(
             globalId,
             isProxied,
             access => access.CanRead,

@@ -65,6 +65,21 @@ public static IOpStreamBuilder AddValidator<TOp, TValidator>(this IOpStreamBuild
 Registers a per-op validator. Multiple validators are evaluated in
 registration order; the first one that returns `false` rejects the op.
 
+### `AddInboundMessageValidator`
+
+```csharp
+public static IOpStreamBuilder AddInboundMessageValidator<TValidator>(this IOpStreamBuilder builder)
+    where TValidator : class, IInboundMessageValidator;
+```
+
+Adds a hook that screens **every inbound client message** (Join / Op /
+Awareness / comment ops) across **all** transports before the server acts
+on it — the central place to validate the intentionally-unauthenticated,
+weakly-typed endpoints. Runs after the built-in
+`DefaultInboundMessageValidator`; the first rejection short-circuits.
+Tune the structural limits via `OpStreamOptions.Validation`. See
+[Inbound message validation](configuration.md#inbound-message-validation).
+
 ### `UseSeeder`
 
 ```csharp

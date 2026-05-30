@@ -15,6 +15,7 @@ using OpStream.Shared.Abstractions;
 using OpStream.Server.Snapshots;
 using OpStream.Server.Engine.RichText;
 using OpStream.Server.Engine.Json;
+using OpStream.Server.Validation;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -118,6 +119,15 @@ public static class OpStreamServiceCollectionExtensions
         services.TryAddSingleton<CommentRouter>();
         services.AddSingleton<IBackplaneRequestExtension>(sp => sp.GetRequiredService<DatabaseCommandRouter>());
         services.AddSingleton<IBackplaneRequestExtension>(sp => sp.GetRequiredService<CommentRouter>());
+
+        // Inbound message validation hook. Every message that arrives on any transport is funnelled
+        // through the router facades, which run it past this pipeline before acting on it. The
+        // endpoints are intentionally unauthenticated and most messages are weakly typed, so this is
+        // the central place to screen untrusted input. Hosts add their own rules via
+        // AddInboundMessageValidator<T>(); the built-in DefaultInboundMessageValidator always runs first.
+        services.TryAddSingleton(options.Validation);
+        services.TryAddSingleton<IInboundMessageValidationPipeline, InboundMessageValidationPipeline>();
+        services.AddSingleton<IInboundMessageValidator, DefaultInboundMessageValidator>();
         services.TryAddSingleton<IBackplane, LocalBackplane>();
         services.TryAddSingleton<IDocumentOwnershipManager, LocalDocumentOwnershipManager>();
         services.TryAddSingleton<ITimerFactory, DefaultTimerFactory>();
@@ -250,6 +260,20 @@ public static class OpStreamServiceCollectionExtensions
         where TValidator : class, IOpValidator<TOp>
     {
         builder.Services.AddScoped<IOpValidator<TOp>, TValidator>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds an <see cref="IInboundMessageValidator"/> hook that screens every inbound client message
+    /// (on every transport) before the server acts on it. Multiple validators are evaluated in
+    /// registration order, after the built-in <see cref="DefaultInboundMessageValidator"/>, and the
+    /// first rejection short-circuits the rest. Use this to enforce host-specific rules on the
+    /// intentionally-unauthenticated, weakly-typed transport endpoints.
+    /// </summary>
+    public static IOpStreamBuilder AddInboundMessageValidator<TValidator>(this IOpStreamBuilder builder)
+        where TValidator : class, IInboundMessageValidator
+    {
+        builder.Services.AddSingleton<IInboundMessageValidator, TValidator>();
         return builder;
     }
 

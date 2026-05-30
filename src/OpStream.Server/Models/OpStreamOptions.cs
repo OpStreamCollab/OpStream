@@ -1,5 +1,6 @@
 using System;
 using OpStream.Server.Session;
+using OpStream.Server.Validation;
 
 namespace OpStream.Server.Models;
 
@@ -17,6 +18,12 @@ public class OpStreamOptions
     /// Gets or sets the in-memory session registry configuration (e.g. the idle-close timeout).
     /// </summary>
     public SessionRegistryOptions Sessions { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the inbound message validation limits enforced by the built-in
+    /// <see cref="DefaultInboundMessageValidator"/> (payload sizes, id lengths, etc.).
+    /// </summary>
+    public InboundValidationOptions Validation { get; set; } = new();
 
     /// <summary>
     /// Gets or sets a value indicating whether database migrations should be applied automatically on startup.

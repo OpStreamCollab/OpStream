@@ -2800,6 +2800,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#inbound-message-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inbound message validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Inbound message validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inboundvalidationoptions-opstreamoptionsvalidation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        InboundValidationOptions (OpStreamOptions.Validation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addinboundmessagevalidatortvalidator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddInboundMessageValidator&lt;TValidator&gt;()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#snapshots" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3321,6 +3360,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#inbound-message-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inbound message validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Inbound message validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inboundvalidationoptions-opstreamoptionsvalidation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        InboundValidationOptions (OpStreamOptions.Validation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addinboundmessagevalidatortvalidator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AddInboundMessageValidator&lt;TValidator&gt;()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#snapshots" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3723,6 +3801,12 @@ replace <strong>both</strong>.</p>
 <td>Cold-store history configuration (see below).</td>
 </tr>
 <tr>
+<td><code>Validation</code></td>
+<td><code>InboundValidationOptions</code></td>
+<td>new instance</td>
+<td>Limits enforced by the built-in inbound-message validator (payload sizes, id lengths, …). See <a href="#inbound-message-validation">Inbound message validation</a>.</td>
+</tr>
+<tr>
 <td><code>AutomaticMigrationsEnabled</code></td>
 <td><code>bool</code></td>
 <td><code>true</code></td>
@@ -3996,12 +4080,162 @@ branches / versions / merge). The host switches on <code>DatabaseCommandContext.
 real <code>IDatabaseCommandAuthorizer</code>. This is intentional fail-closed behavior.</p>
 </div>
 <hr />
+<h2 id="inbound-message-validation">Inbound message validation<a class="headerlink" href="#inbound-message-validation" title="Permanent link">&para;</a></h2>
+<p>The three transport endpoints (SignalR, WebSockets, gRPC) are intentionally
+<strong>unauthenticated</strong> and most of their traffic is only <strong>weakly typed</strong> — opaque operation
+payloads and arbitrary awareness JSON. Every such message, on every transport, funnels
+through the router facades (<code>DocumentRouter</code>, <code>CommentRouter</code>) in the server library, which
+run it past a <strong>validation hook</strong> <em>before</em> the server acts on it. This is the single choke
+point where untrusted input is screened — it is separate from, and runs before,
+<a href="#authorization">authorization</a>.</p>
+<p><code>AddOpStream()</code> always registers a built-in <code>DefaultInboundMessageValidator</code> that enforces
+the structural limits in <code>OpStreamOptions.Validation</code>. It makes <strong>no</strong> authorization
+decisions; it only rejects structurally invalid or abusive input (missing/oversized ids,
+empty or oversized op payloads, oversized presence blobs, overlong comment bodies, …).
+Rejected messages come back to the client as an <code>InvalidMessage: &lt;reason&gt;</code> error and never
+reach a session.</p>
+<h3 id="inboundvalidationoptions-opstreamoptionsvalidation"><code>InboundValidationOptions</code> (<code>OpStreamOptions.Validation</code>)<a class="headerlink" href="#inboundvalidationoptions-opstreamoptionsvalidation" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Default</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MaxDocumentIdLength</code></td>
+<td><code>int</code></td>
+<td><code>256</code></td>
+<td>Maximum length (chars) of a document id.</td>
+</tr>
+<tr>
+<td><code>MaxDocumentTypeLength</code></td>
+<td><code>int</code></td>
+<td><code>128</code></td>
+<td>Maximum length (chars) of the document-type discriminator (Join).</td>
+</tr>
+<tr>
+<td><code>MaxOpPayloadBytes</code></td>
+<td><code>int</code></td>
+<td><code>1 MiB</code></td>
+<td>Maximum size of a single operation payload.</td>
+</tr>
+<tr>
+<td><code>MaxAwarenessBytes</code></td>
+<td><code>int</code></td>
+<td><code>64 KiB</code></td>
+<td>Maximum size (UTF-8) of an awareness/presence JSON blob.</td>
+</tr>
+<tr>
+<td><code>MaxCommentBodyLength</code></td>
+<td><code>int</code></td>
+<td><code>16 KiB</code></td>
+<td>Maximum length (chars) of a comment body.</td>
+</tr>
+</tbody>
+</table>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">(</span><span class="n">options</span><span class="w"> </span><span class="o">=&gt;</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="p">{</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="n">options</span><span class="p">.</span><span class="n">Validation</span><span class="p">.</span><span class="n">MaxOpPayloadBytes</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">256</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span><span class="w"> </span><span class="c1">// tighten op payloads to 256 KiB</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="n">options</span><span class="p">.</span><span class="n">Validation</span><span class="p">.</span><span class="n">MaxAwarenessBytes</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span><span class="w">   </span><span class="c1">// tighten presence blobs to 8 KiB</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">});</span>
+</span></code></pre></div>
+<h3 id="addinboundmessagevalidatortvalidator"><code>AddInboundMessageValidator&lt;TValidator&gt;()</code><a class="headerlink" href="#addinboundmessagevalidatortvalidator" title="Permanent link">&para;</a></h3>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">AddInboundMessageValidator</span><span class="o">&lt;</span><span class="n">TValidator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">TValidator</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IInboundMessageValidator</span><span class="p">;</span>
+</span></code></pre></div>
+<p>Adds a custom <code>IInboundMessageValidator</code> hook to enforce <strong>host-specific</strong> rules on top of
+the structural defaults. <strong>Collection-style</strong> — register as many as you need. Validators run
+in registration order, <em>after</em> the built-in <code>DefaultInboundMessageValidator</code>, and the <strong>first
+rejection short-circuits</strong> the rest. Keep them fast and side-effect free: they sit on the hot
+path of every inbound message.</p>
+<p>Each validator receives a transport-agnostic <code>InboundMessage</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Kind</code></td>
+<td><code>InboundMessageKind</code></td>
+<td><code>Join</code>, <code>Op</code>, <code>Awareness</code>, <code>CommentCreate</code>, <code>CommentEdit</code>, <code>CommentResolve</code>, <code>CommentDelete</code>, <code>CommentList</code>.</td>
+</tr>
+<tr>
+<td><code>PeerId</code></td>
+<td><code>string</code></td>
+<td>The connection/peer the message arrived on (empty for unattributed reads).</td>
+</tr>
+<tr>
+<td><code>DocumentId</code></td>
+<td><code>string?</code></td>
+<td>The (local) document the message targets.</td>
+</tr>
+<tr>
+<td><code>DocumentType</code></td>
+<td><code>string?</code></td>
+<td>Type discriminator (Join only).</td>
+</tr>
+<tr>
+<td><code>ProtocolVersion</code></td>
+<td><code>int?</code></td>
+<td>Client protocol version (Join only).</td>
+</tr>
+<tr>
+<td><code>BaseRevision</code></td>
+<td><code>long?</code></td>
+<td>Revision an op is based on (Op only).</td>
+</tr>
+<tr>
+<td><code>Payload</code></td>
+<td><code>ReadOnlyMemory&lt;byte&gt;</code></td>
+<td>Opaque op payload (Op only).</td>
+</tr>
+<tr>
+<td><code>Data</code></td>
+<td><code>JsonElement?</code></td>
+<td>Parsed awareness JSON (Awareness only).</td>
+</tr>
+<tr>
+<td><code>Text</code></td>
+<td><code>string?</code></td>
+<td>Free-form text such as a comment body (CommentCreate / CommentEdit).</td>
+</tr>
+</tbody>
+</table>
+<p>…and returns <code>InboundValidationResult.Valid</code> or <code>InboundValidationResult.Invalid(reason)</code>.</p>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">()</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="p">.</span><span class="n">AddInboundMessageValidator</span><span class="o">&lt;</span><span class="n">RejectGiantImagesValidator</span><span class="o">&gt;</span><span class="p">();</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="k">public</span><span class="w"> </span><span class="k">sealed</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">RejectGiantImagesValidator</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IInboundMessageValidator</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="p">{</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">ValueTask</span><span class="o">&lt;</span><span class="n">InboundValidationResult</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ValidateAsync</span><span class="p">(</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">        </span><span class="n">InboundMessage</span><span class="w"> </span><span class="n">message</span><span class="p">,</span><span class="w"> </span><span class="n">CancellationToken</span><span class="w"> </span><span class="n">ct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">)</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">message</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">Kind</span><span class="p">:</span><span class="w"> </span><span class="n">InboundMessageKind</span><span class="p">.</span><span class="n">Op</span><span class="p">,</span><span class="w"> </span><span class="n">Payload</span><span class="p">.</span><span class="n">Length</span><span class="p">:</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">512</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="n">InboundValidationResult</span><span class="p">.</span><span class="n">Invalid</span><span class="p">(</span><span class="s">&quot;op payload too large for this tenant&quot;</span><span class="p">)</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="n">InboundValidationResult</span><span class="p">.</span><span class="n">Valid</span><span class="p">);</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Where this is wired</p>
+<p>Validation is centralized in the server library (<code>src/OpStream.Server/Validation/</code>),
+not in any individual transport — so the same rules apply uniformly across SignalR,
+WebSockets and gRPC, and to backplane-proxied requests it is skipped (they were already
+validated at the originating node).</p>
+</div>
+<hr />
 <h2 id="snapshots">Snapshots<a class="headerlink" href="#snapshots" title="Permanent link">&para;</a></h2>
 <h3 id="usesnapshotpolicyisnapshotpolicy-policy"><code>UseSnapshotPolicy(ISnapshotPolicy policy)</code><a class="headerlink" href="#usesnapshotpolicyisnapshotpolicy-policy" title="Permanent link">&para;</a></h3>
 <p>Replaces the default <code>HybridSnapshotPolicy(100, TimeSpan.FromMinutes(5))</code> — which
 snapshots the hot store after <strong>100 ops or 5 minutes</strong>, whichever comes first.</p>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">()</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="p">.</span><span class="n">UseSnapshotPolicy</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">HybridSnapshotPolicy</span><span class="p">(</span><span class="n">maxOps</span><span class="p">:</span><span class="w"> </span><span class="mi">250</span><span class="p">,</span><span class="w"> </span><span class="n">maxInterval</span><span class="p">:</span><span class="w"> </span><span class="n">TimeSpan</span><span class="p">.</span><span class="n">FromMinutes</span><span class="p">(</span><span class="mi">2</span><span class="p">)));</span>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">()</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="p">.</span><span class="n">UseSnapshotPolicy</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">HybridSnapshotPolicy</span><span class="p">(</span><span class="n">maxOps</span><span class="p">:</span><span class="w"> </span><span class="mi">250</span><span class="p">,</span><span class="w"> </span><span class="n">maxInterval</span><span class="p">:</span><span class="w"> </span><span class="n">TimeSpan</span><span class="p">.</span><span class="n">FromMinutes</span><span class="p">(</span><span class="mi">2</span><span class="p">)));</span>
 </span></code></pre></div>
 <p>See <a href="../../operations/snapshots/">Snapshots</a>.</p>
 <hr />
@@ -4011,8 +4245,8 @@ snapshots the hot store after <strong>100 ops or 5 minutes</strong>, whichever c
 everyone editing it has disconnected and the document goes quiet ("drains"). The handler
 receives the <strong>final, complete document state</strong> so the host can persist it into its own
 database, archive it, or trigger a downstream workflow.</p>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">AddDocumentDrainHandler</span><span class="o">&lt;</span><span class="n">THandler</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">)</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">THandler</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IDocumentDrainHandler</span><span class="p">;</span>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">AddDocumentDrainHandler</span><span class="o">&lt;</span><span class="n">THandler</span><span class="o">&gt;</span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">IOpStreamBuilder</span><span class="w"> </span><span class="n">builder</span><span class="p">)</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">THandler</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">class</span><span class="p">,</span><span class="w"> </span><span class="n">IDocumentDrainHandler</span><span class="p">;</span>
 </span></code></pre></div>
 <p>The handler returns a <code>DocumentDrainDecision</code>:</p>
 <table>
@@ -4080,18 +4314,18 @@ database, archive it, or trigger a downstream workflow.</p>
 <li>Fires each time the active-peer count transitions to zero. It does <strong>not</strong> fire on
   administrative delete/purge.</li>
 </ul>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">()</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="p">.</span><span class="n">AddDocumentDrainHandler</span><span class="o">&lt;</span><span class="n">PersistOnDrainHandler</span><span class="o">&gt;</span><span class="p">();</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="k">public</span><span class="w"> </span><span class="k">sealed</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nf">PersistOnDrainHandler</span><span class="p">(</span><span class="n">MyDbContext</span><span class="w"> </span><span class="n">db</span><span class="p">)</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IDocumentDrainHandler</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="p">{</span>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="n">ValueTask</span><span class="o">&lt;</span><span class="n">DocumentDrainDecision</span><span class="o">&gt;</span><span class="w"> </span><span class="n">OnDocumentDrainedAsync</span><span class="p">(</span>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">        </span><span class="n">DocumentDrainContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">CancellationToken</span><span class="w"> </span><span class="n">ct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">)</span>
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="p">{</span>
-</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">        </span><span class="k">await</span><span class="w"> </span><span class="n">db</span><span class="p">.</span><span class="n">UpsertDocumentAsync</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">DocumentId</span><span class="p">,</span><span class="w"> </span><span class="n">ctx</span><span class="p">.</span><span class="n">Revision</span><span class="p">,</span><span class="w"> </span><span class="n">ctx</span><span class="p">.</span><span class="n">State</span><span class="p">.</span><span class="n">ToArray</span><span class="p">(),</span><span class="w"> </span><span class="n">ct</span><span class="p">);</span>
-</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">DocumentDrainDecision</span><span class="p">.</span><span class="n">Delete</span><span class="p">;</span><span class="w"> </span><span class="c1">// hand-off done — OpStream may drop its copy</span>
-</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="p">}</span>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">()</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="p">.</span><span class="n">AddDocumentDrainHandler</span><span class="o">&lt;</span><span class="n">PersistOnDrainHandler</span><span class="o">&gt;</span><span class="p">();</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="k">public</span><span class="w"> </span><span class="k">sealed</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nf">PersistOnDrainHandler</span><span class="p">(</span><span class="n">MyDbContext</span><span class="w"> </span><span class="n">db</span><span class="p">)</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IDocumentDrainHandler</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="p">{</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="n">ValueTask</span><span class="o">&lt;</span><span class="n">DocumentDrainDecision</span><span class="o">&gt;</span><span class="w"> </span><span class="n">OnDocumentDrainedAsync</span><span class="p">(</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">        </span><span class="n">DocumentDrainContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">CancellationToken</span><span class="w"> </span><span class="n">ct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">)</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">        </span><span class="k">await</span><span class="w"> </span><span class="n">db</span><span class="p">.</span><span class="n">UpsertDocumentAsync</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">DocumentId</span><span class="p">,</span><span class="w"> </span><span class="n">ctx</span><span class="p">.</span><span class="n">Revision</span><span class="p">,</span><span class="w"> </span><span class="n">ctx</span><span class="p">.</span><span class="n">State</span><span class="p">.</span><span class="n">ToArray</span><span class="p">(),</span><span class="w"> </span><span class="n">ct</span><span class="p">);</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">DocumentDrainDecision</span><span class="p">.</span><span class="n">Delete</span><span class="p">;</span><span class="w"> </span><span class="c1">// hand-off done — OpStream may drop its copy</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="p">}</span>
 </span></code></pre></div>
 <p>See <a href="../../concepts/session/#draining-the-last-peer-leaves">Session → Draining</a>.</p>
 <hr />
@@ -4192,12 +4426,12 @@ Registration is automatic with the transport; you only choose whether to <strong
 </tr>
 </tbody>
 </table>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamSignalR</span><span class="p">();</span><span class="w">                 </span><span class="c1">// /collab</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamSignalRManagement</span><span class="p">();</span><span class="w">       </span><span class="c1">// /manage</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamWebSockets</span><span class="p">();</span><span class="w">              </span><span class="c1">// /collab-ws</span>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamGrpc</span><span class="p">();</span>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamSignalR</span><span class="p">();</span><span class="w">                 </span><span class="c1">// /collab</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamSignalRManagement</span><span class="p">();</span><span class="w">       </span><span class="c1">// /manage</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamWebSockets</span><span class="p">();</span><span class="w">              </span><span class="c1">// /collab-ws</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamGrpc</span><span class="p">();</span>
 </span></code></pre></div>
 <p>See the <a href="../../transports/">Transports overview</a>.</p>
 <hr />
@@ -4320,13 +4554,13 @@ configured independently — register either, both, or neither.</p>
 </tr>
 </tbody>
 </table>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// Collaboration client over SignalR</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStreamClient</span><span class="p">()</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="p">.</span><span class="n">UseSignalRTransport</span><span class="p">(</span><span class="n">o</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">HubUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://my-host/collab&quot;</span><span class="p">);</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1">// Management client over gRPC</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStreamClient</span><span class="p">()</span>
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="p">.</span><span class="n">UsegRPCManagementTransport</span><span class="p">(</span><span class="n">o</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">Address</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://my-host:5001&quot;</span><span class="p">);</span>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1">// Collaboration client over SignalR</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStreamClient</span><span class="p">()</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span><span class="p">.</span><span class="n">UseSignalRTransport</span><span class="p">(</span><span class="n">o</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">HubUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://my-host/collab&quot;</span><span class="p">);</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="c1">// Management client over gRPC</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="n">services</span><span class="p">.</span><span class="n">AddOpStreamClient</span><span class="p">()</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">    </span><span class="p">.</span><span class="n">UsegRPCManagementTransport</span><span class="p">(</span><span class="n">o</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">Address</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://my-host:5001&quot;</span><span class="p">);</span>
 </span></code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Error mapping</p>
@@ -4338,43 +4572,46 @@ Inspect <code>IsForbidden</code> to distinguish an authorization denial (server 
 <h2 id="end-to-end-example">End-to-end example<a class="headerlink" href="#end-to-end-example" title="Permanent link">&para;</a></h2>
 <p>A production multi-node host using PostgreSQL storage, a Redis backplane, real
 authorization on both planes, and all three transports:</p>
-<div class="language-csharp highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">WebApplication</span><span class="p">.</span><span class="n">CreateBuilder</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">builder</span><span class="p">.</span><span class="n">Services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">(</span><span class="n">options</span><span class="w"> </span><span class="o">=&gt;</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="p">{</span>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">        </span><span class="n">options</span><span class="p">.</span><span class="n">History</span><span class="p">.</span><span class="n">Enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">        </span><span class="n">options</span><span class="p">.</span><span class="n">History</span><span class="p">.</span><span class="n">SnapshotRevisionInterval</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span><span class="p">;</span>
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">    </span><span class="p">})</span>
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="c1">// Engines</span>
-</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">    </span><span class="p">.</span><span class="n">AddEngine</span><span class="o">&lt;</span><span class="n">RichTextDocument</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextOp</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextEngine</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;rich-text&quot;</span><span class="p">)</span>
-</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">    </span><span class="p">.</span><span class="n">AddAnchorEngine</span><span class="o">&lt;</span><span class="n">RichTextOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;rich-text&quot;</span><span class="p">)</span>
-</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="p">.</span><span class="n">UseVersioningMerge</span><span class="o">&lt;</span><span class="n">RichTextDocument</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;rich-text&quot;</span><span class="p">)</span>
-</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">    </span><span class="c1">// Storage</span>
-</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">    </span><span class="p">.</span><span class="n">UsePostgreSqlStorage</span><span class="p">(</span><span class="n">builder</span><span class="p">.</span><span class="n">Configuration</span><span class="p">.</span><span class="n">GetConnectionString</span><span class="p">(</span><span class="s">&quot;Db&quot;</span><span class="p">)</span><span class="o">!</span><span class="p">)</span>
-</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">    </span><span class="p">.</span><span class="n">UseEfCoreCommentStorage</span><span class="o">&lt;</span><span class="n">PostgreSqlOpStreamDbContext</span><span class="o">&gt;</span><span class="p">()</span>
-</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="w">    </span><span class="p">.</span><span class="n">UseEfCoreVersioningStorage</span><span class="o">&lt;</span><span class="n">PostgreSqlOpStreamDbContext</span><span class="o">&gt;</span><span class="p">()</span>
-</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="w">    </span><span class="c1">// Scale-out</span>
-</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">    </span><span class="p">.</span><span class="n">UseRedisBackplane</span><span class="p">(</span><span class="n">builder</span><span class="p">.</span><span class="n">Configuration</span><span class="p">.</span><span class="n">GetConnectionString</span><span class="p">(</span><span class="s">&quot;Redis&quot;</span><span class="p">)</span><span class="o">!</span><span class="p">)</span>
-</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">    </span><span class="c1">// Security (both planes)</span>
-</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="w">    </span><span class="p">.</span><span class="n">UseAuthorization</span><span class="o">&lt;</span><span class="n">MyDocumentAuthorizer</span><span class="o">&gt;</span><span class="p">()</span>
-</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="w">    </span><span class="p">.</span><span class="n">UseDatabaseCommandAuthorization</span><span class="o">&lt;</span><span class="n">MyManagementAuthorizer</span><span class="o">&gt;</span><span class="p">()</span>
-</span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="w">    </span><span class="c1">// Snapshot cadence</span>
-</span><span id="__span-12-22"><a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="w">    </span><span class="p">.</span><span class="n">UseSnapshotPolicy</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">HybridSnapshotPolicy</span><span class="p">(</span><span class="mi">250</span><span class="p">,</span><span class="w"> </span><span class="n">TimeSpan</span><span class="p">.</span><span class="n">FromMinutes</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
-</span><span id="__span-12-23"><a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="w">    </span><span class="c1">// Transports</span>
-</span><span id="__span-12-24"><a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="w">    </span><span class="p">.</span><span class="n">AddSignalRTransport</span><span class="p">()</span>
-</span><span id="__span-12-25"><a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a><span class="w">    </span><span class="p">.</span><span class="n">AddWebSocketTransport</span><span class="p">()</span>
-</span><span id="__span-12-26"><a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a><span class="w">    </span><span class="p">.</span><span class="n">AddGrpcTransport</span><span class="p">();</span>
-</span><span id="__span-12-27"><a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a>
-</span><span id="__span-12-28"><a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="kt">var</span><span class="w"> </span><span class="n">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
-</span><span id="__span-12-29"><a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a>
-</span><span id="__span-12-30"><a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamSignalR</span><span class="p">();</span>
-</span><span id="__span-12-31"><a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamSignalRManagement</span><span class="p">();</span>
-</span><span id="__span-12-32"><a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamWebSockets</span><span class="p">();</span>
-</span><span id="__span-12-33"><a id="__codelineno-12-33" name="__codelineno-12-33" href="#__codelineno-12-33"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamWebSocketsManagement</span><span class="p">();</span>
-</span><span id="__span-12-34"><a id="__codelineno-12-34" name="__codelineno-12-34" href="#__codelineno-12-34"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamGrpc</span><span class="p">();</span>
-</span><span id="__span-12-35"><a id="__codelineno-12-35" name="__codelineno-12-35" href="#__codelineno-12-35"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamGrpcManagement</span><span class="p">();</span>
-</span><span id="__span-12-36"><a id="__codelineno-12-36" name="__codelineno-12-36" href="#__codelineno-12-36"></a>
-</span><span id="__span-12-37"><a id="__codelineno-12-37" name="__codelineno-12-37" href="#__codelineno-12-37"></a><span class="n">app</span><span class="p">.</span><span class="n">Run</span><span class="p">();</span>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">WebApplication</span><span class="p">.</span><span class="n">CreateBuilder</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">builder</span><span class="p">.</span><span class="n">Services</span><span class="p">.</span><span class="n">AddOpStream</span><span class="p">(</span><span class="n">options</span><span class="w"> </span><span class="o">=&gt;</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">        </span><span class="n">options</span><span class="p">.</span><span class="n">History</span><span class="p">.</span><span class="n">Enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">        </span><span class="n">options</span><span class="p">.</span><span class="n">History</span><span class="p">.</span><span class="n">SnapshotRevisionInterval</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span><span class="p">;</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">        </span><span class="n">options</span><span class="p">.</span><span class="n">Validation</span><span class="p">.</span><span class="n">MaxOpPayloadBytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">256</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span><span class="w"> </span><span class="c1">// tighten the default 1 MiB cap</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">    </span><span class="p">})</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">    </span><span class="c1">// Engines</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">    </span><span class="p">.</span><span class="n">AddEngine</span><span class="o">&lt;</span><span class="n">RichTextDocument</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextOp</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextEngine</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;rich-text&quot;</span><span class="p">)</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">    </span><span class="p">.</span><span class="n">AddAnchorEngine</span><span class="o">&lt;</span><span class="n">RichTextOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;rich-text&quot;</span><span class="p">)</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="w">    </span><span class="p">.</span><span class="n">UseVersioningMerge</span><span class="o">&lt;</span><span class="n">RichTextDocument</span><span class="p">,</span><span class="w"> </span><span class="n">RichTextOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;rich-text&quot;</span><span class="p">)</span>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">    </span><span class="c1">// Storage</span>
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="w">    </span><span class="p">.</span><span class="n">UsePostgreSqlStorage</span><span class="p">(</span><span class="n">builder</span><span class="p">.</span><span class="n">Configuration</span><span class="p">.</span><span class="n">GetConnectionString</span><span class="p">(</span><span class="s">&quot;Db&quot;</span><span class="p">)</span><span class="o">!</span><span class="p">)</span>
+</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="w">    </span><span class="p">.</span><span class="n">UseEfCoreCommentStorage</span><span class="o">&lt;</span><span class="n">PostgreSqlOpStreamDbContext</span><span class="o">&gt;</span><span class="p">()</span>
+</span><span id="__span-15-16"><a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="w">    </span><span class="p">.</span><span class="n">UseEfCoreVersioningStorage</span><span class="o">&lt;</span><span class="n">PostgreSqlOpStreamDbContext</span><span class="o">&gt;</span><span class="p">()</span>
+</span><span id="__span-15-17"><a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="w">    </span><span class="c1">// Scale-out</span>
+</span><span id="__span-15-18"><a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a><span class="w">    </span><span class="p">.</span><span class="n">UseRedisBackplane</span><span class="p">(</span><span class="n">builder</span><span class="p">.</span><span class="n">Configuration</span><span class="p">.</span><span class="n">GetConnectionString</span><span class="p">(</span><span class="s">&quot;Redis&quot;</span><span class="p">)</span><span class="o">!</span><span class="p">)</span>
+</span><span id="__span-15-19"><a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a><span class="w">    </span><span class="c1">// Security (both planes)</span>
+</span><span id="__span-15-20"><a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a><span class="w">    </span><span class="p">.</span><span class="n">UseAuthorization</span><span class="o">&lt;</span><span class="n">MyDocumentAuthorizer</span><span class="o">&gt;</span><span class="p">()</span>
+</span><span id="__span-15-21"><a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a><span class="w">    </span><span class="p">.</span><span class="n">UseDatabaseCommandAuthorization</span><span class="o">&lt;</span><span class="n">MyManagementAuthorizer</span><span class="o">&gt;</span><span class="p">()</span>
+</span><span id="__span-15-22"><a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a><span class="w">    </span><span class="c1">// Inbound message validation (on top of the built-in structural validator)</span>
+</span><span id="__span-15-23"><a id="__codelineno-15-23" name="__codelineno-15-23" href="#__codelineno-15-23"></a><span class="w">    </span><span class="p">.</span><span class="n">AddInboundMessageValidator</span><span class="o">&lt;</span><span class="n">MyInboundMessageValidator</span><span class="o">&gt;</span><span class="p">()</span>
+</span><span id="__span-15-24"><a id="__codelineno-15-24" name="__codelineno-15-24" href="#__codelineno-15-24"></a><span class="w">    </span><span class="c1">// Snapshot cadence</span>
+</span><span id="__span-15-25"><a id="__codelineno-15-25" name="__codelineno-15-25" href="#__codelineno-15-25"></a><span class="w">    </span><span class="p">.</span><span class="n">UseSnapshotPolicy</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">HybridSnapshotPolicy</span><span class="p">(</span><span class="mi">250</span><span class="p">,</span><span class="w"> </span><span class="n">TimeSpan</span><span class="p">.</span><span class="n">FromMinutes</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
+</span><span id="__span-15-26"><a id="__codelineno-15-26" name="__codelineno-15-26" href="#__codelineno-15-26"></a><span class="w">    </span><span class="c1">// Transports</span>
+</span><span id="__span-15-27"><a id="__codelineno-15-27" name="__codelineno-15-27" href="#__codelineno-15-27"></a><span class="w">    </span><span class="p">.</span><span class="n">AddSignalRTransport</span><span class="p">()</span>
+</span><span id="__span-15-28"><a id="__codelineno-15-28" name="__codelineno-15-28" href="#__codelineno-15-28"></a><span class="w">    </span><span class="p">.</span><span class="n">AddWebSocketTransport</span><span class="p">()</span>
+</span><span id="__span-15-29"><a id="__codelineno-15-29" name="__codelineno-15-29" href="#__codelineno-15-29"></a><span class="w">    </span><span class="p">.</span><span class="n">AddGrpcTransport</span><span class="p">();</span>
+</span><span id="__span-15-30"><a id="__codelineno-15-30" name="__codelineno-15-30" href="#__codelineno-15-30"></a>
+</span><span id="__span-15-31"><a id="__codelineno-15-31" name="__codelineno-15-31" href="#__codelineno-15-31"></a><span class="kt">var</span><span class="w"> </span><span class="n">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+</span><span id="__span-15-32"><a id="__codelineno-15-32" name="__codelineno-15-32" href="#__codelineno-15-32"></a>
+</span><span id="__span-15-33"><a id="__codelineno-15-33" name="__codelineno-15-33" href="#__codelineno-15-33"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamSignalR</span><span class="p">();</span>
+</span><span id="__span-15-34"><a id="__codelineno-15-34" name="__codelineno-15-34" href="#__codelineno-15-34"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamSignalRManagement</span><span class="p">();</span>
+</span><span id="__span-15-35"><a id="__codelineno-15-35" name="__codelineno-15-35" href="#__codelineno-15-35"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamWebSockets</span><span class="p">();</span>
+</span><span id="__span-15-36"><a id="__codelineno-15-36" name="__codelineno-15-36" href="#__codelineno-15-36"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamWebSocketsManagement</span><span class="p">();</span>
+</span><span id="__span-15-37"><a id="__codelineno-15-37" name="__codelineno-15-37" href="#__codelineno-15-37"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamGrpc</span><span class="p">();</span>
+</span><span id="__span-15-38"><a id="__codelineno-15-38" name="__codelineno-15-38" href="#__codelineno-15-38"></a><span class="n">app</span><span class="p">.</span><span class="n">MapOpStreamGrpcManagement</span><span class="p">();</span>
+</span><span id="__span-15-39"><a id="__codelineno-15-39" name="__codelineno-15-39" href="#__codelineno-15-39"></a>
+</span><span id="__span-15-40"><a id="__codelineno-15-40" name="__codelineno-15-40" href="#__codelineno-15-40"></a><span class="n">app</span><span class="p">.</span><span class="n">Run</span><span class="p">();</span>
 </span></code></pre></div>
 <hr />
 <h2 id="obsolete-aliases">Obsolete aliases<a class="headerlink" href="#obsolete-aliases" title="Permanent link">&para;</a></h2>
