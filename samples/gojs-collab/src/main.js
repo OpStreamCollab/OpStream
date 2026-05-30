@@ -48,7 +48,9 @@ let dropX = 40;
 document.getElementById('addNode').onclick = () => {
     const p = diagram.transformViewToDoc(new go.Point(80 + (dropX % 360), 80 + (dropX % 200)));
     dropX += 70;
-    diagram.commit((m) => {
+    // Model.commit pasa el Model al callback (Diagram.commit pasaría el Diagram,
+    // que no tiene addNodeData).
+    diagram.model.commit((m) => {
         m.addNodeData({ text: 'Step', color: COLORS[Math.floor(Math.random() * COLORS.length)],
             loc: go.Point.stringify(p) });
     }, 'add node');

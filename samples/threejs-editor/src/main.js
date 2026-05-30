@@ -15,9 +15,37 @@ const waitForEditor = (win) => new Promise((resolve, reject) => {
     tick();
 });
 
+// Oculta el panel lateral (#sidebar) del editor three.js y estira el viewport.
+// El editor es same-origin, así que inyectamos un <style> en su documento y
+// disparamos un 'resize' para que el renderer se reajuste. Pensado para grabar la
+// demo de colaboración sin que el sidebar ocupe media pantalla.
+const setupSidebarToggle = (frame) => {
+    const doc = frame.contentWindow.document;
+    const btn = document.getElementById('toggleSidebar');
+    const STYLE_ID = 'opstream-hide-sidebar';
+    let hidden = true; // oculto por defecto
+
+    const apply = () => {
+        let st = doc.getElementById(STYLE_ID);
+        if (!st) { st = doc.createElement('style'); st.id = STYLE_ID; doc.head.appendChild(st); }
+        st.textContent = hidden
+            ? '#sidebar{display:none!important;} #viewport{right:0!important;}'
+            : '';
+        frame.contentWindow.dispatchEvent(new Event('resize')); // re-fit del renderer
+        if (btn) btn.textContent = hidden ? 'Mostrar panel' : 'Ocultar panel';
+    };
+
+    if (btn) {
+        btn.hidden = false;
+        btn.addEventListener('click', () => { hidden = !hidden; apply(); });
+    }
+    apply();
+};
+
 frame.addEventListener('load', async () => {
     try {
         const editor = await waitForEditor(frame.contentWindow);
+        setupSidebarToggle(frame);
         const session = new CollabSession({
             url: '/collab',
             documentId: 'scene-demo',

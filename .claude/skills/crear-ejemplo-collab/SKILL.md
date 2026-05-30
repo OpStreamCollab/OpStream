@@ -7,7 +7,9 @@ description: >
   y pida "hazlo colaborativo", "crea un ejemplo/sample de OpStream con esto",
   "collaborabiliza este editor", "monta un demo con esta librería", o similar. También
   aplica para añadir presencia, feedback de edición remota o comentarios anclados a un
-  ejemplo existente. Triggers: link a librería + "colaborativo/collab/sample/ejemplo/demo".
+  ejemplo existente, y para **hostear un sample (JS o Blazor) en OpStream.DemoHost**
+  (carpeta `samples/` → páginas `/samples/*` del demo público). Triggers: link a librería +
+  "colaborativo/collab/sample/ejemplo/demo"; o "hostea/monta este sample en DemoHost".
 ---
 
 # Crear un ejemplo colaborativo de OpStream desde una librería
@@ -209,6 +211,98 @@ Eventos: `ReceiveOp`, `ReceiveAwareness`, `PeerDisconnected`,
 Si encaja, añade un callout "Showcase" en `mkdocs/docs/index.md` y/o una recipe
 en `mkdocs/docs/recipes/` enlazando al sample en GitHub. Rebuild con
 `mkdocs build --strict`.
+
+---
+
+## Paso 9 — Hostear el sample en OpStream.DemoHost (demo público)
+
+`OpStream.DemoHost` es un **repo aparte** (`OpStreamCollab/OpStream.DemoHost`)
+que consume OpStream como **paquetes NuGet** y sirve los samples del repo OpStream
+en `https://hostdemo.opstream.stream/samples/<slug>/`. Catálogo único:
+`OpStream.DemoHost/samples.manifest.json` (lo usan CI, la galería in-app y los
+links de los docs). Memoria viva: `demohost-samples-hosting`.
+
+### 9a. Samples JS (Vite / estático) — los fáciles
+- Todos usan **`/collab` relativo** ⇒ servidos mismo-origen desde DemoHost
+  funcionan **sin tocar URLs**.
+- Build con base path: `npm run build -- --base=/samples/<slug>/` → copiar `dist/`
+  a `wwwroot/samples/<slug>/`. Estático plano (Monaco): copiar tal cual.
+- **threejs**: además vendoriza el editor (`git clone --depth 1 --branch r170
+  mrdoob/three.js`, copia `editor/build/files/examples/jsm`) bajo
+  `wwwroot/samples/threejs/three.js-dev/`, y el **iframe src debe ser relativo**
+  (mismo-origen: `collab-session` entra al `contentWindow`).
+- `npm ci` (lo usa el CI) **exige `package-lock.json` commiteado** — si el sample
+  no lo tiene, commitéalo.
+
+### 9b. Samples Blazor — patrón RCL (Razor Class Library)
+DemoHost ES Blazor, así que los samples Blazor se integran como **páginas**, no
+como estáticos. Molde de referencia ya en el repo: `samples/OpStream.CollabHtmlEditor`.
+
+1. Extrae la UI reutilizable a un RCL `samples/<Nombre>.View/` (`Sdk.Razor`,
+   conserva `RootNamespace` para no tocar namespaces), con un componente raíz
+   **sin `@page`** (p.ej. `FormEditorDemo.razor`). Mueve componentes con `git mv`.
+2. El host standalone se queda con un `Home.razor` fino (`@page "/"` +
+   `<XxxDemo/>`) y referencia el RCL por `ProjectReference`.
+3. **Refs OpStream → paquetes**, NO project refs a `src/`. Pínalas a la
+   **prerelease que trae la feature** (hoy `1.0.0-ci.11`): `*-*` resuelve al
+   **estable `1.0.0`** que en semver gana a la prerelease y **carece de la API de
+   comentarios** (`CommentDto`/`OnCommentCreated`). `OpStreamJsonOptions` vive en
+   el paquete `OpStream.Constants` (añádelo si lo usa el componente).
+4. RCL+host en **net9** está bien aunque DemoHost sea **net10** (referencia
+   cross-major OK). `Microsoft.AspNetCore.Components.Web` 9.0.x para net9.
+5. En DemoHost:
+   - csproj: `ProjectReference Include="$(SamplesSrcDir)\<Nombre>.View\..."`
+     (propiedad overridable por CI; default `..\..\OpStream\samples`).
+   - `Program.cs`: registra el **cliente** OpStream una vez:
+     `AddOpStreamClient().UseSignalRTransport(o => o.HubUrl =
+     config["OpStream:HubUrl"] ?? "https://hostdemo.opstream.stream/collab")`
+     (dev: `http://localhost:5555/collab` en appsettings.Development.json).
+   - Servicios por librería: Blazorise (`AddBlazorise().AddBootstrapProviders()
+     .AddFontAwesomeIcons(); AddBlazoriseRichTextEdit()`), Radzen
+     (`AddRadzenComponents()`).
+   - Página wrapper `Components/Pages/Samples/<X>Sample.razor` con
+     `@page "/samples/<slug>"` que renderiza el componente del RCL.
+6. **CSS/JS host-agnóstico** (sin tocar cada App.razor):
+   - CSS de la librería (Blazorise/Bootstrap/Radzen theme) → `<HeadContent>` en el
+     componente demo (scoped a la página, no reestiliza todo el host).
+   - Adaptadores JS del sample → se envían en el `wwwroot/` del RCL y se cargan
+     desde el propio componente con `await JS.InvokeAsync<IJSObjectReference>(
+     "import", "./_content/<Nombre>.View/<adapter>.js")` (un `<script>` renderizado
+     por Blazor NO se ejecuta). Excepción: Radzen.Blazor.js + radzen-collab-adapter
+     se cargan global en el App.razor de DemoHost.
+7. **Radzen**: su sample standalone es un repo git **anidado, no trackeado** por
+   OpStream → no lo metas en el CI. Hostéalo SIN RCL nuevo: referencia el RCL
+   trackeado `OpStream.CollabHtmlEditor` + paquete `Radzen.Blazor` y compón
+   `<CollabHtmlEditor><RadzenHtmlEditor/></CollabHtmlEditor>` en la página. Omite
+   `UploadUrl` (no exponer subida de ficheros al webroot del demo público).
+
+### 9c. CI / Docker (en el repo DemoHost)
+- `scripts/prepare-samples.sh <opstream-repo>` = **fuente única** de la copia
+  (build Vite, vendor threejs, copia RCLs a `_samples_src/`, estáticos a
+  `wwwroot/samples/`). Lo llama `build-image.yml` (checkout de OpStream + Node) y
+  se puede correr en local.
+- **Dockerfile**: copia `_samples_src/` **antes** del `dotnet restore` (los
+  ProjectReference deben existir) y pasa `-p:OpStreamVersion` + `-p:SamplesSrcDir=_samples_src`.
+- **GOTCHA crítico**: `_samples_src` queda DENTRO del proyecto ⇒ el Razor/Web SDK
+  auto-globa sus `.razor`/`.cs` y los compila además del RCL → **doble compilación
+  (RZ10009)**. Fix: `<DefaultItemExcludes>$(DefaultItemExcludes);_samples_src\**</DefaultItemExcludes>`.
+  (No salta en build local porque ahí `_samples_src` no existe.)
+- **Servir estáticos**: `UseStaticFiles`+`UseDefaultFiles` (PhysicalFileProvider,
+  `RequestPath="/samples"`) en Program.cs — middleware antes que endpoints, gana
+  para ficheros físicos; las rutas Blazor `/samples/{...}` no chocan (no hay
+  fichero físico → pasan al router).
+- `wwwroot/samples/` y `_samples_src/` van a **`.gitignore`** (regenerados por CI).
+- ci.11 movió tipos de storage (`DocumentSnapshot`/`StoredOp`/`HistoryMilestone`)
+  de `OpStream.Server.Models` → **`OpStream.Shared.Messages`** (ajusta usings del
+  código propio de DemoHost si subes de versión).
+
+### 9d. Galería + docs
+- Galería in-app `/samples`: página Blazor que lee `samples.manifest.json` (vía un
+  servicio singleton) y pinta cards con Live demo + Source.
+- Docs mkdocs: página `docs/samples.md` en el nav + admonición "Try it live"
+  (`▶ Live demo` + `</> Source`) al inicio de cada recipe. Valida con
+  `mkdocs build --strict`. Para Radzen el "source" apunta al RCL trackeado
+  (`OpStream.CollabHtmlEditor`), no al repo anidado (evita un link 404).
 
 ---
 

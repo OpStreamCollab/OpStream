@@ -157,7 +157,8 @@ export class CollabSession {
         if (!nodeOps.length && !linkOps.length) return;
         this.remoteApply = true;
         try {
-            this.diagram.commit((m) => {
+            // Model.commit pasa el Model (los _applyNode/_applyLink usan métodos del Model).
+            this.diagram.model.commit((m) => {
                 for (const o of nodeOps) this._applyNode(m, o.path.slice(N.length), o.value, o.del);
                 for (const o of linkOps) this._applyLink(m, o.path.slice(L.length), o.value, o.del);
             }, 'remote');
