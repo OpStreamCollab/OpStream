@@ -10,6 +10,7 @@ public record CommentDto(
     string DocumentId,
     string? ParentCommentId,
     string AuthorPeerId,
+    string AuthorName,
     string Body,
     AnchorDto? Anchor,
     long AnchoredAtRevision,

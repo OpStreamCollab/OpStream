@@ -59,7 +59,7 @@ builder.Services.AddOpStream(options =>
 | Management authorizer | `DenyAllDatabaseCommandAuthorizer` | ✅ fail-closed | `UseDatabaseCommandAuthorization<T>()` |
 | Snapshot policy | `HybridSnapshotPolicy(100, 5 min)` | ✅ | `UseSnapshotPolicy()` |
 | Default engine | `TextOtEngine` for type `"text"` | ✅ | `AddEngine<…>()` |
-| Tenant provider | `DefaultTenantProvider` (single tenant) | ✅ | custom `ITenantProvider` |
+| Tenant provider | `DefaultTenantProvider` (single tenant) | ✅ | configure `OpStream:TenantWebhook` or custom `ITenantProvider` |
 
 !!! warning "The two authorizers behave oppositely by default"
     The **collaboration** path defaults to *allow-all* (so you can start coding

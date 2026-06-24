@@ -9,6 +9,7 @@ public record Comment(
     string DocumentId,
     string? ParentCommentId,
     string AuthorPeerId,
+    string AuthorName,
     string Body,
     Anchor? Anchor,
     long AnchoredAtRevision,

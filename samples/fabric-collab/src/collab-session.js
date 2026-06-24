@@ -28,7 +28,9 @@ export class CollabSession {
                 peers.map((p) => ({ name: p.name, color: p.color }))),
             onComments: (list) => (onComments || (() => {}))(
                 list.map((c) => ({
-                    id: c.id, body: c.body, authorId: c.authorPeerId,
+                    id: c.id,
+                    body: c.body,
+                    authorName: c.authorName || this.session.getPeerByConn(c.authorPeerId)?.name || 'Anonymous',
                     objectId: c.anchor && c.anchor.data ? (c.anchor.data.objectId ?? null) : null,
                 }))),
             // Edit feedback is handled inside _applyOp (fabric's enliven is async, so

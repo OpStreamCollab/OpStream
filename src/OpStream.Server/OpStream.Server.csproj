@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
     <Authors>OpStream Contributors</Authors>
     <Description>Core OpStream server engine. Provides OT and CRDT convergence algorithms (TextOT, RichText, JSON CRDT, List CRDT, Table, Tree, Form), document session management, consistent-hash document routing, awareness/presence, undo/redo, and snapshot policies. All subsystems are interface-driven and DI-friendly.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

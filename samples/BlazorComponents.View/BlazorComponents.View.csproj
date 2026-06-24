@@ -25,7 +25,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.16" />
     <!-- ProjectReference para testear cambios en src/ sin necesidad de reempaquetar -->
-    <ProjectReference Include="..\..\..\OpStream.BlazorComponents\OpStream.BlazorComponents.csproj" />
+   
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpStream.BlazorComponents\OpStream.BlazorComponents.csproj" />
   </ItemGroup>
 
 </Project>

@@ -55,6 +55,7 @@ internal class MongoComment
     public string DocumentId { get; set; } = null!;
     public string? ParentCommentId { get; set; }
     public string AuthorPeerId { get; set; } = null!;
+    public string AuthorName { get; set; } = "";
     public string Body { get; set; } = null!;
     /// <summary>JSON-serialised Anchor, or null for replies.</summary>
     public string? AnchorJson { get; set; }

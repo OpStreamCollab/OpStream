@@ -14,7 +14,7 @@ namespace BlazorComponents
             builder.Services.AddOpStreamClient()
                    .UseSignalRTransport(options =>
                    {
-                       options.HubUrl = "http://localhost:50109/collab";
+                       options.HubUrl = "https://hostdemo.opstream.stream/collab";
                    });
 
             var app = builder.Build();

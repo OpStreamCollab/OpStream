@@ -6,6 +6,7 @@
     <Project Path="src/OpStream.Client.Transports/OpStream.Client.Transports.csproj" Id="4b40e9ba-26aa-46a6-a3e3-1cf5fdc85e8b" />
   </Folder>
   <Folder Name="/Server/">
+    <Project Path="src/OpStream.Server.AspNetCore/OpStream.Server.AspNetCore.csproj" />
     <Project Path="src/OpStream.Server.Backplane.Redis/OpStream.Server.Backplane.Redis.csproj" />
     <Project Path="src/OpStream.Server/OpStream.Server.csproj" />
   </Folder>

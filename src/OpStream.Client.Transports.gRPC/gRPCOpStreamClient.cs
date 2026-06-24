@@ -311,6 +311,7 @@ public class gRPCOpStreamClient : IOpStreamClient
         p.DocumentId,
         string.IsNullOrEmpty(p.ParentCommentId) ? null : p.ParentCommentId,
         p.AuthorPeerId,
+        p.AuthorName,
         p.Body,
         string.IsNullOrEmpty(p.AnchorJson)
             ? null

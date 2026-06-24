@@ -12,6 +12,7 @@ public class CommentEntity
     public string DocumentId { get; set; } = null!;
     public string? ParentCommentId { get; set; }
     public string AuthorPeerId { get; set; } = null!;
+    public string AuthorName { get; set; } = "";
     public string Body { get; set; } = null!;
     /// <summary>JSON-serialised <c>Anchor</c>, or null for reply comments.</summary>
     public string? AnchorJson { get; set; }

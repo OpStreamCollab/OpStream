@@ -15,11 +15,11 @@ touch this — the globalized id is just `default:doc-1`.
 ```csharp
 public sealed class HeaderTenantProvider(IHttpContextAccessor http) : ITenantProvider
 {
-    public ValueTask<string> GetTenantIdAsync(CancellationToken ct = default)
+    public string GetCurrentTenantId()
     {
         var tenantId = http.HttpContext?.Request.Headers["X-Tenant-Id"].ToString();
         if (string.IsNullOrEmpty(tenantId)) throw new InvalidOperationException("Missing tenant.");
-        return ValueTask.FromResult(tenantId);
+        return tenantId;
     }
 }
 ```
@@ -31,9 +31,41 @@ services.AddOpStream();
 services.AddSingleton<ITenantProvider, HeaderTenantProvider>();
 ```
 
-(`Add*` here because there's no fluent helper — you replace the
-singleton directly. A `UseMultiTenancy<T>()` helper is on the v1.0
-roadmap.)
+## Webhook Tenant Provider (Opt-in)
+
+If you host OpStream in an ASP.NET Core application, you can use the built-in webhook multitenancy feature. This allows OpStream to delegate tenant resolution to an external HTTP service, making your primary app framework-agnostic. 
+
+First, install the `OpStream.Server.AspNetCore` package, which provides the webhook extensions.
+
+```xml
+<PackageReference Include="OpStream.Server.AspNetCore" Version="1.0.0" />
+```
+
+Then, configure the URL of your webhook in your `appsettings.json`:
+
+```json
+{
+  "OpStream": {
+    "TenantWebhook": {
+      "Url": "https://api.my-backend.com/internal/resolve-tenant",
+      "TokenHeaderName": "Authorization",
+      "Timeout": "00:00:05"
+    }
+  }
+}
+```
+
+Finally, wire up the configuration in your `Program.cs` by passing the `IConfiguration` to `AddOpStream`:
+
+```csharp
+builder.Services.AddOpStream(builder.Configuration);
+```
+
+When OpStream detects the `Url` in the configuration, it automatically:
+1. Replaces `DefaultTenantProvider` with `WebhookTenantProvider`.
+2. Registers a non-blocking, asynchronous middleware that intercepts OpStream connections.
+3. Forwards the token (from headers or query string) to your webhook.
+4. Reads the JSON or text response to resolve the tenant ID before processing the document operation.
 
 ## How globalization works
 
@@ -81,7 +113,9 @@ singleton. The interface is:
 ```csharp
 public interface IDocumentIdGlobalizer
 {
-    string Globalize(string tenantId, string documentId);
+    string ToGlobalId(string localDocumentId);
+    string ToLocalId(string globalDocumentId);
+    string GetCurrentTenantPrefix();
 }
 ```
 

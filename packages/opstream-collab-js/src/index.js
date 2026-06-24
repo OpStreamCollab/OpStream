@@ -258,6 +258,7 @@ export class OpStreamSession {
             id: c.id ?? c.Id,
             body: c.body ?? c.Body,
             authorPeerId: c.authorPeerId ?? c.AuthorPeerId ?? '',
+            authorName: c.authorName ?? c.AuthorName ?? '',
             anchor: anchor ? { kind: anchor.kind ?? anchor.Kind, data: anchor.data ?? anchor.Data } : null,
             resolved: (c.resolvedAt ?? c.ResolvedAt) != null,
             isOrphaned: c.isOrphaned ?? c.IsOrphaned ?? false,

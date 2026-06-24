@@ -116,6 +116,7 @@ public class gRPCCommentsTransport(
         DocumentId = c.DocumentId,
         ParentCommentId = c.ParentCommentId ?? string.Empty,
         AuthorPeerId = c.AuthorPeerId,
+        AuthorName = c.AuthorName,
         Body = c.Body,
         AnchorJson = c.Anchor is null
             ? string.Empty

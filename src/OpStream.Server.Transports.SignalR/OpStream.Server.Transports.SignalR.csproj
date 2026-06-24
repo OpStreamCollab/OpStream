@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
     <Authors>OpStream Contributors</Authors>
     <Description>SignalR server transport for OpStream. Exposes the OpStream session engine as an ASP.NET Core SignalR hub. Supports WebSocket, Server-Sent Events, and Long-Polling fallbacks, making it compatible with browsers and Blazor applications.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

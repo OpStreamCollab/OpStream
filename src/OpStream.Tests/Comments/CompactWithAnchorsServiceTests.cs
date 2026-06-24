@@ -45,7 +45,7 @@ public class CompactWithAnchorsServiceTests
         var commentStore = new MemoryCommentStore();
         await commentStore.AddAsync(new Comment(
             Id: "c1", DocumentId: docId, ParentCommentId: null,
-            AuthorPeerId: "p1", Body: "hello",
+            AuthorPeerId: "p1", AuthorName: "Test User", Body: "hello",
             Anchor: TextAnchor(0, 5), AnchoredAtRevision: 0,
             CreatedAt: DateTimeOffset.UtcNow,
             ResolvedAt: null, ResolvedByPeerId: null, IsOrphaned: false));

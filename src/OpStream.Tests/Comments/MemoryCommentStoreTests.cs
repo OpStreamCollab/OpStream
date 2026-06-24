@@ -22,6 +22,7 @@ public class MemoryCommentStoreTests
             DocumentId: docId,
             ParentCommentId: null,
             AuthorPeerId: "peer-1",
+            AuthorName: "Test User",
             Body: "hello",
             Anchor: TextAnchor(0, 5),
             AnchoredAtRevision: anchoredAt,

@@ -26,6 +26,7 @@ public class CommentRouter(
     DocumentRouter documentRouter,
     ICommentStore store,
     IInboundMessageValidationPipeline inboundValidation,
+    IAwarenessSessionRegistry awarenessRegistry,
     ILogger<CommentRouter> logger) : IBackplaneRequestExtension
 {
     /// <summary>
@@ -173,11 +174,14 @@ public class CommentRouter(
                 // no live session (e.g. comments on a doc nobody is currently editing).
                 long anchoredAt = await SnapshotRevisionAsync(globalId, ct);
 
+                var authorName = ResolveAuthorName(globalId, payload.PeerId);
+
                 var comment = new Comment(
                     Id: Guid.NewGuid().ToString("N"),
                     DocumentId: globalId,
                     ParentCommentId: cmd.ParentCommentId,
                     AuthorPeerId: payload.PeerId,
+                    AuthorName: authorName,
                     Body: cmd.Body,
                     Anchor: cmd.Anchor,
                     AnchoredAtRevision: anchoredAt,
@@ -312,6 +316,39 @@ public class CommentRouter(
     }
 
     private static OpResult<T> Forbidden<T>() => OpResult<T>.Fail("Forbidden: Insufficient permissions for this operation.");
+
+    /// <summary>
+    /// Tries to resolve the human-readable display name of the author from the current
+    /// awareness session. Falls back to "Anonymous" if the peer has no live presence data.
+    /// </summary>
+    private string ResolveAuthorName(string globalDocumentId, string peerId)
+    {
+        try
+        {
+            var awarenessSession = awarenessRegistry.TryGet(globalDocumentId);
+            if (awarenessSession is null) return "Anonymous";
+
+            var state = awarenessSession.GetStates()
+                .FirstOrDefault(s => string.Equals(s.PeerId, peerId, StringComparison.Ordinal));
+
+            if (state is null || state.Data.ValueKind == System.Text.Json.JsonValueKind.Undefined)
+                return "Anonymous";
+
+            // The awareness payload shape is { name, color, ... } (camelCase from clients).
+            if (state.Data.TryGetProperty("name", out var nameProp) && nameProp.ValueKind == System.Text.Json.JsonValueKind.String)
+                return nameProp.GetString() ?? "Anonymous";
+
+            // Some clients may send Name (PascalCase).
+            if (state.Data.TryGetProperty("Name", out var nameCapProp) && nameCapProp.ValueKind == System.Text.Json.JsonValueKind.String)
+                return nameCapProp.GetString() ?? "Anonymous";
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Could not resolve author name for peer {PeerId}", peerId);
+        }
+
+        return "Anonymous";
+    }
 
     private enum MutationKind { Create, Edit, Resolve, Delete }
 

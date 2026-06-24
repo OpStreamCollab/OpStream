@@ -350,6 +350,7 @@ message CommentProto {
   google.protobuf.Timestamp resolved_at          = 9;
   string                    resolved_by_peer_id  = 10;
   bool                      is_orphaned          = 11;
+  string                    author_name          = 12;
 }
 
 message CommentResponse {

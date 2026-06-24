@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
     <Authors>OpStream Contributors</Authors>
     <Description>SQLite storage for OpStream via Entity Framework Core. Zero-configuration, file-based persistence for development environments, desktop apps, and single-server deployments. Provides EF Core migrations out of the box.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

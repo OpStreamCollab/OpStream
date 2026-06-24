@@ -120,7 +120,7 @@ public class EfCoreCommentStore<TContext> : ICommentStore where TContext : OpStr
         }
 
         return new Comment(
-            e.Id, e.DocumentId, e.ParentCommentId, e.AuthorPeerId, e.Body,
+            e.Id, e.DocumentId, e.ParentCommentId, e.AuthorPeerId, e.AuthorName, e.Body,
             anchor, e.AnchoredAtRevision, e.CreatedAt, e.ResolvedAt,
             e.ResolvedByPeerId, e.IsOrphaned);
     }
@@ -131,6 +131,7 @@ public class EfCoreCommentStore<TContext> : ICommentStore where TContext : OpStr
         DocumentId = c.DocumentId,
         ParentCommentId = c.ParentCommentId,
         AuthorPeerId = c.AuthorPeerId,
+        AuthorName = c.AuthorName,
         Body = c.Body,
         AnchorJson = c.Anchor is null ? null : JsonSerializer.Serialize(c.Anchor, JsonOptions),
         AnchoredAtRevision = c.AnchoredAtRevision,

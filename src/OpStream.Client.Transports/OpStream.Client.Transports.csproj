@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
     <Authors>OpStream Contributors</Authors>
     <Description>Transport abstraction layer for OpStream clients. Provides the IOpStreamClient interface for connecting to OpStream servers, submitting operations, and receiving real-time updates. Pick a concrete transport package (SignalR, gRPC, WebSockets) to complement this one.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

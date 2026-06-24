@@ -40,6 +40,7 @@ public class CommentAnchorRebaseHookTests
             DocumentId: docId,
             ParentCommentId: null,
             AuthorPeerId: "peer-A",
+            AuthorName: "Test User",
             Body: "look here",
             Anchor: TextAnchor(0, 5),
             AnchoredAtRevision: 0,

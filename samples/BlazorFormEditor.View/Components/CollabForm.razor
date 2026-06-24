@@ -12,7 +12,6 @@
 
 <div class="collab-bar">
     <span class="collab-status @(_joined ? "ok" : "wait")">@_statusMessage</span>
-    <span class="collab-rev">doc: <code>@DocumentId</code> · rev: <code>@_currentRevision</code></span>
     <span class="collab-peers">
         @foreach (var p in _peers.Values)
         {
@@ -406,7 +405,6 @@
     .collab-status.ok { background: #d4edda; color: #155724; }
     .collab-status.wait { background: #fff3cd; color: #856404; }
 
-    .collab-rev code { color: #007bff; }
 
     .collab-peers { display: flex; align-items: center; gap: 0.3rem; }
     .peer-dot {

@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="../BlazorComponents.View/BlazorComponents.View.csproj" />
+  <Project Path="../OpStream.BlazorComponents/OpStream.BlazorComponents.csproj" />
   <Project Path="BlazorComponents.csproj" />
 </Solution>

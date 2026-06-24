@@ -9,8 +9,9 @@
     <Project Path="../samples/BlazorTextEditor/BlazorTextEditor.csproj" />
   </Folder>
   <Folder Name="/Server/">
-    <Project Path="OpStream.Server.Backplane.Redis/OpStream.Server.Backplane.Redis.csproj" />
-    <Project Path="OpStream.Server/OpStream.Server.csproj" />
+    <Project Path="OpStream.Server.AspNetCore\OpStream.Server.AspNetCore.csproj" />
+    <Project Path="OpStream.Server.Backplane.Redis\OpStream.Server.Backplane.Redis.csproj" />
+    <Project Path="OpStream.Server\OpStream.Server.csproj" />
   </Folder>
   <Folder Name="/Server/Storage/">
     <Project Path="OpStream.Server.Storage.EntityFrameworkCore/OpStream.Server.Storage.EntityFrameworkCore.csproj" />

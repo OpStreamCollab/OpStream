@@ -14,11 +14,19 @@ function resize() {
 }
 window.addEventListener('resize', resize);
 
-// ── Presence: a random name + color for this user ────────────────────────────
+// ── Presence: ask for a name (cached in sessionStorage) ──────────────────────
 const PALETTE = ['#e91e63', '#3f51b5', '#009688', '#ff9800', '#9c27b0', '#2d6cdf'];
+
+const STORAGE_KEY = 'opstream-peer-name';
+let storedName = sessionStorage.getItem(STORAGE_KEY);
+if (!storedName) {
+    storedName = window.prompt('What name should others see?', '') || 'Anonymous';
+    sessionStorage.setItem(STORAGE_KEY, storedName);
+}
+
 const presence = {
     peerId: 'peer-' + Math.random().toString(36).slice(2, 8),
-    name: 'User-' + Math.floor(100 + Math.random() * 900),
+    name: storedName,
     color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
 };
 const meEl = document.getElementById('me');
@@ -166,7 +174,7 @@ function renderPanel() {
     for (const c of shown) {
         const row = document.createElement('div');
         row.className = 'cm';
-        const who = (c.authorId || '').slice(0, 6);
+        const who = c.authorName || 'Anonymous';
         row.innerHTML = `<div class="body"></div><div class="meta">by ${who}` +
             (!selectedId ? ` · on ${(CollabSession.objectIdOf(c) || '').slice(0, 8)}` : '') + `</div>`;
         row.querySelector('.body').textContent = c.body;
