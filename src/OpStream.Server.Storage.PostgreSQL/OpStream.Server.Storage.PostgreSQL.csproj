@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Authors>OpStream Contributors</Authors>
     <Description>PostgreSQL storage for OpStream via Entity Framework Core and Npgsql. Stores operation logs and document snapshots in PostgreSQL. Provides EF Core migrations and takes advantage of PostgreSQL's JSONB and LISTEN/NOTIFY capabilities.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

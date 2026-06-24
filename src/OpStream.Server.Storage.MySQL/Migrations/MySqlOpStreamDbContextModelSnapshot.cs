@@ -34,6 +34,10 @@ namespace OpStream.Server.Storage.MySQL.Migrations
                     b.Property<long>("AnchoredAtRevision")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("AuthorPeerId")
                         .IsRequired()
                         .HasColumnType("longtext");

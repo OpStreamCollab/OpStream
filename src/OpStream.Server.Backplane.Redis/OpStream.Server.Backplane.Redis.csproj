@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Authors>OpStream Contributors</Authors>
     <Description>Redis pub/sub backplane for OpStream. Enables multi-node deployments by broadcasting operations and awareness events across server instances via Redis Pub/Sub. Add this package when running OpStream behind a load balancer or in a Kubernetes cluster.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Authors>OpStream Contributors</Authors>
     <Description>MySQL storage for OpStream via Entity Framework Core and Pomelo.EntityFrameworkCore.MySql. Stores operation logs and document snapshots in a MySQL or MariaDB database. Provides EF Core migrations out of the box.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

@@ -34,6 +34,10 @@ namespace OpStream.Server.Storage.SqlServer.Migrations
                     b.Property<long>("AnchoredAtRevision")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("AuthorPeerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

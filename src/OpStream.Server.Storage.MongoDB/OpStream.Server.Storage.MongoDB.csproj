@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Authors>OpStream Contributors</Authors>
     <Description>MongoDB document storage for OpStream. Stores operation logs and snapshots in MongoDB collections. Ideal for document-heavy workloads or teams already running MongoDB. Implements IDocumentStore via the official MongoDB.Driver.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

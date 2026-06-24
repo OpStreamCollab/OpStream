@@ -34,6 +34,10 @@ namespace OpStream.Server.Storage.PostgreSQL.Migrations
                     b.Property<long>("AnchoredAtRevision")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("AuthorPeerId")
                         .IsRequired()
                         .HasColumnType("text");
