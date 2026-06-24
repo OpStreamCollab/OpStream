@@ -57,16 +57,28 @@ export function attachCollab(editor, opts) {
   let disposed = false;
 
   const client = new WebSocketOpStreamClient(opts.url);
-  
+
   if (opts.onStatus) {
       // WebSocketOpStreamClient doesn't have a status callback in the constructor,
       // but we can wrap the onDisconnected event.
       client.onDisconnected = (err) => {
-          opts.onStatus("closed");
-          console.error("WebSocket disconnected", err);
+          if (!disposed) opts.onStatus("reconnecting");
+          console.warn("WebSocket disconnected", err);
       };
       opts.onStatus("connecting");
   }
+
+  // On reconnect, re-join and re-seed from the authoritative server snapshot. This
+  // discards any edits made while offline (server is the source of truth) but
+  // guarantees convergence after a dropped connection.
+  client.onReconnected = async () => {
+      if (disposed) return;
+      try {
+          await joinAndSeed();
+      } catch (e) {
+          if (opts.onStatus) opts.onStatus("error: " + (e && e.message));
+      }
+  };
 
   // ── Local edits → ops ───────────────────────────────────────────────────────
   const changeSub = editor.onDidChangeModelContent((e) => {
@@ -427,6 +439,8 @@ export function attachCollab(editor, opts) {
 
   // ── Teardown ────────────────────────────────────────────────────────────────
   return {
+    // Exposed so the host can inspect connection state (and for tests).
+    client,
     dispose() {
       if (disposed) return;
       disposed = true;

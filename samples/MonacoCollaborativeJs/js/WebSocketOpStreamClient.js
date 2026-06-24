@@ -15,8 +15,14 @@ export class WebSocketOpStreamClient {
         // ── Events ────────────────────────────────────────────────────────
         this.onReceiveOp = null;               // (payload: Uint8Array | string, newRev: number) => Promise<void> | void
         this.onDisconnected = null;            // (error: Error) => void
+        this.onReconnected = null;             // () => Promise<void> | void  (fired after the socket reopens)
         this.onReceiveAwareness = null;        // (states: Array<any>) => Promise<void> | void
         this.onPeerDisconnected = null;        // (peerId: string) => void
+
+        // Auto-reconnect state.
+        this._disposed = false;
+        this._isReconnect = false;
+        this._reconnectAttempts = 0;
         
         this.onCommentCreated = null;          // (comment: any) => Promise<void> | void
         this.onCommentUpdated = null;          // (comment: any) => Promise<void> | void
@@ -52,7 +58,16 @@ export class WebSocketOpStreamClient {
         }
 
         this._webSocket = new WebSocket(this.serverUri);
-        
+
+        this._webSocket.onopen = () => {
+            const wasReconnect = this._isReconnect;
+            this._isReconnect = false;
+            this._reconnectAttempts = 0;
+            if (wasReconnect && this.onReconnected) {
+                Promise.resolve(this.onReconnected()).catch(e => console.error("onReconnected handler failed", e));
+            }
+        };
+
         this._webSocket.onmessage = async (event) => {
             try {
                 const message = JSON.parse(event.data);
@@ -111,16 +126,37 @@ export class WebSocketOpStreamClient {
         };
 
         this._webSocket.onclose = (event) => {
+            // Fail any in-flight request promises so callers don't hang forever.
+            for (const pending of this._pendingRequests.values()) {
+                pending.reject(new Error("WebSocket closed"));
+            }
+            this._pendingRequests.clear();
+
             if (this.onDisconnected) {
                 this.onDisconnected(new Error(`WebSocket closed. Code: ${event.code}`));
             }
-        };
 
-        this._webSocket.onerror = (error) => {
-            if (this.onDisconnected) {
-                this.onDisconnected(new Error("WebSocket error occurred."));
+            // Auto-reconnect unless we closed intentionally (dispose → code 1000).
+            if (!this._disposed && event.code !== 1000) {
+                this._scheduleReconnect();
             }
         };
+
+        this._webSocket.onerror = () => {
+            // The onclose handler that follows drives status + reconnect; just log here.
+            console.warn("WebSocket error; will attempt to reconnect.");
+        };
+    }
+
+    _scheduleReconnect() {
+        this._reconnectAttempts++;
+        // Exponential backoff: 0.5s, 1s, 2s, 4s … capped at 30s.
+        const delay = Math.min(30000, 500 * Math.pow(2, this._reconnectAttempts - 1));
+        setTimeout(() => {
+            if (this._disposed) return;
+            this._isReconnect = true;
+            this._connect();
+        }, delay);
     }
 
     /**
@@ -307,6 +343,7 @@ export class WebSocketOpStreamClient {
     }
 
     async disposeAsync() {
+        this._disposed = true;
         if (this._webSocket) {
             // READY STATES: CONNECTING = 0, OPEN = 1
             if (this._webSocket.readyState === 1 || this._webSocket.readyState === 0) { 
